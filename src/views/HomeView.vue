@@ -1,6 +1,7 @@
 <template>
   <LoginModal :modal-is-open="modalIsOpen"
               @event-close-modal="closeLoginModal"
+              @event-execute-login="executeLogin"
   />
   <div>
     <!-- GIF background -->
@@ -39,6 +40,7 @@
 
 <script>
 import LoginModal from "@/components/modal/LoginModal.vue";
+import NavigationServices from "@/services/NavigationServices";
 export default {
   name: "GifBackground",
   components: {LoginModal},
@@ -46,6 +48,8 @@ export default {
   data() {
     return {
       modalIsOpen: false,
+      isLoggedIn: false,
+      isAdmin: false,
       // Dynamically require the gif from the assets folder
       gifSrc: require('@/assets/calendrify.gif')
     };
@@ -56,6 +60,17 @@ export default {
     },
     closeLoginModal() {
       this.modalIsOpen = false
+    },
+    executeLogin() {
+      NavigationServices.navigateToCalendarView()
+      this.isLoggedIn = true
+      this.closeLoginModal()
+    },
+    updateNavMenu() {
+      let userId = sessionStorage.getItem('userId')
+      this.isLoggedIn = userId !== null
+      let roleName = sessionStorage.getItem('roleName')
+      this.isAdmin = roleName != null && 'admin' === roleName
     },
 
   }
