@@ -8,7 +8,28 @@
 
     <!-- Content section -->
     <div class="content">
-      <p>This is a page with a GIF background!</p>
+      <div class="row justify-content-center">
+        <div class="col-auto">
+          <button type="button" class="btn btn-light">Login</button>
+        </div>
+      </div>
+      <div class="row justify-content-center">
+        <div class="col-auto">
+          <p><a href="#" class="link-light link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover">Register</a></p>
+        </div>
+      </div>
+
+      <div class="row justify-content-center mt-5">
+        <div class="col-md-8 d-flex flex-column align-items-center justify-content-center text-center">
+          <h2 class="fw-bold">Stay Organized, Stay Ahead – Welcome to Your Ultimate Calendar Solution!</h2>
+          <h5 class="mt-3 text-muted">
+            In today’s fast-paced world, managing your time effectively is the key to success. Our powerful, intuitive,
+            and beautifully designed calendar platform helps you stay on top of your schedule effortlessly. Whether you're
+            a busy professional, a freelancer, or just someone who loves to stay organized, our all-in-one calendar
+            solution is built to meet your needs.
+          </h5>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -50,6 +71,7 @@ img {
   z-index: 1;
   color: white;
   text-align: center;
-  padding-top: 200px;
+  padding-top: 25px;
 }
 </style>
+

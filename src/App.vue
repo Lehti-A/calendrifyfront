@@ -34,7 +34,7 @@
 export default {
 data() {
 return {
-  isLoggedIn: true
+  isLoggedIn: false
   //todo hiljem muuta is LoggedIn falseiks
 }
 },
@@ -45,3 +45,4 @@ methods:{
 }
 
 </script>
+
