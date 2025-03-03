@@ -4,13 +4,9 @@
               @event-execute-login="executeLogin"
   />
   <div>
-    <!-- GIF background -->
     <div class="gif-background">
-      <!-- Dynamically load the gif -->
       <img :src="gifSrc" alt="Background GIF"/>
     </div>
-
-    <!-- Content section -->
     <div class="content">
       <div class="row justify-content-center">
         <div class="col-auto">
@@ -19,8 +15,10 @@
       </div>
       <div class="row justify-content-center">
         <div class="col-auto">
-          <p><a href="#" class="link-light link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover">Register</a>
-          </p>
+          <button @click="navigateToRegisterView" type="button"
+                  class="btn btn-link link-light link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover">
+            Register
+          </button>
         </div>
       </div>
 
@@ -43,20 +41,25 @@
 <script>
 import LoginModal from "@/components/modal/LoginModal.vue";
 import NavigationServices from "@/services/NavigationServices";
+import {useRouter} from "vue-router";
 
 export default {
   name: "GifBackground",
   components: {LoginModal},
-
   data() {
     return {
       modalIsOpen: false,
       isLoggedIn: false,
       isAdmin: false,
-      // Dynamically require the gif from the assets folder
       gifSrc: require('@/assets/calendrify.gif')
     };
   },
+
+  setup() {
+    const router = useRouter(); // Initialize Vue Router
+    return {router};
+  },
+
   methods: {
     openLoginModal() {
       this.modalIsOpen = true
@@ -64,6 +67,11 @@ export default {
     closeLoginModal() {
       this.modalIsOpen = false
     },
+
+    navigateToRegisterView() {
+      this.$router.push({name: 'registerRoute'}); // Navigate to the Register route
+    },
+
     executeLogin() {
       NavigationServices.navigateToCalendarView()
       this.isLoggedIn = true
