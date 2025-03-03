@@ -19,7 +19,8 @@
       </div>
       <div class="row justify-content-center">
         <div class="col-auto">
-          <p><a href="#" class="link-light link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover">Register</a></p>
+          <p><a href="#" class="link-light link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover">Register</a>
+          </p>
         </div>
       </div>
 
@@ -28,7 +29,8 @@
           <h2 class="fw-bold">Stay Organized, Stay Ahead – Welcome to Your Ultimate Calendar Solution!</h2>
           <h5 class="mt-3 text-muted">
             In today’s fast-paced world, managing your time effectively is the key to success. Our powerful, intuitive,
-            and beautifully designed calendar platform helps you stay on top of your schedule effortlessly. Whether you're
+            and beautifully designed calendar platform helps you stay on top of your schedule effortlessly. Whether
+            you're
             a busy professional, a freelancer, or just someone who loves to stay organized, our all-in-one calendar
             solution is built to meet your needs.
           </h5>
@@ -41,6 +43,7 @@
 <script>
 import LoginModal from "@/components/modal/LoginModal.vue";
 import NavigationServices from "@/services/NavigationServices";
+
 export default {
   name: "GifBackground",
   components: {LoginModal},
@@ -54,8 +57,8 @@ export default {
       gifSrc: require('@/assets/calendrify.gif')
     };
   },
-  methods:{
-    openLoginModal(){
+  methods: {
+    openLoginModal() {
       this.modalIsOpen = true
     },
     closeLoginModal() {
@@ -76,32 +79,4 @@ export default {
   }
 };
 </script>
-
-<style scoped>
-/* Make the gif cover the whole screen */
-.gif-background {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  z-index: -1;
-}
-
-img {
-  object-fit: cover; /* Ensures the gif covers the entire container */
-  width: 100%;
-  height: 100%;
-}
-
-/* Content section */
-.content {
-  position: relative;
-  z-index: 1;
-  color: white;
-  text-align: center;
-  padding-top: 25px;
-}
-</style>
 
