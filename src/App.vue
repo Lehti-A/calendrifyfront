@@ -1,30 +1,47 @@
 <template>
-  <nav>
-    <router-link to="/">Home</router-link> |
-    <router-link to="/about">About</router-link>
+  <nav v-if="isLoggedIn">
+    <div class="container text-center">
+      <div class="row justify-content-center mt-2 gx-4">
+
+        <div class="col-auto">
+          <button type="button" class="btn btn-outline-secondary">Work day</button>
+        </div>
+
+        <div class="col-auto">
+          <button type="button" class="btn btn-outline-secondary">Personal day</button>
+        </div>
+
+        <div class="col-auto">
+          <button type="button" class="btn btn-outline-secondary">Calendar</button>
+        </div>
+
+        <div class="col-auto">
+          <button type="button" class="btn btn-outline-secondary">Profile</button>
+        </div>
+
+        <div class="col-auto">
+          <button type="button" class="btn btn-outline-secondary">Log out</button>
+        </div>
+
+      </div>
+    </div>
+
   </nav>
   <router-view/>
 </template>
 
-<style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
+<script>
+export default {
+data() {
+return {
+  isLoggedIn: true
+  //todo hiljem muuta is LoggedIn falseiks
+}
+},
+methods:{
+
 }
 
-nav {
-  padding: 30px;
 }
 
-nav a {
-  font-weight: bold;
-  color: #2c3e50;
-}
-
-nav a.router-link-exact-active {
-  color: #42b983;
-}
-</style>
+</script>
