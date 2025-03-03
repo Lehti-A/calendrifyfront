@@ -8,12 +8,25 @@
     </template>
 
     <template #body>
-      <h3>"You define your own life. Don't let other people write your script"</h3>
+      <form class="d-flex flex-column align-items-center justify-content-center mt-4">
+        <!-- Username Input -->
+        <div class="mb-3 w-100">
+          <label for="username" class="form-label">Email</label>
+          <input type="text" class="form-control" id="username" placeholder="Enter your email" />
+        </div>
+        <!-- Password Input -->
+        <div class="mb-3 w-100">
+          <label for="password" class="form-label">Password</label>
+          <input type="password" class="form-control" id="password" placeholder="Enter your password" />
+        </div>
+      </form>
     </template>
 
     <template #footer>
-      <button @click="executeLogin" class="btn btn-outline-success">Login</button>
+      <button @click="executeLogin" class="btn btn-outline-success w-50">Login</button>
     </template>
+
+
 
   </Modal>
 </template>
