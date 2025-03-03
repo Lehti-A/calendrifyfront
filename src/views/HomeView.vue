@@ -83,7 +83,6 @@ export default {
       let roleName = sessionStorage.getItem('roleName')
       this.isAdmin = roleName != null && 'admin' === roleName
     },
-
   }
 };
 </script>
