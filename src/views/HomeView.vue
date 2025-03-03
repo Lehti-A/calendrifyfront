@@ -1,4 +1,7 @@
 <template>
+  <LoginModal :modal-is-open="modalIsOpen"
+              @event-close-modal="closeLoginModal"
+  />
   <div>
     <!-- GIF background -->
     <div class="gif-background">
@@ -10,7 +13,7 @@
     <div class="content">
       <div class="row justify-content-center">
         <div class="col-auto">
-          <button type="button" class="btn btn-light">Login</button>
+          <button @click="openLoginModal" type="button" class="btn btn-light">Login</button>
         </div>
       </div>
       <div class="row justify-content-center">
@@ -35,14 +38,26 @@
 </template>
 
 <script>
+import LoginModal from "@/components/modal/LoginModal.vue";
 export default {
   name: "GifBackground",
+  components: {LoginModal},
 
   data() {
     return {
+      modalIsOpen: false,
       // Dynamically require the gif from the assets folder
       gifSrc: require('@/assets/calendrify.gif')
     };
+  },
+  methods:{
+    openLoginModal(){
+      this.modalIsOpen = true
+    },
+    closeLoginModal() {
+      this.modalIsOpen = false
+    },
+
   }
 };
 </script>
