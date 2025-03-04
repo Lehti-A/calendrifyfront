@@ -13,9 +13,6 @@ export default {
     },
 
 
-
-
-
     navigateToErrorView() {
         // todo: lõpus võib sisse panna
         // router.push({name: 'errorRoute'})
