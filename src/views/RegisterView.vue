@@ -17,61 +17,56 @@
           <label for="email" class="form-label">Email</label>
           <input
               type="email"
-              id="email"
               class="form-control"
-              v-model="formData.email"
+              v-model="newUser.email"
               placeholder="Enter your email"
               required
           />
         </div>
 
-        <!-- Password Input -->
+
         <div class="mb-3">
           <label for="password" class="form-label">Password</label>
           <input
               type="password"
-              id="password"
               class="form-control"
-              v-model="formData.password"
+              v-model="newUser.password"
               placeholder="Enter your password"
               required
           />
         </div>
 
-        <!-- Retype Password Input -->
+
         <div class="mb-3">
           <label for="retypePassword" class="form-label">Retype Password</label>
           <input
               type="password"
-              id="retypePassword"
               class="form-control"
-              v-model="formData.retypePassword"
+              v-model="newUser.retypePassword"
               placeholder="Retype your password"
               required
           />
         </div>
 
-        <!-- Address Input -->
+
         <div class="mb-3">
           <label for="address" class="form-label">Address</label>
           <input
               type="text"
-              id="address"
               class="form-control"
-              v-model="formData.address"
+              v-model="newUser.address"
               placeholder="Enter your address"
               required
           />
         </div>
 
-        <!-- Phone Input -->
+
         <div class="mb-3">
           <label for="phone" class="form-label">Phone</label>
           <input
               type="tel"
-              id="phone"
               class="form-control"
-              v-model="formData.phone"
+              v-model="newUser.phone"
               placeholder="Enter your phone number"
               required
           />
@@ -79,9 +74,8 @@
         <div class="form-check mb-3">
           <input
               type="checkbox"
-              id="terms"
               class="form-check-input"
-              v-model="formData.terms"
+              v-model="newUser.terms"
               required
           />
           <label for="terms" class="form-check-label">
@@ -103,8 +97,9 @@ export default {
   name: "RegisterView",
   data() {
     return {
-      backgroundImage: require('@/assets/calendrify.gif'), // Background image
-      formData: {
+      backgroundImage: require('@/assets/calendrify.gif'),
+      errorMessage: '',
+      newUser: {
         email: "",
         password: "",
         retypePassword: "",
@@ -116,15 +111,11 @@ export default {
   },
   methods: {
     handleRegister() {
-      if (this.formData.password !== this.formData.retypePassword) {
+      if (this.newUser.password !== this.newUser.retypePassword) {
         alert("Passwords do not match!");
         return;
       }
-
-      // Simulate API call for registration
-      console.log("Registering user with data:", this.formData);
-
-      this.formData = {
+      this.newUser = {
         email: "",
         password: "",
         retypePassword: "",
