@@ -42,7 +42,7 @@
           <input
               type="password"
               class="form-control"
-              v-model="newUser.passwordRetype"
+              v-model="passwordRetype"
               placeholder="Retype your password"
               required
           />
@@ -101,11 +101,11 @@ export default {
   data() {
     return {
       backgroundImage: require('@/assets/calendrify.gif'),
+      passwordRetype:'',
       errorMessage: '',
       newUser: {
         email: '',
         password: '',
-        passwordRetype: '',
         address: '',
         phone: '',
         termsAgreed: false,
@@ -116,7 +116,7 @@ export default {
     addNewUser(){
       if(this.passwordNoMatch()){
         this.errorMessage = "Paroolid ei kattu"
-      }else {
+      } else {
         UserService.sendPostNewUserRequest(this.newUser)
             .then(() => NavigationServices.navigateToHomeView())
             .catch(() => NavigationServices.navigateToErrorView())
@@ -125,7 +125,7 @@ export default {
     },
 
     passwordNoMatch() {
-      return this.newUser.passwordRetype !== this.newUser.password
+      return this.passwordRetype !== this.newUser.password
     },
 
 

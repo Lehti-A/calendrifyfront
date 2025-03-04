@@ -1,4 +1,5 @@
 <template>
+<div :class="backgroundClass">
 
   <nav v-if="isLoggedIn">
     <div class="container text-center">
@@ -29,6 +30,7 @@
 
   </nav>
   <router-view @event-update-nav-menu="updateNavMenuAndBackground"/>
+</div>
 </template>
 
 <script>

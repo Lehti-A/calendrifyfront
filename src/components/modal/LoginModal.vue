@@ -13,14 +13,12 @@
           <!-- Username Input -->
           <div class="mb-3 w-100">
             <label for="email" class="form-label">Email</label>
-            <input type="text" class="form-control" id="email" placeholder="Enter your email" required/>
-  <!--            todo: vaheta type textilt emaili vastu, et viskaks @ exeptionit-->
-  <!--            todo: selleks vaheta andmebaasis andmeid-->
+            <input v-model="email" type="text" class="form-control" id="email" placeholder="Enter your email" required/>
           </div>
           <!-- Password Input -->
           <div class="mb-3 w-100">
             <label for="password" class="form-label">Password</label>
-            <input type="password" class="form-control" id="password" placeholder="Enter your password" required/>
+            <input v-model="password" type="password" class="form-control" id="password" placeholder="Enter your password" required/>
           </div>
         </form>
       </template>
