@@ -1,11 +1,12 @@
 <template>
   <LoginModal :modal-is-open="modalIsOpen"
               @event-close-modal="closeLoginModal"
-              @event-execute-login="executeLogin"
+              @event-update-nav-menu="$emit('event-update-nav-menu')"
+
   />
   <div>
-    <div class="gif-background">
-      <img :src="gifSrc" alt="Background GIF"/>
+    <div class="background-image">
+      <img :src="backgroundImage" alt="Background Image" />
     </div>
     <div class="content">
       <div class="row justify-content-center">
@@ -42,16 +43,15 @@
 import LoginModal from "@/components/modal/LoginModal.vue";
 import NavigationServices from "@/services/NavigationServices";
 import {useRouter} from "vue-router";
+import LoginService from "@/services/LoginService";
 
 export default {
-  name: "GifBackground",
+  name: "HomeView",
   components: {LoginModal},
   data() {
     return {
       modalIsOpen: false,
-      isLoggedIn: false,
-      isAdmin: false,
-      gifSrc: require('@/assets/calendrify.gif')
+      backgroundImage: require('@/assets/calendrify.gif')
     };
   },
 
@@ -67,22 +67,10 @@ export default {
     closeLoginModal() {
       this.modalIsOpen = false
     },
-
     navigateToRegisterView() {
-      this.$router.push({name: 'registerRoute'}); // Navigate to the Register route
+      NavigationServices.navigateToRegisterView()
     },
 
-    executeLogin() {
-      NavigationServices.navigateToCalendarView()
-      this.isLoggedIn = true
-      this.closeLoginModal()
-    },
-    updateNavMenu() {
-      let userId = sessionStorage.getItem('userId')
-      this.isLoggedIn = userId !== null
-      let roleName = sessionStorage.getItem('roleName')
-      this.isAdmin = roleName != null && 'admin' === roleName
-    },
   }
 };
 </script>

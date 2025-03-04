@@ -1,5 +1,6 @@
 <template>
   <Modal :modal-is-open="modalIsOpen"
+         @event-update-nav-menu="$emit('event-update-nav-menu')"
          @event-close-modal="$emit('event-close-modal')"
   >
 
@@ -32,17 +33,104 @@
 
 <script>
 import Modal from "@/components/modal/Modal.vue";
+import LoginService from "@/services/LoginService";
+import NavigationServices from "@/services/NavigationServices";
+import HttpStatusCodes from "@/errors/HttpStatusCodes";
+import BusinessErrors from "@/errors/BusinessErrors";
 
 export default {
   name: 'LoginModal',
   components: {Modal},
   props: {
-    modalIsOpen: Boolean
+    modalIsOpen: Boolean,
   },
-  methods: {
-    executeLogin() {
-      this.$emit('event-execute-login')
+    data() {
+      return {
+        email: '',
+        password: '',
+        message: '',
+        loginResponse: {
+          userId: 0,
+          roleName: ''
+        },
+        isLoggedIn: false,
+        isAdmin: false,
+        errorResponse: {
+          message: '',
+          errorCode: 0
+        }
+
+      }
     },
-  }
+  methods: {
+
+    executeLogin() {
+      if (this.allFieldsAreWithCorrectInput()) {
+        this.sendLoginRequest();
+      } else {
+        this.alertMissingFields();
+      }
+    },
+
+    allFieldsAreWithCorrectInput() {
+      return this.email.length > 0 && this.password.length > 0;
+    },
+
+    sendLoginRequest() {
+      LoginService.sendLoginRequest(this.email, this.password)
+          .then(response => this.handleLoginResponse(response))
+          .catch(error => this.handleLoginErrorResponse(error))
+    },
+
+    handleLoginResponse(response) {
+      this.loginResponse = response.data
+      this.updateSessionStorageWithUserDetails()
+      this.$emit('event-update-nav-menu')
+      this.$emit('event-close-modal')
+      NavigationServices.navigateToCalendarView();
+    },
+    updateSessionStorageWithUserDetails() {
+      sessionStorage.setItem('userId', this.loginResponse.userId)
+      sessionStorage.setItem('roleName', this.loginResponse.roleName)
+    },
+
+    handleLoginErrorResponse(error) {
+      this.errorResponse = error.response.data
+      let httpStatusCode = error.response.status;
+
+      if (this.isIncorrectCredentials(httpStatusCode)) {
+        this.handleIncorrectCredentialsAlert()
+      } else {
+        NavigationServices.navigateToErrorView()
+      }
+    },
+
+    isIncorrectCredentials(httpStatusCode) {
+      return HttpStatusCodes.STATUS_FORBIDDEN === httpStatusCode
+          && BusinessErrors.CODE_INCORRECT_CREDENTIALS === this.errorResponse.errorCode;
+    },
+
+    handleIncorrectCredentialsAlert() {
+      this.message = this.errorResponse.message;
+      setTimeout(this.resetAlertMessage, 4000);
+    },
+
+    alertMissingFields() {
+      this.message = 'Täida kõik väljad'
+      setTimeout(this.resetAlertMessage, 4000)
+    },
+
+    resetAlertMessage() {
+      this.message = ''
+    },
+
+  },
+
+      // todo: saada sõnum backendile
+      // todo: kui tuleb edukas vastus, siis salvesta session storageisse maha userId roleName
+      // todo: emit evendid
+
+      // todo: navigeeri calendar lehele
+
 }
 </script>

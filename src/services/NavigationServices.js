@@ -5,6 +5,10 @@ export default {
     navigateToCalendarView() {
         router.push({name: 'calendarRoute'})
     },
+    navigateToRegisterView() {
+        router.push({name: 'registerRoute'})
+    },
+
 
     navigateToLocationsView(locationId) {
         router.push({
