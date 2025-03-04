@@ -100,7 +100,7 @@ export default {
   name: "RegisterView",
   data() {
     return {
-      backgroundImage: require('@/assets/calendrify.gif'),
+      backgroundImage: require('@/assets/calendrifynew.gif'),
       passwordRetype:'',
       errorMessage: '',
       newUser: {
