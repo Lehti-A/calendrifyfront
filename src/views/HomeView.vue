@@ -1,13 +1,9 @@
 <template>
-  <LoginModal :modal-is-open="modalIsOpen"
-              @event-close-modal="closeLoginModal"
-              @event-update-nav-menu="$emit('event-update-nav-menu')"
-
-  />
   <div>
-    <div class="background-image">
-      <img :src="backgroundImage" alt="Background Image" />
-    </div>
+    <LoginModal :modal-is-open="modalIsOpen"
+                @event-close-modal="closeLoginModal"
+                @event-update-nav-menu="$emit('event-update-nav-menu')"
+    />
     <div class="content">
       <div class="row justify-content-center">
         <div class="col-auto">
@@ -40,24 +36,16 @@
 </template>
 
 <script>
-import LoginModal from "@/components/modal/LoginModal.vue";
 import NavigationServices from "@/services/NavigationServices";
-import {useRouter} from "vue-router";
-import LoginService from "@/services/LoginService";
+import LoginModal from "../components/modal/LoginModal.vue";
 
 export default {
   name: "HomeView",
   components: {LoginModal},
   data() {
     return {
-      modalIsOpen: false,
-      backgroundImage: require('@/assets/calendrify.gif')
-    };
-  },
-
-  setup() {
-    const router = useRouter(); // Initialize Vue Router
-    return {router};
+      modalIsOpen: false
+    }
   },
 
   methods: {
@@ -71,7 +59,8 @@ export default {
       NavigationServices.navigateToRegisterView()
     },
 
-  }
-};
+  },
+
+}
 </script>
 

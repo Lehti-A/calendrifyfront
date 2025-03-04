@@ -8,19 +8,12 @@ export default {
     navigateToRegisterView() {
         router.push({name: 'registerRoute'})
     },
-
-
-    navigateToLocationsView(locationId) {
-        router.push({
-            name: 'locationRoute',
-            params: {
-                locationId: locationId
-            },
-            query: {
-                edit: true
-            }
-        })
+    navigateToHomeView() {
+        router.push({name: 'homeRoute'})
     },
+
+
+
 
 
     navigateToErrorView() {

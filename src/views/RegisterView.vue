@@ -11,7 +11,7 @@
       <h2 class="text-center mb-4">Register</h2>
 
 
-      <form @submit.prevent="handleRegister">
+      <form>
 
         <div class="mb-3">
           <label for="email" class="form-label">Email</label>
@@ -42,7 +42,7 @@
           <input
               type="password"
               class="form-control"
-              v-model="newUser.retypePassword"
+              v-model="newUser.passwordRetype"
               placeholder="Retype your password"
               required
           />
@@ -75,7 +75,7 @@
           <input
               type="checkbox"
               class="form-check-input"
-              v-model="newUser.terms"
+              v-model="newUser.termsAgreed"
               required
           />
           <label for="terms" class="form-check-label">
@@ -84,7 +84,7 @@
         </div>
         <div class="d-flex justify-content-between">
           <button type="button" class="btn btn-secondary flex-grow-1 me-2" @click="navigateBack">Back</button>
-          <button type="submit" class="btn btn-primary flex-grow-1 ">Register</button>
+          <button type="submit" class="btn btn-primary flex-grow-1" @click="addNewUser">Register</button>
         </div>
       </form>
     </div>
@@ -93,6 +93,9 @@
 </template>
 
 <script>
+import UserService from "@/services/UserService";
+import NavigationServices from "@/services/NavigationServices";
+
 export default {
   name: "RegisterView",
   data() {
@@ -100,37 +103,47 @@ export default {
       backgroundImage: require('@/assets/calendrify.gif'),
       errorMessage: '',
       newUser: {
-        email: "",
-        password: "",
-        retypePassword: "",
-        address: "",
-        phone: "",
-        terms: false,
+        email: '',
+        password: '',
+        passwordRetype: '',
+        address: '',
+        phone: '',
+        termsAgreed: false,
       },
     };
   },
   methods: {
-    handleRegister() {
-      if (this.newUser.password !== this.newUser.retypePassword) {
-        alert("Passwords do not match!");
-        return;
-      }
-      this.newUser = {
-        email: "",
-        password: "",
-        retypePassword: "",
-        address: "",
-        phone: "",
-        terms: false,
-      };
+    addNewUser(){
+      if(this.passwordNoMatch()){
+        this.errorMessage = "Paroolid ei kattu"
+      }else {
+        UserService.sendPostNewUserRequest(this.newUser)
+            .then(() => NavigationServices.navigateToHomeView())
+            .catch(() => NavigationServices.navigateToErrorView())
 
-      this.$router.push({ name: "homeRoute" });
+      }
     },
-    navigateBack() {
-      this.$router.go(-1);
+
+    passwordNoMatch() {
+      return this.newUser.passwordRetype !== this.newUser.password
     },
+
+
+
+
+
+
+
+
+
+    navigateBack(){
+      this.$router.go(-1)
+    }
+
+
   },
-};
+}
+
 </script>
 
 <style src="@/assets/register.css"></style>

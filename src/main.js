@@ -3,7 +3,9 @@ import App from './App.vue'
 import router from './router'
 import VueAxios from "vue-axios";
 import axios from "axios";
-//import '@/assets/css/modal.css' // kui on oma modal.css fail
+import './assets/modal.css'; // Import the modal styles globally
+import './assets/background.css';
+
 // bootstrap
 import "bootstrap/dist/css/bootstrap.min.css"
 import "bootstrap/dist/js/bootstrap.js"
@@ -20,5 +22,4 @@ app.component('font-awesome-icon', FontAwesomeIcon)
 app.use(router)
 app.use(VueAxios, axios)
 app.mount('#app')
-import './assets/modal.css'; // Import the modal styles globally
 

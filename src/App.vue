@@ -1,6 +1,5 @@
 <template>
 
-
   <nav v-if="isLoggedIn">
     <div class="container text-center">
       <div class="row justify-content-center mt-2 gx-4">
@@ -29,16 +28,15 @@
     </div>
 
   </nav>
-  <router-view @event-update-nav-menu="updateNavMenu"/>
+  <router-view @event-update-nav-menu="updateNavMenuAndBackground"/>
 </template>
 
 <script>
-import LoginModal from "@/components/modal/LoginModal.vue";
 
 export default {
-  components: {LoginModal},
 data() {
   return {
+    backgroundClass: 'background-container-1',
     modalIsOpen: false,
     isLoggedIn: false,
     isAdmin: false,
@@ -47,27 +45,17 @@ data() {
 
 },
 methods:{
-  openLoginModal() {
-    this.modalIsOpen = true
-  },
 
-  closeLoginModal() {
-    this.modalIsOpen = false
-  },
-
-  executeLogOut() {
-    sessionStorage.clear()
-    this.updateNavMenu()
-    NavigationService.navigateToHomeView()
-    this.isLoggedIn = false
-    this.closeLogOutModal()
-  },
-
-  updateNavMenu() {
+  updateNavMenuAndBackground() {
     let userId = sessionStorage.getItem('userId')
     this.isLoggedIn = userId !== null
     let roleName = sessionStorage.getItem('roleName')
     this.isAdmin = roleName != null && 'admin' === roleName
+
+    if (this.isLoggedIn) {
+      this.backgroundClass = 'background-container-2'
+    }
+
   },
 }
 
