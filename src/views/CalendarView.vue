@@ -1,12 +1,15 @@
 <template>
   <div class="content">
+    <CalendarModal :modal-is-open="modalIsOpen"
+                @event-close-modal="closeCalenderModal"
+                @event-update-nav-menu="$emit('event-update-nav-menu')"
+    />
     <input type="date" name="" id="">
     <div class="row justify-content-center mt-1">
       <div class="col-md-8 d-flex flex-column align-items-center justify-content-center text-center">
         <h2 class="fw-bold">CALENDAR</h2>
       </div>
     </div>
-
     <div class="row justify-content-center mt-1" style="max-width: 800px; margin: 0 auto;">
       <div class="col text-center">
         {{ quote }}
@@ -24,7 +27,7 @@
             <button class="btn btn-sm btn-outline-danger" @click="removeTask('personal', index)">🗑️</button>
           </li>
         </ul>
-        <button class="btn btn-outline-primary mt-2" @click="addTask('personal')">➕</button>
+        <button class="btn btn-outline-primary mt-2" @click="openCalenderModal('personal')">➕</button>
       </div>
       <div class="col-4" style="width: 800px;" > Work Focus
         <ul class="list-group">
@@ -34,7 +37,7 @@
               <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
               <label class="form-check-label" for="flexCheckDefault"> Done </label>
             </div>
-            <button class="btn btn-sm btn-outline-danger" @click="removeTask('personal', index)">🗑️</button>
+            <button class="btn btn-sm btn-outline-danger" @click="openCalenderModal('personal', index)">🗑️</button>
           </li>
         </ul>
         <button class="btn btn-outline-primary mt-2" @click="addTask('personal')">➕</button>
@@ -46,13 +49,16 @@
 
 <script>
 import axios from 'axios';
+import LoginModal from "@/components/modal/LoginModal.vue";
+import CalendarModal from "@/components/modal/CalendarModal.vue";
 
 export default {
   name: "CalendarView",
+  components: {CalendarModal, LoginModal},
 
   data() {
     return {
-      quote: '',
+      modalIsOpen: false
     }
   },
 
@@ -70,6 +76,12 @@ export default {
         console.error("Error fetching data:", error);
         this.quote = "Failed to load quote.";
       }
+    },
+    openCalenderModal() {
+      this.modalIsOpen = true
+    },
+    closeCalenderModal() {
+      this.modalIsOpen = false
     }
   }
 }
