@@ -3,8 +3,8 @@ import App from './App.vue'
 import router from './router'
 import VueAxios from "vue-axios";
 import axios from "axios";
-import './assets/modal.css'; // Import the modal styles globally
-import './assets/background.css';
+import './assets/css/modal.css'; // Import the modal styles globally
+import './assets/css/background.css';
 
 // bootstrap
 import "bootstrap/dist/css/bootstrap.min.css"

@@ -145,7 +145,7 @@ export default {
 
 </script>
 
-<style src="@/assets/register.css"></style>
+<style src="@/assets/css/register.css"></style>
 
 
 
