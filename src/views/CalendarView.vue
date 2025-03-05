@@ -37,10 +37,10 @@
               <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
               <label class="form-check-label" for="flexCheckDefault"> Done </label>
             </div>
-            <button class="btn btn-sm btn-outline-danger" @click="openCalenderModal('personal', index)">🗑️</button>
+            <button class="btn btn-sm btn-outline-danger" @click="removeTask('personal', index)">🗑️</button>
           </li>
         </ul>
-        <button class="btn btn-outline-primary mt-2" @click="addTask('personal')">➕</button>
+        <button class="btn btn-outline-primary mt-2" @click="openCalenderModal('personal')">➕</button>
       </div>
     </div>
     <button type="button" class="btn btn-secondary" @click="fetchData">New Quote</button>
