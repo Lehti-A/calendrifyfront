@@ -303,7 +303,7 @@
 
 <script>
 export default {
-  name: 'personalDayView',
+  name: 'PersonalDayView',
   computed: {
     currentDay() {
       return new Date().getDate();
