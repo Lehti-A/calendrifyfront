@@ -85,18 +85,42 @@
 
       <!-- Tasks -->
       <div class="row">
-        <!-- Tasks Section -->
         <div class="col-md-6">
-          <div class="card mb-3">
-            <div class="card-header">Tasks</div>
-            <ul class="list-group list-group-flush">
-              <li class="list-group-item d-flex align-items-center justify-content-between">
-                <span>Play tennis</span>
-                <input type="checkbox" class="form-check-input">
+          <div class="card mb-3 transparent-card">
+            <div class="card-header bg-transparent border-bottom">Tasks</div>
+            <ul class="list-group list-group-flush transparent-list">
+              <li v-for="(task, index) in tasks" :key="index" class="list-group-item transparent-item d-flex align-items-center justify-content-between">
+                <span :class="{ 'completed-task': task.completed }">{{ task.text }}</span>
+                <div class="task-actions">
+                  <input
+                      type="checkbox"
+                      class="form-check-input me-2"
+                      :checked="task.completed"
+                      @change="toggleTaskCompletion(index)"
+                  >
+                  <button
+                      class="btn btn-sm btn-link text-danger p-0"
+                      @click="removeTask(index)"
+                      title="Remove task"
+                  >
+                    <i class="fas fa-eraser"></i>
+                    <!-- If Font Awesome is not available, use text instead -->
+                    <span v-if="!hasFontAwesome">🗑️</span>
+                  </button>
+                </div>
               </li>
-              <li class="list-group-item d-flex align-items-center justify-content-between">
-                <span>Uurida, et kuidas me linnukeste asjaga süsteemi update-ime</span>
-                <input type="checkbox" class="form-check-input">
+              <!-- Add new task input -->
+              <li class="list-group-item transparent-item">
+                <div class="input-group">
+                  <input
+                      type="text"
+                      class="form-control form-control-sm transparent-input"
+                      placeholder="Add new task..."
+                      v-model="newTask"
+                      @keyup.enter="addTask"
+                  >
+                  <button class="btn btn-outline-secondary btn-sm" type="button" @click="addTask">Add</button>
+                </div>
               </li>
             </ul>
           </div>
@@ -126,6 +150,32 @@
           </div>
         </div>
       </div>
+      <div id="steps-tracker">
+        <h5 class="mb-4 text-center text-lg">Steps</h5>
+        <div class="steps-milestones">
+          <div
+              v-for="(milestone, index) in milestones"
+              :key="index"
+              class="milestone-item"
+              @click="setStepsMilestone(index + 1)"
+              :title="`${milestone.steps} Steps`">
+            <div class="checkbox-container" :class="{ 'checked': index < completedStepsMilestone }">
+              <!-- Standard checkmark that only appears when checked -->
+              <svg v-if="index < completedStepsMilestone" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" class="checkmark-icon">
+                <path fill-rule="evenodd" d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 011.04-.208z" clip-rule="evenodd" />
+              </svg>
+            </div>
+            <div class="milestone-label">{{ milestone.label }}</div>
+          </div>
+        </div>
+        <div class="milestone-status">
+          <span v-if="completedStepsMilestone > 0">
+      <span v-if="completedStepsMilestone === 4">Over 10,000 steps</span>
+      <span v-else>At least {{ milestones[completedStepsMilestone-1].steps }} steps</span>
+    </span>
+          <span v-else>No steps recorded</span>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -138,6 +188,19 @@ export default {
     return {
       selectedMood: null, // Stores the selected mood
       selectedGlasses: 0,
+      completedStepsMilestone: 0,
+      milestones: [
+        { steps: 2500, label: "2,500" },
+        { steps: 5000, label: "5,000" },
+        { steps: 7500, label: "7,500" },
+        { steps: 10000, label: "10,000+" }
+      ],
+      tasks: [
+        { text: "Play tennis", completed: false },
+        { text: "Uurida, et kuidas me linnukeste asjaga süsteemi update-ime", completed: false }
+      ],
+      newTask: "",
+      hasFontAwesome: false // Set to true if you have Font Awesome included
     };
   },
   methods: {
@@ -146,8 +209,27 @@ export default {
     },
     setGlasses(count) {
       this.selectedGlasses = count; // Updates the selection
+    },
+    setStepsMilestone(milestone) {
+      this.completedStepsMilestone = milestone;
+    },
+    toggleTaskCompletion(index) {
+      this.tasks[index].completed = !this.tasks[index].completed;
+    },
+    removeTask(index) {
+      this.tasks.splice(index, 1);
+    },
+    addTask() {
+      if (this.newTask.trim()) {
+        this.tasks.push({
+          text: this.newTask.trim(),
+          completed: false
+        });
+        this.newTask = "";
+      }
     }
   }
+
 };
 </script>
 
@@ -201,5 +283,83 @@ export default {
   width: 100%;
   background-color: #007bff;
   transition: height 0.3s ease;
+}
+.steps-milestones {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.milestone-item {
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.checkbox-container {
+  width: 48px;
+  height: 48px;
+  border: 2px solid #4a5568;
+  border-radius: 0.375rem;
+  background-color: #f8f9fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.checkbox-container.checked {
+  background-color: #48bb78;
+  border-color: #38a169;
+}
+
+.checkmark-icon {
+  width: 32px;
+  height: 32px;
+}
+
+.milestone-label {
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+  font-weight: 500;
+}
+
+.milestone-status {
+  margin-top: 0.75rem;
+  text-align: center;
+  font-size: 1rem;
+  color: #4a5568;
+}
+.transparent-card {
+  background-color: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.transparent-list {
+  background-color: transparent;
+}
+
+.transparent-item {
+  background-color: transparent;
+  border-color: rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+}
+
+.transparent-input {
+  background-color: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.completed-task {
+  text-decoration: line-through;
+  color: #6c757d;
+}
+
+.task-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 </style>
