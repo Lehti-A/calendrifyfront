@@ -137,7 +137,7 @@ export default {
 
 </script>
 
-<style src="@/assets/background.css"></style>
+<style ></style>
 
 
 
