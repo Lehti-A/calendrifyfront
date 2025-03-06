@@ -53,7 +53,6 @@
             <li class="list-group-item">10:00 - Client Discussion</li>
             <li class="list-group-item">14:00 - Project Review</li>
             <li class="list-group-item">14:00 - Project Review</li>
-            <li class="list-group-item">14:00 - Project Review</li>
           </ul>
         </div>
       </div>
@@ -67,6 +66,22 @@
           </div>
         </div>
       </div>
+      <div id="water-tracker">
+        <h5 class="mb-3 text-center">Glasses of Water</h5>
+        <div class="water-icons">
+          <div
+              v-for="(glass, index) in 8"
+              :key="index"
+              class="water-glass"
+              @click="setGlasses(index + 1)"
+              title="Glass of Water">
+            <div class="glass-container">
+              <div class="water-fill" :style="{ height: index < selectedGlasses ? '90%' : '0%' }"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
 
       <!-- Tasks -->
       <div class="row">
@@ -90,13 +105,24 @@
         <!-- Mood Section -->
         <div class="col-md-3 text-center">
           <h5 class="mb-3">Mood today?</h5>
-          <div style="display: flex; justify-content: center; gap: 0.5rem;">
-            <!-- Sad Icon (Red) -->
-            <span style="font-size: 2rem; color: #ff4d4d; cursor: pointer;" title="Sad">😢</span>
-            <!-- Neutral Icon (Default Color) -->
-            <span style="font-size: 2rem; color: #495057; cursor: pointer;" title="Neutral">😐</span>
-            <!-- Happy Icon (Green) -->
-            <span style="font-size: 2rem; color: #28a745; cursor: pointer;" title="Happy">😊</span>
+          <div id="mood-icons">
+    <span
+        class="mood-icon"
+        :class="{ 'active-sad': selectedMood === 'sad' }"
+        @click="setMood('sad')"
+        title="Sad">😢</span>
+
+            <span
+                class="mood-icon"
+                :class="{ 'active-neutral': selectedMood === 'neutral' }"
+                @click="setMood('neutral')"
+                title="Neutral">😐</span>
+
+            <span
+                class="mood-icon"
+                :class="{ 'active-happy': selectedMood === 'happy' }"
+                @click="setMood('happy')"
+                title="Happy">😊</span>
           </div>
         </div>
       </div>
@@ -104,22 +130,76 @@
   </div>
 </template>
 
+
 <script>
 export default {
-  name: 'personalDayView'
-}
-
-
-
-
-
+  name: 'personalDayView',
+  data() {
+    return {
+      selectedMood: null, // Stores the selected mood
+      selectedGlasses: 0,
+    };
+  },
+  methods: {
+    setMood(mood) {
+      this.selectedMood = mood;
+    },
+    setGlasses(count) {
+      this.selectedGlasses = count; // Updates the selection
+    }
+  }
+};
 </script>
 
 
-<style>
+<style scoped>
+.mood-icon {
+  font-size: 2rem;
+  cursor: pointer;
+  transition: color 0.3s ease;
+  filter: grayscale(100%);
+  color: #adb5bd !important; /* Default gray */
+}
+/* Active colors for each mood */
+.active-sad {
+  filter: grayscale(0%);
+  color: #ff4d4d !important; /* Red */
+}
+.active-neutral {
+  filter: grayscale(0%);
+  color: #ffc107 !important; /* Yellow */
+}
+.active-happy {
+  filter: grayscale(0%);
+  color: #28a745 !important; /* Green */
+}
+.water-icons {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+}
 
+.water-glass {
+  cursor: pointer;
+}
 
+.glass-container {
+  width: 24px;
+  height: 32px;
+  border: 2px solid #4a5568; /* Darker, thicker border */
+  border-radius: 0 0 8px 8px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+  background-color: #f8f9fa; /* Very light background */
+}
 
-
-
+.water-fill {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background-color: #007bff;
+  transition: height 0.3s ease;
+}
 </style>
