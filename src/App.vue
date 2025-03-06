@@ -18,7 +18,7 @@
         </div>
 
         <div class="col-auto">
-          <button type="button" class="btn btn-outline-secondary">Profile</button>
+          <button type="button" class="btn btn-outline-secondary">Settings</button>
         </div>
 
         <div class="col-auto">

@@ -2,7 +2,7 @@ import {createRouter, createWebHistory} from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import CalendarView from "@/views/CalendarView.vue";
 import RegisterView from "@/views/RegisterView.vue";
-import ProfileView from "@/views/ProfileView.vue";
+import SettingsView from "@/views/SettingsView.vue";
 
 const routes = [
     {
@@ -21,9 +21,9 @@ const routes = [
         component: RegisterView
     },
     {
-        path: '/user-profile',
-        name: 'profileRoute',
-        component: ProfileView
+        path: '/settings',
+        name: 'settingsRoute',
+        component: SettingsView
     },
 
 
