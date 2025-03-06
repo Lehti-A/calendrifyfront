@@ -58,8 +58,9 @@ export default {
 
   data() {
     return {
-      modalIsOpen: false
-    }
+      modalIsOpen: false,
+      quote: "" //,
+    };
   },
 
   methods: {
