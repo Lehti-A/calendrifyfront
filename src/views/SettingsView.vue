@@ -74,8 +74,9 @@
           <div class="d-flex justify-content-between">
             <button type="button" class="btn btn-secondary flex-grow-1 me-2" @click="">Delete</button>
             <button type="button" class="btn btn-secondary flex-grow-1 me-2" @click="">Update</button>
-
           </div>
+
+
         </form>
       </div>
     </div>
