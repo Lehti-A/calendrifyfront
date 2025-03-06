@@ -40,7 +40,7 @@ data() {
   return {
     backgroundClass: 'background-container-1',
     modalIsOpen: false,
-    isLoggedIn: false,
+    isLoggedIn: true,
     isAdmin: false,
   }
   //todo hiljem muuta is LoggedIn falseiks

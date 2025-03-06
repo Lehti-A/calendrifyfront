@@ -3,7 +3,6 @@
          @event-update-nav-menu="$emit('event-update-nav-menu')"
          @event-close-modal="$emit('event-close-modal')"
   >
-
     <template #title>
       Calendrify login
     </template>

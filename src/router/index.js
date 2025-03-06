@@ -20,6 +20,7 @@ const routes = [
         component: RegisterView
     },
 
+
 ]
 
 const router = createRouter({

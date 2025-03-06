@@ -1,7 +1,7 @@
 <template>
   <div class="content">
     <CalendarModal :modal-is-open="modalIsOpen"
-                @event-close-modal="closeCalenderModal"
+                @event-close-modal="closeCalendarModal"
                 @event-update-nav-menu="$emit('event-update-nav-menu')"
     />
     <input type="date" name="" id="">
@@ -27,7 +27,7 @@
             <button class="btn btn-sm btn-outline-danger" @click="removeTask('personal', index)">🗑️</button>
           </li>
         </ul>
-        <button class="btn btn-outline-primary mt-2" @click="openCalenderModal('personal')">➕</button>
+        <button class="btn btn-outline-primary mt-2" @click="openCalendarModal('personal')">➕</button>
       </div>
       <div class="col-4" style="width: 800px;" > Work Focus
         <ul class="list-group">
@@ -40,7 +40,7 @@
             <button class="btn btn-sm btn-outline-danger" @click="removeTask('personal', index)">🗑️</button>
           </li>
         </ul>
-        <button class="btn btn-outline-primary mt-2" @click="openCalenderModal('personal')">➕</button>
+        <button class="btn btn-outline-primary mt-2" @click="openCalendarModal('personal')">➕</button>
       </div>
     </div>
     <button type="button" class="btn btn-secondary" @click="fetchData">New Quote</button>
@@ -78,10 +78,10 @@ export default {
         this.quote = "Failed to load quote.";
       }
     },
-    openCalenderModal() {
+    openCalendarModal() {
       this.modalIsOpen = true
     },
-    closeCalenderModal() {
+    closeCalendarModal() {
       this.modalIsOpen = false
     }
   }
