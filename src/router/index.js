@@ -26,10 +26,13 @@ const routes = [
         name: 'settingsRoute',
         component: SettingsView
     },
-
     {
         path: '/day-personal',
         name: 'personalDayRoute',
+        component: PersonalDayView
+    }, {
+        path: '/day-work',
+        name: 'workDayRoute',
         component: PersonalDayView
     },
 
