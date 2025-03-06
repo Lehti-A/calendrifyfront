@@ -26,6 +26,7 @@ const routes = [
         component: ProfileView
     },
 
+
 ]
 
 const router = createRouter({
