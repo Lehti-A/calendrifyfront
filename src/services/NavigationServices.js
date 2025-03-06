@@ -11,7 +11,9 @@ export default {
     navigateToHomeView() {
         router.push({name: 'homeRoute'})
     },
-
+    navigateToPersonalDayView() {
+        router.push({name: 'personalDayRoute'})
+    },
 
     navigateToErrorView() {
         // todo: lõpus võib sisse panna
