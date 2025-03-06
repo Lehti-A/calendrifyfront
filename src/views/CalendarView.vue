@@ -14,6 +14,7 @@
       <div class="col text-center">
         {{ quote }}
       </div>
+      <button type="button" class="btn btn-secondary" @click="fetchData">New Quote</button>
     </div>
     <div class="row justify-content-center mt-1">
       <div class="col" style="width: 800px;" > Personal Focus
@@ -43,7 +44,7 @@
         <button class="btn btn-outline-primary mt-2" @click="openCalendarModal('personal')">➕</button>
       </div>
     </div>
-    <button type="button" class="btn btn-secondary" @click="fetchData">New Quote</button>
+
   </div>
 </template>
 
