@@ -30,8 +30,8 @@
           </div>
 
           <div class="col-md-9">
-            <div class="card focus-card">
-              <div class="card-header"><strong>Focus for Today</strong></div>
+            <div class="card semi-transparent-card focus-card">
+              <div class="card-header bg-transparent"><strong>Focus for Today</strong></div>
               <div class="card-body focus-body">
                 <div v-if="!editingFocus" @click="startEditingFocus" class="focus-view-mode">
                   <p v-if="dailyFocus" class="focus-content">{{ dailyFocus }}</p>
@@ -57,8 +57,8 @@
         </div>
 
         <!-- Activities -->
-        <div class="card mb-4 activities-card">
-          <div class="card-header"><strong>Activities</strong></div>
+        <div class="card semi-transparent-card mb-4 activities-card">
+          <div class="card-header bg-transparent"><strong>Activities</strong></div>
           <div class="content-container">
             <ul class="list-group list-group-flush">
               <li v-for="(activity, index) in activities" :key="index"
@@ -98,8 +98,8 @@
         </div>
 
         <!-- Other Thoughts -->
-        <div class="card mb-4 thoughts-card">
-          <div class="card-header"><strong>Other Thoughts</strong></div>
+        <div class="card semi-transparent-card mb-4 thoughts-card">
+          <div class="card-header bg-transparent"><strong>Other Thoughts</strong></div>
           <div class="content-container">
             <div class="card-body">
               <div v-if="!editingThoughts" @click="startEditingThoughts">
@@ -126,8 +126,8 @@
         </div>
 
         <!-- Tasks -->
-        <div class="card transparent-card tasks-card">
-          <div class="card-header"><strong>Goals</strong></div>
+        <div class="card semi-transparent-card mb-4 tasks-card">
+          <div class="card-header bg-transparent"><strong>Monthly Goals</strong></div>
           <div class="content-container">
             <ul class="list-group list-group-flush transparent-list">
               <li v-for="(task, index) in tasks" :key="index"
@@ -175,8 +175,8 @@
           <img src="../assets/html/Rain Tüür.png" height="532" width="532"/>
         </div>
         <!-- Meetings -->
-        <div class="card mb-4 meetings-card">
-          <div class="card-header"><strong>Meetings</strong></div>
+        <div class="card semi-transparent-card mb-4 meetings-card">
+          <div class="card-header bg-transparent"><strong>Meetings</strong></div>
           <div class="content-container">
             <ul class="list-group list-group-flush">
               <li v-for="(meeting, index) in meetings" :key="index"
@@ -494,10 +494,26 @@ export default {
 </script>
 
 <style scoped>
+
 .personal-day-container {
   padding-top: 170px; /* This value should be larger than the nav position (80px) plus its height */
 }
+.simple-header,
+.card-header strong,
+.tracker-section h5 {
+  font-family: 'Quicksand', sans-serif !important;
+  font-weight: 700 !important;
+}
 
+/* Increase header font size slightly */
+.card-header strong {
+  font-size: 1.15rem;
+}
+
+.tracker-section h5 {
+  font-size: 1.2rem;
+  font-weight: 600 !important;
+}
 /* Ensure the header row doesn't get hidden */
 .header-row {
   position: relative;
@@ -634,6 +650,7 @@ export default {
   background-color: white;
   border-top: 1px solid rgba(0, 0, 0, 0.125);
 }
+
 /* Focus and Thoughts save buttons - NEW STYLE to match calendar purple */
 .focus-card .btn-primary,
 .thoughts-card .btn-primary {
@@ -655,6 +672,7 @@ export default {
   border-color: #6c3483;
   box-shadow: 0 0 0 0.25rem rgba(142, 68, 173, 0.4); /* Custom focus shadow */
 }
+
 /* Meetings */
 .meeting-content {
   display: flex;
@@ -677,6 +695,7 @@ export default {
 .btn-link.text-danger:hover {
   opacity: 1;
 }
+
 /* Add Meeting button - NEW STYLE to match calendar purple */
 .meetings-card .btn-primary {
   background-color: #8e44ad; /* Same purple as calendar */
@@ -828,43 +847,7 @@ export default {
 }
 
 /*Tasks*/
-.transparent-card {
-  background-color: rgba(255, 255, 255, 0.4);
-  backdrop-filter: blur(5px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
 
-.transparent-card .card-header {
-  background-color: rgba(255, 255, 255, 0.2);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.transparent-list {
-  background-color: transparent;
-}
-
-.transparent-item {
-  background-color: transparent;
-  border-color: rgba(0, 0, 0, 0.1);
-  display: flex;
-  align-items: center;
-}
-
-.transparent-input {
-  background-color: rgba(255, 255, 255, 0.7);
-  border: 1px solid rgba(0, 0, 0, 0.1);
-}
-
-.completed-task {
-  text-decoration: line-through;
-  color: #6c757d;
-}
-
-.task-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
 
 .completed-activity {
   text-decoration: line-through;
@@ -884,5 +867,49 @@ export default {
 
 .image-card {
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.semi-transparent-card {
+  background-color: rgba(255, 255, 255, 0.7); /* Slight transparency */
+  backdrop-filter: blur(10px); /* Blur effect for background */
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.semi-transparent-card .card-header {
+  background-color: rgba(255, 255, 255, 0.3);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  font-size: 1.1rem;
+}
+
+/* Update card footer styling for transparent look */
+.focus-card .card-footer,
+.activities-card .card-footer,
+.meetings-card .card-footer,
+.thoughts-card .card-footer {
+  background-color: rgba(255, 255, 255, 0.3);
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.activities-card .btn-outline-secondary,
+.tasks-card .btn-outline-secondary {
+  color: #8e44ad;
+  border-color: #8e44ad;
+}
+
+.activities-card .btn-outline-secondary:hover,
+.tasks-card .btn-outline-secondary:hover {
+  background-color: #8e44ad;
+  border-color: #8e44ad;
+  color: white;
+}
+
+.activities-card .btn-outline-secondary:active,
+.activities-card .btn-outline-secondary:focus,
+.tasks-card .btn-outline-secondary:active,
+.tasks-card .btn-outline-secondary:focus {
+  background-color: #7d3c98;
+  border-color: #7d3c98;
+  box-shadow: 0 0 0 0.25rem rgba(142, 68, 173, 0.4);
 }
 </style>

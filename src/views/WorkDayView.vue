@@ -501,6 +501,22 @@ export default {
 </script>
 
 <style scoped>
+.simple-header,
+.card-header strong,
+.tracker-section h5 {
+  font-family: 'Quicksand', sans-serif !important;
+  font-weight: 700 !important;
+}
+
+/* Increase header font size slightly */
+.card-header strong {
+  font-size: 1.15rem;
+}
+
+.tracker-section h5 {
+  font-size: 1.2rem;
+  font-weight: 600 !important;
+}
 .work-day-container {
   padding-top: 170px; /* Match PersonalDayView top padding */
 }
@@ -850,6 +866,7 @@ export default {
 .image-card {
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
+
 .semi-transparent-card {
   background-color: rgba(255, 255, 255, 0.7); /* Slight transparency */
   backdrop-filter: blur(10px); /* Blur effect for background */
@@ -870,5 +887,23 @@ export default {
 .thoughts-card .card-footer {
   background-color: rgba(255, 255, 255, 0.3);
   border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.tasks-card .btn-outline-secondary {
+  color: #8e44ad;
+  border-color: #8e44ad;
+}
+
+.tasks-card .btn-outline-secondary:hover {
+  background-color: #8e44ad;
+  border-color: #8e44ad;
+  color: white;
+}
+
+.tasks-card .btn-outline-secondary:active,
+.tasks-card .btn-outline-secondary:focus {
+  background-color: #7d3c98;
+  border-color: #7d3c98;
+  box-shadow: 0 0 0 0.25rem rgba(142, 68, 173, 0.4);
 }
 </style>

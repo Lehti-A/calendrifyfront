@@ -366,6 +366,22 @@ export default {
 .settings-container {
   padding-top: 170px; /* Matches PersonalDayView and WorkDayView padding */
 }
+.simple-header,
+.card-header strong,
+.tracker-section h5 {
+  font-family: 'Quicksand', sans-serif !important;
+  font-weight: 700 !important;
+}
+
+/* Increase header font size slightly */
+.card-header strong {
+  font-size: 1.15rem;
+}
+
+.tracker-section h5 {
+  font-size: 1.2rem;
+  font-weight: 600 !important;
+}
 
 /* Header styling - exactly matching PersonalDayView/WorkDayView */
 .header-row {
@@ -475,5 +491,23 @@ export default {
 
 .modal-footer {
   border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.goals-card .btn-outline-secondary {
+  color: #8e44ad;
+  border-color: #8e44ad;
+}
+
+.goals-card .btn-outline-secondary:hover {
+  background-color: #8e44ad;
+  border-color: #8e44ad;
+  color: white;
+}
+
+.goals-card .btn-outline-secondary:active,
+.goals-card .btn-outline-secondary:focus {
+  background-color: #7d3c98;
+  border-color: #7d3c98;
+  box-shadow: 0 0 0 0.25rem rgba(142, 68, 173, 0.4);
 }
 </style>
