@@ -304,6 +304,23 @@
 <script>
 export default {
   name: 'PersonalDayView',
+  created() {
+    // DEVELOPMENT MODE: Set a temporary user ID for testing
+    // Comment this line out when you implement real login functionality
+    sessionStorage.setItem('userId', 'temp-dev-user');
+  // todo:vaheta ülemine osa alumise vastu kui backend login on olemas
+  // Emit the update event when this component is created
+  // created() {
+    // Ensure user is logged in when accessing this page
+    // const userId = sessionStorage.getItem('userId');
+    // if (!userId) {
+      // If not logged in, redirect to home
+    //   this.$router.push('/');
+    // }
+
+    // Emit the event to update nav menu and background
+    this.$emit('event-update-nav-menu');
+  },
   computed: {
     currentDay() {
       return new Date().getDate();
@@ -548,7 +565,7 @@ export default {
 
 /* Calendar box */
 .calendar-card {
-  background-color: #8e44ad; /* Purple color */
+  background-color: rgba(142, 68, 173, 0.7); /* Purple color with 70% opacity */
   color: white;
   border: none;
   border-radius: 8px;
@@ -623,7 +640,27 @@ export default {
   background-color: white;
   border-top: 1px solid rgba(0, 0, 0, 0.125);
 }
+/* Focus and Thoughts save buttons - NEW STYLE to match calendar purple */
+.focus-card .btn-primary,
+.thoughts-card .btn-primary {
+  background-color: #8e44ad; /* Same purple as calendar */
+  border-color: #8e44ad;
+}
 
+.focus-card .btn-primary:hover,
+.thoughts-card .btn-primary:hover {
+  background-color: #7d3c98; /* Slightly darker on hover */
+  border-color: #7d3c98;
+}
+
+.focus-card .btn-primary:active,
+.focus-card .btn-primary:focus,
+.thoughts-card .btn-primary:active,
+.thoughts-card .btn-primary:focus {
+  background-color: #6c3483; /* Even darker when active/focused */
+  border-color: #6c3483;
+  box-shadow: 0 0 0 0.25rem rgba(142, 68, 173, 0.4); /* Custom focus shadow */
+}
 /* Meetings */
 .meeting-content {
   display: flex;
@@ -645,6 +682,23 @@ export default {
 
 .btn-link.text-danger:hover {
   opacity: 1;
+}
+/* Add Meeting button - NEW STYLE to match calendar purple */
+.meetings-card .btn-primary {
+  background-color: #8e44ad; /* Same purple as calendar */
+  border-color: #8e44ad;
+}
+
+.meetings-card .btn-primary:hover {
+  background-color: #7d3c98; /* Slightly darker on hover */
+  border-color: #7d3c98;
+}
+
+.meetings-card .btn-primary:active,
+.meetings-card .btn-primary:focus {
+  background-color: #6c3483; /* Even darker when active/focused */
+  border-color: #6c3483;
+  box-shadow: 0 0 0 0.25rem rgba(142, 68, 173, 0.4); /* Custom focus shadow */
 }
 
 /* other thoughts*/
