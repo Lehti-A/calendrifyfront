@@ -13,8 +13,7 @@
           <div class="modal-body">
             <slot name="body"></slot>
           </div>
-          <div class="modal-footer mt-3">
-            <button type="button" class="btn btn-secondary w-50" @click="$emit('event-close-modal')">Cancel</button>
+          <div class="modal-footer mt-3 d-flex justify-content-center">
             <slot name="footer"></slot>
           </div>
         </div>

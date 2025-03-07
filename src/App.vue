@@ -1,5 +1,10 @@
 <template>
   <div :class="backgroundClass">
+    <LogoutModal :modal-is-open="logoutModalIsOpen"
+                 @event-close-modal="closeLogoutModal"
+                 @event-update-nav-menu="updateNavMenuAndBackground"
+    />
+
 
     <nav v-if="isLoggedIn" class="main-navigation">
       <div class="container text-center">
@@ -38,7 +43,6 @@
                     :class="{ 'active-nav-btn': false }"
                     @click="openLogoutModal">Log out
             </button>
-            <button @click="executeLogout">Log out WIP</button>
           </div>
 
         </div>
@@ -51,16 +55,17 @@
 
 <script>
 import NavigationServices from "@/services/NavigationServices";
+import LogoutModal from "@/components/modal/LogoutModal.vue";
 
 export default {
+  components: {LogoutModal},
   data() {
     return {
       backgroundClass: 'background-logged-out',
+      logoutModalIsOpen: false, // Add this line for the logout modal
       modalIsOpen: false,
       isLoggedIn: true,
       isAdmin: false,
-      //  todo: DEVELOPMENT ONLY: Set this to true to bypass login checks
-      devMode: true,
     }
   },
   created() {
@@ -81,7 +86,6 @@ export default {
   },
   methods: {
 
-
     navigateToWorkDay() {
       NavigationServices.navigateToWorkDayView();
     },
@@ -98,25 +102,21 @@ export default {
       return this.$route.name === routeName;
     },
     openLogoutModal() {
-      // TODO: Implement logout modal opening logic
-      // For now, we'll just use the direct logout
-      this.executeLogout();
+      this.logoutModalIsOpen = true;
     },
+
+    closeLogoutModal() {
+      this.logoutModalIsOpen = false;
+    },
+
     updateNavMenuAndBackground() {
       let userId = sessionStorage.getItem('userId')
       this.isLoggedIn = userId !== null
       let roleName = sessionStorage.getItem('roleName')
       this.isAdmin = roleName != null && 'admin' === roleName
 
-      // Check current route to determine the background
-      const currentRoute = this.$route.path;
-
-      // Define which routes require authentication
-      const protectedRoutes = ['/personal-day', '/work-day', '/calendar', '/settings'];
-      const isProtectedRoute = protectedRoutes.some(route => currentRoute.includes(route));
-
       // Set background based on route and login status
-      if (isProtectedRoute || this.isLoggedIn) {
+      if (this.isLoggedIn) {
         this.backgroundClass = 'background-logged-in';
       } else {
         this.backgroundClass = 'background-logged-out';
