@@ -3,7 +3,7 @@
     <div class="row mb-5 align-items-center">
       <div class="col text-center">
         <h1 class="mb-1 display-6 fw-bold text-gray-800">
-          Personal Day Planner
+          PERSONAL DAY PLANNER
         </h1>
       </div>
     </div>
@@ -512,9 +512,9 @@ export default {
 
 <style scoped>
 .display-6 {
-  font-family: 'Nunito', sans-serif;
-  letter-spacing: -0.5px;
-  color: #5a5a5a;
+  color: #ffffff; /* White text */
+  font-weight: 700; /* Bold */
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3); /* Subtle shadow for legibility */
 }
 
 /* Make the overall container wider */
