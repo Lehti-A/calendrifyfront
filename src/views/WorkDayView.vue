@@ -31,8 +31,8 @@
           </div>
 
           <div class="col-md-9">
-            <div class="card focus-card">
-              <div class="card-header"><strong>Work Focus for Today</strong></div>
+            <div class="card semi-transparent-card focus-card">
+              <div class="card-header bg-transparent"><strong>Work Focus for Today</strong></div>
               <div class="card-body focus-body">
                 <div v-if="!editingFocus" @click="startEditingFocus" class="focus-view-mode">
                   <p v-if="dailyFocus" class="focus-content">{{ dailyFocus }}</p>
@@ -58,8 +58,8 @@
         </div>
 
         <!-- Work Tasks -->
-        <div class="card mb-4 tasks-card">
-          <div class="card-header"><strong>Work Tasks</strong></div>
+        <div class="card semi-transparent-card mb-4 tasks-card">
+          <div class="card-header bg-transparent"><strong>Work Tasks</strong></div>
           <div class="content-container">
             <ul class="list-group list-group-flush">
               <li v-for="(task, index) in workTasks" :key="index"
@@ -99,8 +99,8 @@
         </div>
 
         <!-- Work Notes -->
-        <div class="card mb-4 thoughts-card">
-          <div class="card-header"><strong>Work Notes</strong></div>
+        <div class="card semi-transparent-card mb-4 thoughts-card">
+          <div class="card-header bg-transparent"><strong>Work Notes</strong></div>
           <div class="content-container">
             <div class="card-body">
               <div v-if="!editingNotes" @click="startEditingNotes">
@@ -182,8 +182,8 @@
         </div>
 
         <!-- Meetings -->
-        <div class="card mb-4 meetings-card">
-          <div class="card-header"><strong>Work Meetings</strong></div>
+        <div class="card semi-transparent-card mb-4 meetings-card">
+          <div class="card-header bg-transparent"><strong>Work Meetings</strong></div>
           <div class="content-container">
             <ul class="list-group list-group-flush">
               <li v-for="(meeting, index) in meetings" :key="index"
@@ -849,5 +849,26 @@ export default {
 
 .image-card {
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+.semi-transparent-card {
+  background-color: rgba(255, 255, 255, 0.7); /* Slight transparency */
+  backdrop-filter: blur(10px); /* Blur effect for background */
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.semi-transparent-card .card-header {
+  background-color: rgba(255, 255, 255, 0.3);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  font-size: 1.1rem;
+}
+
+/* Update card footer styling for transparent look */
+.focus-card .card-footer,
+.tasks-card .card-footer,
+.meetings-card .card-footer,
+.thoughts-card .card-footer {
+  background-color: rgba(255, 255, 255, 0.3);
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
 }
 </style>
