@@ -118,7 +118,7 @@ export default {
       const currentRoute = this.$route.path;
 
       // Define which routes require authentication
-      const protectedRoutes = ['/personal-day', '/work-day', '/calendar', '/settings'];
+      const protectedRoutes = ['/day-personal', '/day-work', '/calendar', '/settings'];
       const isProtectedRoute = protectedRoutes.some(route => currentRoute.includes(route));
 
       // DEVELOPMENT MODE: For testing specific routes with specific backgrounds
