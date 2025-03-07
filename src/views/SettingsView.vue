@@ -9,7 +9,7 @@
 
 
 
-      <div class="col-10">
+      <div class="row-10">
             <div class="card mb-3 transparent-card">
               <div class="card-header bg-transparent border-bottom"></div>
         <h2 class="text-center mb-4">Edit Personal Goals</h2>
@@ -48,7 +48,7 @@
         </div>
 
 
-      <div class="col-12">
+
         <div class="card p-4 rounded shadow-sm" style="" >
           <h2 class="text-center mb-4">Edit Profile</h2>
 
@@ -94,7 +94,7 @@
             </div>
           </form>
         </div>
-        </div>
+
   </div>
 
 
