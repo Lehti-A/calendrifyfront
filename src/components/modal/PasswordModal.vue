@@ -27,12 +27,40 @@
 
 
 <script>
+import Modal from "@/components/modal/Modal.vue";
+import AlertDanger from "@/components/alert/AlertDanger.vue";
+
 export default {
-  name: "PasswordModal"
+  name: "PasswordModal",
+  components: {
+    Modal,
+    AlertDanger
+  },
+
+  props: {
+    modalIsOpen: Boolean,
+  },
+  data() {
+    return {
+      email: '',
+      password: '',
+      message: '',
+      loginResponse: {
+        userId: 0,
+        roleName: ''
+      },
+      isLoggedIn: false,
+      isAdmin: false,
+      errorResponse: {
+        message: '',
+        errorCode: 0
 
 
+      },
+    }
 
-
-
+  },
+}
+methods: {
 }
 </script>
