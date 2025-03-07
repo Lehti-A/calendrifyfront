@@ -22,7 +22,7 @@
 
         <div class="mb-3 w-100">
           <label for="date" class="form-label">Date</label>
-          <input type="date" class="form-control" id="date">
+          <input type="date" name="" id="">
         </div>
       </form>
     </template>

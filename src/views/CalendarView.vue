@@ -4,19 +4,37 @@
                 @event-close-modal="closeCalendarModal"
                 @event-update-nav-menu="$emit('event-update-nav-menu')"
     />
-    <input type="date" name="" id="">
-    <div class="row justify-content-center mt-1">
-      <div class="col-md-8 d-flex flex-column align-items-center justify-content-center text-center">
+
+    <div class="row justify-content-center mt-3">
+      <div class="col-md-8 d-flex flex-column align-items-center justify-content-center text-center"> </div>
         <h2 class="fw-bold">CALENDAR</h2>
-      </div>
-    </div>
-    <div class="row justify-content-center mt-1" style="max-width: 800px; margin: 0 auto;">
       <div class="col text-center">
         {{ quote }}
       </div>
-      <button type="button" class="btn btn-secondary" @click="fetchData">New Quote</button>
     </div>
-    <div class="row justify-content-center mt-1">
+      <button type="button" class="btn btn-secondary mx-3" style="width: 7%;" @click="fetchData">New Quote</button>
+      <button type="button" class="btn btn-secondary" style="width: 7%;" @click="">Search day</button>
+    <div class="dropdown">
+      <button class="btn btn-secondary dropdown-toggle mt-3" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+        Month
+      </button>
+      <ul class="dropdown-menu">
+        <li><a class="dropdown-item" href="#">Action</a></li>
+        <li><a class="dropdown-item" href="#">Another action</a></li>
+        <li><a class="dropdown-item" href="#">Something else here</a></li>
+      </ul>
+    </div>
+    <div class="dropdown">
+      <button class="btn btn-secondary dropdown-toggle mt-3" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+        Year
+      </button>
+      <ul class="dropdown-menu">
+        <li><a class="dropdown-item" href="#">Action</a></li>
+        <li><a class="dropdown-item" href="#">Another action</a></li>
+        <li><a class="dropdown-item" href="#">Something else here</a></li>
+      </ul>
+    </div>
+        <div class="row justify-content-center mt-1">
       <div class="col" style="width: 800px;" > Personal Focus
         <ul class="list-group">
           <li class="list-group-item d-flex justify-content-between align-items-center">
