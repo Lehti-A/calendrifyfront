@@ -6,19 +6,19 @@
         <div class="row justify-content-center mt-2 gx-4">
 
           <div class="col-auto">
-            <button type="button" class="btn soft-purple-btn">Work day</button>
+            <button type="button" class="btn soft-purple-btn" @click="navigateToWorkDay">Work day</button>
           </div>
 
           <div class="col-auto">
-            <button type="button" class="btn soft-purple-btn">Personal day</button>
+            <button type="button" class="btn soft-purple-btn" @click="navigateToPersonalDay">Personal day</button>
           </div>
 
           <div class="col-auto">
-            <button type="button" class="btn soft-purple-btn">Calendar</button>
+            <button type="button" class="btn soft-purple-btn" @click="navigateToCalendar">Calendar</button>
           </div>
 
           <div class="col-auto">
-            <button type="button" class="btn soft-purple-btn">Settings</button>
+            <button type="button" class="btn soft-purple-btn" @click="navigateToSettings">Settings</button>
           </div>
 
           <div class="col-auto">
@@ -34,6 +34,7 @@
 </template>
 
 <script>
+import NavigationServices from "@/services/NavigationServices";
 
 export default {
   data() {
@@ -63,6 +64,18 @@ export default {
     this.updateNavMenuAndBackground();
   },
   methods:{
+    navigateToWorkDay() {
+      NavigationServices.navigateToWorkDayView();
+    },
+    navigateToPersonalDay() {
+      NavigationServices.navigateToPersonalDayView();
+    },
+    navigateToCalendar() {
+      NavigationServices.navigateToCalendarView();
+    },
+    navigateToSettings() {
+      NavigationServices.navigateToSettingsView();
+    },
     // todo: vaheta see kood alumise vastu välja kui login võimekus backendist olemas
     updateNavMenuAndBackground() {
       // Check for login status
@@ -98,7 +111,6 @@ export default {
           return;
         }
       }
-
       // Normal background selection logic
       if (isProtectedRoute || this.isLoggedIn) {
         this.backgroundClass = 'background-container-2';

@@ -15,12 +15,17 @@ export default {
         router.push({name: 'personalDayRoute'})
     },
     navigateToWorkDayView() {
-        router.push({name: 'personalDayRoute'})
+        router.push({name: 'workDayRoute'})
     },
+    navigateToSettingsView() {
+        router.push({name: 'settingsRoute'})
+    },
+
 
     navigateToErrorView() {
         // todo: lõpus võib sisse panna
         // router.push({name: 'errorRoute'})
     },
+
 
 }
