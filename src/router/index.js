@@ -4,6 +4,7 @@ import CalendarView from "@/views/CalendarView.vue";
 import RegisterView from "@/views/RegisterView.vue";
 import SettingsView from "@/views/SettingsView.vue";
 import PersonalDayView from "@/views/PersonalDayView.vue";
+import WorkDayView from "@/views/WorkDayView.vue";
 
 const routes = [
     {
@@ -26,11 +27,14 @@ const routes = [
         name: 'settingsRoute',
         component: SettingsView
     },
-
     {
         path: '/day-personal',
         name: 'personalDayRoute',
         component: PersonalDayView
+    }, {
+        path: '/day-work',
+        name: 'workDayRoute',
+        component: WorkDayView
     },
 
 ]
