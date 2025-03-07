@@ -1,28 +1,28 @@
 <template>
   <div :class="backgroundClass">
 
-    <nav v-if="isLoggedIn">
+    <nav v-if="isLoggedIn" class="main-navigation">
       <div class="container text-center">
         <div class="row justify-content-center mt-2 gx-4">
 
           <div class="col-auto">
-            <button type="button" class="btn btn-outline-secondary">Work day</button>
+            <button type="button" class="btn soft-purple-btn">Work day</button>
           </div>
 
           <div class="col-auto">
-            <button type="button" class="btn btn-outline-secondary">Personal day</button>
+            <button type="button" class="btn soft-purple-btn">Personal day</button>
           </div>
 
           <div class="col-auto">
-            <button type="button" class="btn btn-outline-secondary">Calendar</button>
+            <button type="button" class="btn soft-purple-btn">Calendar</button>
           </div>
 
           <div class="col-auto">
-            <button type="button" class="btn btn-outline-secondary">Settings</button>
+            <button type="button" class="btn soft-purple-btn">Settings</button>
           </div>
 
           <div class="col-auto">
-            <button type="button" class="btn btn-outline-secondary">Log out</button>
+            <button type="button" class="btn soft-purple-btn">Log out</button>
           </div>
 
         </div>
@@ -143,3 +143,36 @@ export default {
 
 </script>
 
+<style>
+.main-navigation {
+  position: absolute;
+  width: 100%;
+  top: 80px; /* Adjust this value to position the nav bar lower */
+  z-index: 10; /* Ensure it stays above other content */
+}
+
+
+/* Soft, transparent purple buttons with white text */
+.soft-purple-btn {
+  color: #ffffff; /* White text */
+  background-color: rgba(142, 68, 173, 0.7); /* Transparent purple */
+  border-color: rgba(142, 68, 173, 0.5);
+  transition: all 0.3s ease;
+  /* Optional: add some subtle depth */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.soft-purple-btn:hover {
+  color: #ffffff;
+  background-color: rgba(142, 68, 173, 0.85); /* More opaque on hover */
+  border-color: rgba(142, 68, 173, 0.8);
+}
+
+.soft-purple-btn:active,
+.soft-purple-btn:focus {
+  color: #ffffff;
+  background-color: rgba(142, 68, 173, 0.9); /* Even more opaque when active */
+  border-color: rgba(142, 68, 173, 0.9);
+  box-shadow: 0 0 0 0.25rem rgba(142, 68, 173, 0.4); /* Purple shadow for focus */
+}
+</style>

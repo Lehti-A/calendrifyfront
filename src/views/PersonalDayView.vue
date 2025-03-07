@@ -1,8 +1,8 @@
 <template>
-  <div class="container-fluid px-4 pt-5 pb-4">
-    <div class="row mb-5 align-items-center">
+  <div class="container-fluid px-4 pb-4 personal-day-container">
+    <div class="row mb-5 align-items-center header-row">
       <div class="col text-center">
-        <h1 class="mb-1 display-6 fw-bold text-gray-800">
+        <h1 class="mb-1 fw-bold simple-header">
           PERSONAL DAY PLANNER
         </h1>
       </div>
@@ -511,7 +511,18 @@ export default {
 </script>
 
 <style scoped>
-.display-6 {
+.personal-day-container {
+  padding-top: 170px; /* This value should be larger than the nav position (80px) plus its height */
+}
+
+/* Ensure the header row doesn't get hidden */
+.header-row {
+  position: relative;
+  margin-bottom: 2rem !important;
+}
+
+/* Simple bold white header */
+.simple-header {
   color: #ffffff; /* White text */
   font-weight: 700; /* Bold */
   text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3); /* Subtle shadow for legibility */
