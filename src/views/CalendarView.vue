@@ -15,7 +15,6 @@
     <button type="button" class="btn btn-secondary mx-3" style="width: 7%;" @click="fetchData">New Quote</button>
     <button type="button" class="btn btn-secondary" style="width: 7%;" @click="">Search day</button>
 
-
     <div class="row justify-content-center mt-3">
       <div class="col d-flex justify-content-center gap-2">
         <div class="dropdown">
