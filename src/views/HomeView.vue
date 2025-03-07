@@ -5,20 +5,21 @@
                 @event-update-nav-menu="$emit('event-update-nav-menu')"
     />
     <div class="content">
-      <div class="row justify-content-center">
-        <div class="col-auto">
-          <button @click="openLoginModal" type="button" class="btn btn-light">Login</button>
+      <div v-if="!isLoggedIn" >
+        <div class="row justify-content-center">
+          <div class="col-auto">
+            <button @click="openLoginModal" type="button" class="btn btn-light">Login</button>
+          </div>
+        </div>
+        <div class="row justify-content-center">
+          <div class="col-auto">
+            <button @click="navigateToRegisterView" type="button"
+                    class="btn btn-link link-light link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover">
+              Register
+            </button>
+          </div>
         </div>
       </div>
-      <div class="row justify-content-center">
-        <div class="col-auto">
-          <button @click="navigateToRegisterView" type="button"
-                  class="btn btn-link link-light link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover">
-            Register
-          </button>
-        </div>
-      </div>
-
       <div class="row justify-content-center mt-5">
         <div class="col-md-8 d-flex flex-column align-items-center justify-content-center text-center">
           <h2 class="fw-bold">Stay Organized, Stay Ahead – Welcome to Your Ultimate Calendar Solution!</h2>
@@ -44,6 +45,7 @@ export default {
   components: {LoginModal},
   data() {
     return {
+      isLoggedIn: false,
       modalIsOpen: false
     }
   },
@@ -59,7 +61,14 @@ export default {
       NavigationServices.navigateToRegisterView()
     },
 
+    decideIsLoggedIn() {
+      let userId = sessionStorage.getItem('userId')
+      this.isLoggedIn = userId !== null
+    },
   },
+  beforeMount() {
+    this.decideIsLoggedIn()
+  }
 
 }
 </script>

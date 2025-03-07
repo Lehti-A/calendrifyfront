@@ -72,7 +72,6 @@ export default {
   methods: {
 
     executeLogin() {
-      alert(this.allFieldsAreWithCorrectInput())
       if (this.allFieldsAreWithCorrectInput()) {
         this.sendLoginRequest();
       } else {
@@ -94,7 +93,7 @@ export default {
       this.loginResponse = response.data
       this.updateSessionStorageWithUserDetails()
       this.$emit('event-update-nav-menu')
-      this.$emit('event-close-modal')
+      // this.$emit('event-close-modal')
       NavigationServices.navigateToCalendarView();
     },
 

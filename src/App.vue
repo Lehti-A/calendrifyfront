@@ -8,31 +8,37 @@
           <div class="col-auto">
             <button type="button" class="btn soft-purple-btn nav-btn"
                     :class="{ 'active-nav-btn': isActiveRoute('workDayRoute') }"
-                    @click="navigateToWorkDay">Work day</button>
+                    @click="navigateToWorkDay">Work day
+            </button>
           </div>
 
           <div class="col-auto">
             <button type="button" class="btn soft-purple-btn nav-btn"
                     :class="{ 'active-nav-btn': isActiveRoute('personalDayRoute') }"
-                    @click="navigateToPersonalDay">Personal day</button>
+                    @click="navigateToPersonalDay">Personal day
+            </button>
           </div>
 
           <div class="col-auto">
             <button type="button" class="btn soft-purple-btn nav-btn"
                     :class="{ 'active-nav-btn': isActiveRoute('calendarRoute') }"
-                    @click="navigateToCalendar">Calendar</button>
+                    @click="navigateToCalendar">Calendar
+            </button>
           </div>
 
           <div class="col-auto">
             <button type="button" class="btn soft-purple-btn nav-btn"
                     :class="{ 'active-nav-btn': isActiveRoute('settingsRoute') }"
-                    @click="navigateToSettings">Settings</button>
+                    @click="navigateToSettings">Settings
+            </button>
           </div>
 
           <div class="col-auto">
             <button type="button" class="btn soft-purple-btn nav-btn"
                     :class="{ 'active-nav-btn': false }"
-                    @click="openLogoutModal">Log out</button>
+                    @click="openLogoutModal">Log out
+            </button>
+            <button @click="executeLogout">Log out WIP</button>
           </div>
 
         </div>
@@ -49,7 +55,7 @@ import NavigationServices from "@/services/NavigationServices";
 export default {
   data() {
     return {
-      backgroundClass: 'background-container-1',
+      backgroundClass: 'background-logged-out',
       modalIsOpen: false,
       isLoggedIn: true,
       isAdmin: false,
@@ -73,7 +79,9 @@ export default {
     // Also check status on mount
     this.updateNavMenuAndBackground();
   },
-  methods:{
+  methods: {
+
+
     navigateToWorkDay() {
       NavigationServices.navigateToWorkDayView();
     },
@@ -92,25 +100,11 @@ export default {
     openLogoutModal() {
       // TODO: Implement logout modal opening logic
       // For now, we'll just use the direct logout
-      this.logout();
+      this.executeLogout();
     },
-    // todo: vaheta see kood alumise vastu välja kui login võimekus backendist olemas
     updateNavMenuAndBackground() {
-      // Check for login status
       let userId = sessionStorage.getItem('userId')
-
-      // If in development mode, consider the user logged in
-      if (this.devMode) {
-        // Uncomment the next line to force logged-in state in development
-        // this.isLoggedIn = true;
-
-        // Or you can leave it using sessionStorage for testing both states
-        this.isLoggedIn = userId !== null;
-      } else {
-        // Normal login check
-        this.isLoggedIn = userId !== null;
-      }
-
+      this.isLoggedIn = userId !== null
       let roleName = sessionStorage.getItem('roleName')
       this.isAdmin = roleName != null && 'admin' === roleName
 
@@ -118,57 +112,33 @@ export default {
       const currentRoute = this.$route.path;
 
       // Define which routes require authentication
-      const protectedRoutes = ['/day-personal', '/day-work', '/calendar', '/settings'];
+      const protectedRoutes = ['/personal-day', '/work-day', '/calendar', '/settings'];
       const isProtectedRoute = protectedRoutes.some(route => currentRoute.includes(route));
 
-      // DEVELOPMENT MODE: For testing specific routes with specific backgrounds
-      if (this.devMode) {
-        // For PersonalDayView testing, uncomment this to force background-container-2
-        if (isProtectedRoute) {
-          this.backgroundClass = 'background-container-2';
-          return;
-        }
-      }
-      // Normal background selection logic
+      // Set background based on route and login status
       if (isProtectedRoute || this.isLoggedIn) {
-        this.backgroundClass = 'background-container-2';
+        this.backgroundClass = 'background-logged-in';
       } else {
-        this.backgroundClass = 'background-container-1';
+        this.backgroundClass = 'background-logged-out';
       }
-    },
-    // updateNavMenuAndBackground() {
-    //   let userId = sessionStorage.getItem('userId')
-    //   this.isLoggedIn = userId !== null
-    //   let roleName = sessionStorage.getItem('roleName')
-    //   this.isAdmin = roleName != null && 'admin' === roleName
-    //
-    //   // Check current route to determine the background
-    //   const currentRoute = this.$route.path;
-    //
-    //   // Define which routes require authentication
-    //   const protectedRoutes = ['/personal-day', '/work-day', '/calendar', '/settings'];
-    //   const isProtectedRoute = protectedRoutes.some(route => currentRoute.includes(route));
-    //
-    //   // Set background based on route and login status
-    //   if (isProtectedRoute || this.isLoggedIn) {
-    //     this.backgroundClass = 'background-container-2';
-    //   } else {
-    //     this.backgroundClass = 'background-container-1';
-    //   }
     },
 
-    logout() {
+    executeLogout() {
       // Clear session storage
-      sessionStorage.removeItem('userId');
-      sessionStorage.removeItem('roleName');
+      sessionStorage.clear()
 
       // Update status and background using the existing method
       this.updateNavMenuAndBackground();
 
-      // Navigate to home
-      this.$router.push('/');
+      // Check if the user is already on the home view
+      if (this.$route.name === 'homeRoute') {
+        window.location.reload(); // Force a full page reload
+      } else {
+        NavigationServices.navigateToHomeView();
+      }
     }
 
+  }
 }
 
 </script>

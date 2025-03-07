@@ -304,23 +304,6 @@
 <script>
 export default {
   name: 'PersonalDayView',
-  created() {
-    // DEVELOPMENT MODE: Set a temporary user ID for testing
-    // Comment this line out when you implement real login functionality
-    sessionStorage.setItem('userId', 'temp-dev-user');
-  // todo:vaheta ülemine osa alumise vastu kui backend login on olemas
-  // Emit the update event when this component is created
-  // created() {
-    // Ensure user is logged in when accessing this page
-    // const userId = sessionStorage.getItem('userId');
-    // if (!userId) {
-      // If not logged in, redirect to home
-    //   this.$router.push('/');
-    // }
-
-    // Emit the event to update nav menu and background
-    this.$emit('event-update-nav-menu');
-  },
   computed: {
     currentDay() {
       return new Date().getDate();

@@ -90,14 +90,6 @@ import CalendarModal from "@/components/modal/CalendarModal.vue";
 export default {
   name: "CalendarView",
   components: {CalendarModal, LoginModal},
-  created() {
-    // DEVELOPMENT MODE: Set a temporary user ID for testing
-    sessionStorage.setItem('userId', 'temp-dev-user');
-    // Emit the event to update nav menu and background
-    this.$emit('event-update-nav-menu');
-
-  },
-
   data() {
     return {
       modalIsOpen: false,
