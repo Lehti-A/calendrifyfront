@@ -541,7 +541,7 @@ export default {
   grid-template-columns: repeat(7, 1fr);
   grid-template-rows: repeat(6, 1fr);
   gap: 2px;
-  height: 310px; /* Reduced by another 5% from 326px */
+  height: 290px; /* Reduced by another 5% from 326px */
 }
 
 .calendar-day-cell {
