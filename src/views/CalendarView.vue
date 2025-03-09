@@ -1,104 +1,456 @@
 <template>
-  <div class="content">
-    <CalendarModal :modal-is-open="modalIsOpen"
-                   @event-close-modal="closeCalendarModal"
-                   @event-update-nav-menu="$emit('event-update-nav-menu')"
+  <div class="container-fluid px-4 pb-4 calendar-container">
+    <!-- Header Row - Matching other views -->
+    <div class="row mb-5 align-items-center header-row">
+      <div class="col text-center">
+        <h1 class="mb-1 fw-bold simple-header">
+          CALENDAR
+        </h1>
+      </div>
+    </div>
+
+    <!-- Calendar Modal for adding events -->
+    <CalendarEventModal
+        :modal-is-open="eventModalIsOpen"
+        :selected-date="selectedDate"
+        :event-type="eventType"
+        @event-close-modal="closeEventModal"
+        @event-save="saveEvent"
     />
 
-    <div class="row justify-content-center mt-3">
-      <div class="col d-flex flex-column align-items-center justify-content-center text-center"> </div>
-      <h2 class="fw-bold">CALENDAR</h2>
-      <div class="col text-center mb-3" style="max-width: 600px; width: 100%;">
-        {{ quote }}
-      </div>
-    </div>
-    <button type="button" class="btn btn-secondary mx-3" style="width: 7%;" @click="fetchData">New Quote</button>
-    <button type="button" class="btn btn-secondary" style="width: 7%;" @click="">Search day</button>
-
-    <div class="row justify-content-center mt-3">
-      <div class="col d-flex justify-content-center gap-2">
-        <div class="dropdown">
-          <button class="btn btn-secondary dropdown-toggle mx-3" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-            Month
-          </button>
-          <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="#">January</a></li>
-            <li><a class="dropdown-item" href="#">February</a></li>
-            <li><a class="dropdown-item" href="#">March</a></li>
-            <li><a class="dropdown-item" href="#">April</a></li>
-            <li><a class="dropdown-item" href="#">May</a></li>
-            <li><a class="dropdown-item" href="#">June</a></li>
-            <li><a class="dropdown-item" href="#">July</a></li>
-            <li><a class="dropdown-item" href="#">August</a></li>
-            <li><a class="dropdown-item" href="#">September</a></li>
-            <li><a class="dropdown-item" href="#">October</a></li>
-            <li><a class="dropdown-item" href="#">November</a></li>
-            <li><a class="dropdown-item" href="#">December</a></li>
-          </ul>
+    <!-- Main Two-Column Layout -->
+    <div class="row">
+      <!-- Left Column (Selected Day Details, Events) - Originally on the right -->
+      <div class="col-md-4 left-column">
+        <!-- Selected Day Card - Made more compact -->
+        <div class="card semi-transparent-card mb-3 selected-day-card" style="min-height: 124.8px;">
+          <div class="card-header bg-transparent py-2">
+            <strong>Selected Day</strong>
+          </div>
+          <div class="card-body text-center p-0" v-if="selectedDate">
+            <div class="calendar-card-selected">
+              <div class="calendar-month">
+                {{ getMonthName(selectedDate.getMonth()) }}
+              </div>
+              <div class="calendar-day">
+                {{ selectedDate.getDate() }}
+              </div>
+              <div class="calendar-weekday">
+                {{ getDayName(selectedDate.getDay()) }}
+              </div>
+            </div>
+          </div>
+          <div class="card-body text-center py-2" v-else>
+            <p class="my-1">Select a date to view details</p>
+          </div>
         </div>
 
-        <div class="dropdown">
-          <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-            Year
-          </button>
-          <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="#">2024</a></li>
-            <li><a class="dropdown-item" href="#">2025</a></li>
-            <li><a class="dropdown-item" href="#">2026</a></li>
-          </ul>
+        <!-- Personal Events Card - With increased height -->
+        <div class="card semi-transparent-card mb-3">
+          <div class="card-header bg-transparent py-2 d-flex justify-content-between align-items-center">
+            <strong>Personal Events</strong>
+            <button v-if="selectedDate" class="btn btn-sm btn-outline-secondary" @click="openEventModal('personal')">
+              Add
+            </button>
+          </div>
+          <div class="content-container personal-events" style="max-height: 300px;">
+            <ul class="list-group list-group-flush" v-if="selectedDate && getPersonalEvents(selectedDate).length > 0">
+              <li v-for="(event, index) in getPersonalEvents(selectedDate)" :key="index"
+                  class="list-group-item py-2 d-flex justify-content-between align-items-center">
+                <span :class="{ 'completed-event': event.completed }">{{ event.text }}</span>
+                <div class="event-actions">
+                  <input
+                      type="checkbox"
+                      class="form-check-input me-2"
+                      :checked="event.completed"
+                      @change="toggleEventCompletion('personal', index, selectedDate)"
+                  >
+                  <button
+                      class="btn btn-sm btn-link text-danger p-0"
+                      @click="removeEvent('personal', index, selectedDate)"
+                      title="Remove event"
+                  >
+                    <span>🗑️</span>
+                  </button>
+                </div>
+              </li>
+            </ul>
+            <div v-else class="card-body text-center py-2">
+              <p class="text-muted my-1" v-if="selectedDate">No personal events for this day</p>
+              <p class="text-muted my-1" v-else>Select a date to view events</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Work Events Card - Made more compact -->
+        <div class="card semi-transparent-card mb-3">
+          <div class="card-header bg-transparent py-2 d-flex justify-content-between align-items-center">
+            <strong>Work Events</strong>
+            <button v-if="selectedDate" class="btn btn-sm btn-outline-secondary" @click="openEventModal('work')">
+              Add
+            </button>
+          </div>
+          <div class="content-container" style="max-height: 210px;"><!-- Increased by 40% from 150px -->
+            <ul class="list-group list-group-flush" v-if="selectedDate && getWorkEvents(selectedDate).length > 0">
+              <li v-for="(event, index) in getWorkEvents(selectedDate)" :key="index"
+                  class="list-group-item py-2 d-flex justify-content-between align-items-center">
+                <span :class="{ 'completed-event': event.completed }">{{ event.text }}</span>
+                <div class="event-actions">
+                  <input
+                      type="checkbox"
+                      class="form-check-input me-2"
+                      :checked="event.completed"
+                      @change="toggleEventCompletion('work', index, selectedDate)"
+                  >
+                  <button
+                      class="btn btn-sm btn-link text-danger p-0"
+                      @click="removeEvent('work', index, selectedDate)"
+                      title="Remove event"
+                  >
+                    <span>🗑️</span>
+                  </button>
+                </div>
+              </li>
+            </ul>
+            <div v-else class="card-body text-center py-2">
+              <p class="text-muted my-1" v-if="selectedDate">No work events for this day</p>
+              <p class="text-muted my-1" v-else>Select a date to view events</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column (Calendar + Quote) - Originally on the left -->
+      <div class="col-md-8 right-column">
+        <!-- Daily Quote Card - Made more compact -->
+        <div class="card semi-transparent-card mb-3 quote-card" style="min-height: 130px;">
+          <div class="card-header bg-transparent py-2">
+            <strong>Daily Inspiration</strong>
+          </div>
+          <div class="card-body py-2">
+            <p class="quote-text mb-2">{{ quote }}</p>
+            <button class="btn btn-sm btn-outline-secondary" @click="fetchQuote">
+              New Quote
+            </button>
+          </div>
+        </div>
+
+        <!-- Calendar Month Navigation and Current Month/Year Display - More compact -->
+        <div class="card semi-transparent-card mb-3">
+          <div class="card-header bg-transparent py-2 d-flex justify-content-between align-items-center">
+            <button class="btn btn-sm btn-outline-secondary" @click="previousMonth">
+              <span>&laquo; Previous</span>
+            </button>
+            <h3 class="m-0" style="font-size: 1.25rem;">{{ currentMonthName }} {{ currentYear }}</h3>
+            <button class="btn btn-sm btn-outline-secondary" @click="nextMonth">
+              <span>Next &raquo;</span>
+            </button>
+          </div>
+          <div class="card-body">
+            <!-- Days of Week Headers -->
+            <div class="calendar-week-header">
+              <div v-for="day in daysOfWeek" :key="day" class="calendar-day-name">
+                {{ day }}
+              </div>
+            </div>
+
+            <!-- Calendar Grid -->
+            <div class="calendar-grid">
+              <div
+                  v-for="(day, index) in calendarDays"
+                  :key="index"
+                  class="calendar-day-cell"
+                  :class="{
+                  'other-month': !day.isCurrentMonth,
+                  'current-day': day.isToday,
+                  'has-events': hasEvents(day.date)
+                }"
+                  @click="selectDate(day)"
+              >
+                <div class="day-number">{{ day.dayNumber }}</div>
+                <!-- Event indicators -->
+                <div class="event-indicators" v-if="hasEvents(day.date)">
+                  <span
+                      v-if="hasPersonalEvents(day.date)"
+                      class="event-dot personal-event"
+                      title="Personal event"
+                  ></span>
+                  <span
+                      v-if="hasWorkEvents(day.date)"
+                      class="event-dot work-event"
+                      title="Work event"
+                  ></span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-
-    <div class="row justify-content-center mt-1">
-      <div class="col" style="width: 800px;" > Personal Focus
-        <ul class="list-group">
-          <li class="list-group-item d-flex justify-content-between align-items-center">
-            Meditate 30min
-            <div class="form-check">
-              <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
-              <label class="form-check-label" for="flexCheckDefault"> Done </label>
-            </div>
-            <button class="btn btn-sm btn-outline-danger" @click="removeTask('personal', index)">🗑️</button>
-          </li>
-        </ul>
-        <button class="btn btn-outline-primary mt-2" @click="openCalendarModal('personal')">➕</button>
-      </div>
-      <div class="col-4" style="width: 800px;" > Work Focus
-        <ul class="list-group">
-          <li class="list-group-item d-flex justify-content-between align-items-center">
-            Do Calendar Front
-            <div class="form-check">
-              <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
-              <label class="form-check-label" for="flexCheckDefault"> Done </label>
-            </div>
-            <button class="btn btn-sm btn-outline-danger" @click="removeTask('personal', index)">🗑️</button>
-          </li>
-        </ul>
-        <button class="btn btn-outline-primary mt-2" @click="openCalendarModal('personal')">➕</button>
-      </div>
-    </div>
-
   </div>
 </template>
 
 <script>
 import axios from 'axios';
-import LoginModal from "@/components/modal/LoginModal.vue";
-import CalendarModal from "@/components/modal/CalendarModal.vue";
+import CalendarEventModal from "@/components/modal/CalendarEventModal.vue";
 
 export default {
   name: "CalendarView",
-  components: {CalendarModal, LoginModal},
+  components: {
+    CalendarEventModal
+  },
   data() {
     return {
-      modalIsOpen: false,
-      quote: "" //,
+      // Current view month and year
+      currentMonth: new Date().getMonth(),
+      currentYear: new Date().getFullYear(),
+
+      // Selected date
+      selectedDate: null,
+
+      // Modal controls
+      eventModalIsOpen: false,
+      eventType: 'personal', // 'personal' or 'work'
+
+      // Quotes
+      quote: "The way to get started is to quit talking and begin doing. - Walt Disney",
+
+      // Calendar events
+      events: {},
+
+      // Days of week for calendar header
+      daysOfWeek: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
     };
   },
+  computed: {
+    // Get month name
+    currentMonthName() {
+      const months = [
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
+      ];
+      return months[this.currentMonth];
+    },
 
+    // Generate calendar days for the current month view
+    calendarDays() {
+      const days = [];
+
+      // Get first day of month
+      const firstDay = new Date(this.currentYear, this.currentMonth, 1);
+      // Get first day of week (0 = Sunday, 1 = Monday, etc.)
+      const startingDayOfWeek = firstDay.getDay();
+
+      // Get number of days in current month
+      const daysInMonth = new Date(this.currentYear, this.currentMonth + 1, 0).getDate();
+
+      // Get today's date info for highlighting the current day
+      const today = new Date();
+      const isCurrentMonth = today.getMonth() === this.currentMonth && today.getFullYear() === this.currentYear;
+      const todayDate = today.getDate();
+
+      // Previous month's days to display
+      const prevMonth = this.currentMonth === 0 ? 11 : this.currentMonth - 1;
+      const prevMonthYear = this.currentMonth === 0 ? this.currentYear - 1 : this.currentYear;
+      const daysInPrevMonth = new Date(prevMonthYear, prevMonth + 1, 0).getDate();
+
+      // Add previous month's days
+      for (let i = startingDayOfWeek - 1; i >= 0; i--) {
+        const day = daysInPrevMonth - i;
+        days.push({
+          dayNumber: day,
+          isCurrentMonth: false,
+          isToday: false,
+          date: new Date(prevMonthYear, prevMonth, day)
+        });
+      }
+
+      // Add current month's days
+      for (let day = 1; day <= daysInMonth; day++) {
+        days.push({
+          dayNumber: day,
+          isCurrentMonth: true,
+          isToday: isCurrentMonth && day === todayDate,
+          date: new Date(this.currentYear, this.currentMonth, day)
+        });
+      }
+
+      // Next month's days to fill the calendar grid (to make 6 rows)
+      const nextMonth = this.currentMonth === 11 ? 0 : this.currentMonth + 1;
+      const nextMonthYear = this.currentMonth === 11 ? this.currentYear + 1 : this.currentYear;
+      const totalDays = 42; // 6 rows of 7 days
+
+      const remainingDays = totalDays - days.length;
+      for (let day = 1; day <= remainingDays; day++) {
+        days.push({
+          dayNumber: day,
+          isCurrentMonth: false,
+          isToday: false,
+          date: new Date(nextMonthYear, nextMonth, day)
+        });
+      }
+
+      return days;
+    }
+  },
+  created() {
+    // Load saved events
+    this.loadEvents();
+
+    // Fetch a quote when component is created
+    this.fetchQuote();
+
+    // Set today as the selected date initially
+    this.selectedDate = new Date();
+  },
   methods: {
-    async fetchData() {
+    // Navigation methods
+    previousMonth() {
+      if (this.currentMonth === 0) {
+        this.currentMonth = 11;
+        this.currentYear--;
+      } else {
+        this.currentMonth--;
+      }
+    },
+
+    nextMonth() {
+      if (this.currentMonth === 11) {
+        this.currentMonth = 0;
+        this.currentYear++;
+      } else {
+        this.currentMonth++;
+      }
+    },
+
+    // Date selection
+    selectDate(day) {
+      this.selectedDate = new Date(day.date);
+    },
+
+    // Get month name by index
+    getMonthName(monthIndex) {
+      const months = [
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
+      ];
+      return months[monthIndex];
+    },
+
+    // Get day name by index
+    getDayName(dayIndex) {
+      const days = [
+        'Sunday', 'Monday', 'Tuesday', 'Wednesday',
+        'Thursday', 'Friday', 'Saturday'
+      ];
+      return days[dayIndex];
+    },
+
+    // Event modal methods
+    openEventModal(type) {
+      this.eventType = type;
+      this.eventModalIsOpen = true;
+    },
+
+    closeEventModal() {
+      this.eventModalIsOpen = false;
+    },
+
+    // Event management methods
+    saveEvent(eventText) {
+      if (!eventText.trim()) return;
+
+      // Format the date as YYYY-MM-DD for use as a key
+      const dateKey = this.formatDateKey(this.selectedDate);
+
+      // Initialize the date in events object if it doesn't exist
+      if (!this.events[dateKey]) {
+        this.events[dateKey] = {
+          personal: [],
+          work: []
+        };
+      }
+
+      // Add the new event
+      this.events[dateKey][this.eventType].push({
+        text: eventText.trim(),
+        completed: false
+      });
+
+      // Save events to localStorage
+      this.saveEvents();
+
+      // Close the modal
+      this.closeEventModal();
+    },
+
+    removeEvent(type, index, date) {
+      const dateKey = this.formatDateKey(date);
+      if (this.events[dateKey] && this.events[dateKey][type]) {
+        this.events[dateKey][type].splice(index, 1);
+        this.saveEvents();
+      }
+    },
+
+    toggleEventCompletion(type, index, date) {
+      const dateKey = this.formatDateKey(date);
+      if (this.events[dateKey] && this.events[dateKey][type] && this.events[dateKey][type][index]) {
+        this.events[dateKey][type][index].completed = !this.events[dateKey][type][index].completed;
+        this.saveEvents();
+      }
+    },
+
+    // Helper methods for events
+    formatDateKey(date) {
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    },
+
+    hasEvents(date) {
+      const dateKey = this.formatDateKey(date);
+      return this.events[dateKey] && (
+          (this.events[dateKey].personal && this.events[dateKey].personal.length > 0) ||
+          (this.events[dateKey].work && this.events[dateKey].work.length > 0)
+      );
+    },
+
+    hasPersonalEvents(date) {
+      const dateKey = this.formatDateKey(date);
+      return this.events[dateKey] &&
+          this.events[dateKey].personal &&
+          this.events[dateKey].personal.length > 0;
+    },
+
+    hasWorkEvents(date) {
+      const dateKey = this.formatDateKey(date);
+      return this.events[dateKey] &&
+          this.events[dateKey].work &&
+          this.events[dateKey].work.length > 0;
+    },
+
+    getPersonalEvents(date) {
+      const dateKey = this.formatDateKey(date);
+      return (this.events[dateKey] && this.events[dateKey].personal) ? this.events[dateKey].personal : [];
+    },
+
+    getWorkEvents(date) {
+      const dateKey = this.formatDateKey(date);
+      return (this.events[dateKey] && this.events[dateKey].work) ? this.events[dateKey].work : [];
+    },
+
+    // LocalStorage methods
+    saveEvents() {
+      localStorage.setItem('calendarEvents', JSON.stringify(this.events));
+    },
+
+    loadEvents() {
+      const savedEvents = localStorage.getItem('calendarEvents');
+      if (savedEvents) {
+        this.events = JSON.parse(savedEvents);
+      }
+    },
+
+    // Fetch quote from API
+    async fetchQuote() {
       const API_KEY = "LEYV9brNOkL8XXrRckzhbQ==0eV9fA97U9SIpoyC";
       try {
         const response = await axios.get("https://api.api-ninjas.com/v1/quotes", {
@@ -106,18 +458,238 @@ export default {
             "X-Api-Key": API_KEY
           }
         });
-        this.quote = response.data[0]?.quote || "No quote available";
+        if (response.data && response.data.length > 0) {
+          this.quote = response.data[0].quote;
+          if (response.data[0].author) {
+            this.quote += " - " + response.data[0].author;
+          }
+        } else {
+          this.quote = "The best way to predict the future is to create it. - Abraham Lincoln";
+        }
       } catch (error) {
-        console.error("Error fetching data:", error);
-        this.quote = "Failed to load quote.";
+        console.error("Error fetching quote:", error);
+        this.quote = "The best way to predict the future is to create it. - Abraham Lincoln";
       }
-    },
-    openCalendarModal() {
-      this.modalIsOpen = true
-    },
-    closeCalendarModal() {
-      this.modalIsOpen = false
     }
   }
-}
+};
 </script>
+
+<style scoped>
+.calendar-container {
+  padding-top: 140px; /* Reduced top padding to fit more content in the viewport */
+}
+
+/* Header styling - slightly more compact */
+.header-row {
+  position: relative;
+  margin-bottom: 1.5rem !important; /* Reduced margin */
+}
+
+.simple-header,
+.card-header strong {
+  font-family: 'Quicksand', sans-serif !important;
+  font-weight: 700 !important;
+}
+
+.simple-header {
+  color: #ffffff; /* White text */
+  font-weight: 700; /* Bold */
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3); /* Subtle shadow for legibility */
+}
+
+/* Card header styling */
+.card-header strong {
+  font-size: 1.15rem;
+}
+
+/* Semi-transparent cards */
+.semi-transparent-card {
+  background-color: rgba(255, 255, 255, 0.7); /* Slight transparency */
+  backdrop-filter: blur(10px); /* Blur effect for background */
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.semi-transparent-card .card-header {
+  background-color: rgba(255, 255, 255, 0.3);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  font-size: 1.1rem;
+}
+
+/* Calendar styles */
+.calendar-week-header {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  margin-bottom: 5px;
+}
+
+.calendar-day-name {
+  text-align: center;
+  font-weight: 600;
+  padding: 10px 0;
+  font-size: 0.9rem;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-template-rows: repeat(6, 1fr);
+  gap: 2px;
+  height: 310px; /* Reduced by another 5% from 326px */
+}
+
+.calendar-day-cell {
+  background-color: rgba(255, 255, 255, 0.5);
+  position: relative;
+  border-radius: 4px;
+  padding: 5px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: flex;
+  flex-direction: column;
+}
+
+.calendar-day-cell:hover {
+  background-color: rgba(142, 68, 173, 0.2);
+}
+
+.calendar-day-cell.other-month {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: #888;
+}
+
+.calendar-day-cell.current-day {
+  background-color: rgba(142, 68, 173, 0.4);
+  color: white;
+  font-weight: bold;
+}
+
+.day-number {
+  font-size: 1rem;
+  margin-bottom: 5px;
+}
+
+/* Event indicators */
+.event-indicators {
+  position: absolute;
+  bottom: 5px;
+  right: 5px;
+  display: flex;
+  gap: 4px;
+}
+
+.event-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.personal-event {
+  background-color: #28a745; /* Green for personal */
+}
+
+.work-event {
+  background-color: #007bff; /* Blue for work */
+}
+
+/* Selected day calendar card */
+.calendar-card-selected {
+  background-color: rgba(142, 68, 173, 0.7); /* Purple color with 70% opacity */
+  color: white;
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  width: 100%;
+}
+
+.calendar-month {
+  background-color: rgba(0, 0, 0, 0.2);
+  padding: 5px 0; /* Reduced padding */
+  font-size: 0.9rem; /* Smaller font */
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.calendar-day {
+  font-size: 2.2rem; /* Smaller font */
+  font-weight: bold;
+  padding: 5px 0 3px; /* Reduced padding */
+}
+
+.calendar-weekday {
+  font-size: 0.9rem; /* Smaller font */
+  padding-bottom: 5px; /* Reduced padding */
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+/* Event lists */
+.content-container {
+  width: 100%;
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+.completed-event {
+  text-decoration: line-through;
+  color: #6c757d;
+}
+
+.event-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Quote card */
+.quote-card {
+  min-height: 110px; /* Further reduced to match selected day height */
+}
+
+.quote-text {
+  font-style: italic;
+  margin-bottom: 10px; /* Reduced margin */
+  line-height: 1.4; /* Adjust line height for better fit */
+}
+
+/* Button styling - to match other views */
+.btn-outline-secondary {
+  color: #8e44ad;
+  border-color: #8e44ad;
+}
+
+.btn-outline-secondary:hover,
+.btn-outline-secondary:active,
+.btn-outline-secondary:focus {
+  background-color: #8e44ad;
+  border-color: #8e44ad;
+  color: white !important; /* Force white text when button is active/hover/focus */
+}
+
+.btn-outline-secondary.active {
+  background-color: #8e44ad !important;
+  border-color: #8e44ad !important;
+  color: white !important;
+}
+
+/* Primary button styling (used in modals) */
+.btn-primary {
+  background-color: #8e44ad; /* Same purple as calendar */
+  border-color: #8e44ad;
+}
+
+.btn-primary:hover {
+  background-color: #7d3c98; /* Slightly darker on hover */
+  border-color: #7d3c98;
+}
+
+.btn-primary:active,
+.btn-primary:focus {
+  background-color: #6c3483; /* Even darker when active/focused */
+  border-color: #6c3483;
+  box-shadow: 0 0 0 0.25rem rgba(142, 68, 173, 0.4);
+}
+</style>
