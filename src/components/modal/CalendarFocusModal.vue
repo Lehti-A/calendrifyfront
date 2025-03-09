@@ -4,7 +4,7 @@
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title">
-            Add {{ eventType === 'personal' ? 'Personal' : 'Work' }} Event
+            Add {{ focusType === 'personal' ? 'Personal' : 'Work' }} Focus
             <span v-if="selectedDate">
               - {{ formatDate(selectedDate) }}
             </span>
@@ -13,22 +13,22 @@
         </div>
         <div class="modal-body">
           <div class="mb-3">
-            <label for="eventText" class="form-label">Event Description</label>
+            <label for="focusText" class="form-label">Focus Description</label>
             <input
                 type="text"
                 class="form-control"
-                id="eventText"
-                v-model="eventText"
-                @keyup.enter="saveEvent"
-                placeholder="Enter event description"
-                ref="eventInput"
+                id="focusText"
+                v-model="focusText"
+                @keyup.enter="saveFocus"
+                placeholder="Enter focus description"
+                ref="focusInput"
             >
           </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" @click="closeModal">Cancel</button>
-          <button type="button" class="btn btn-primary" @click="saveEvent" :disabled="!eventText.trim()">
-            Add Event
+          <button type="button" class="btn btn-primary" @click="saveFocus" :disabled="!focusText.trim()">
+            Add Focus
           </button>
         </div>
       </div>
@@ -38,7 +38,7 @@
 
 <script>
 export default {
-  name: 'CalendarEventModal',
+  name: 'CalendarFocusModal',
   props: {
     modalIsOpen: {
       type: Boolean,
@@ -48,7 +48,7 @@ export default {
       type: Date,
       default: null
     },
-    eventType: {
+    focusType: {
       type: String,
       default: 'personal',
       validator: function(value) {
@@ -58,18 +58,18 @@ export default {
   },
   data() {
     return {
-      eventText: ''
+      focusText: ''
     };
   },
   methods: {
     closeModal() {
-      this.eventText = '';
+      this.focusText = '';
       this.$emit('event-close-modal');
     },
-    saveEvent() {
-      if (this.eventText.trim()) {
-        this.$emit('event-save', this.eventText);
-        this.eventText = '';
+    saveFocus() {
+      if (this.focusText.trim()) {
+        this.$emit('event-save', this.focusText);
+        this.focusText = '';
       }
     },
     formatDate(date) {
@@ -84,7 +84,7 @@ export default {
       if (newValue) {
         // Focus the input when modal opens
         this.$nextTick(() => {
-          this.$refs.eventInput.focus();
+          this.$refs.focusInput.focus();
         });
       }
     }
@@ -101,6 +101,7 @@ export default {
   border: 1px solid rgba(255, 255, 255, 0.8);
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
+
 
 .modal-header {
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);

@@ -10,12 +10,12 @@
     </div>
 
     <!-- Calendar Modal for adding events -->
-    <CalendarEventModal
-        :modal-is-open="eventModalIsOpen"
+    <CalendarFocusModal
+        :modal-is-open="focusModalIsOpen"
         :selected-date="selectedDate"
-        :event-type="eventType"
-        @event-close-modal="closeEventModal"
-        @event-save="saveEvent"
+        :focus-type="focusType"
+        @event-close-modal="closeFocusModal"
+        @event-save="saveFocus"
     />
 
     <!-- Main Two-Column Layout -->
@@ -48,27 +48,27 @@
         <!-- Personal Events Card - With increased height -->
         <div class="card semi-transparent-card mb-3">
           <div class="card-header bg-transparent py-2 d-flex justify-content-between align-items-center">
-            <strong>Personal Events</strong>
-            <button v-if="selectedDate" class="btn btn-sm btn-outline-secondary" @click="openEventModal('personal')">
+            <strong>Personal Focus</strong>
+            <button v-if="selectedDate" class="btn btn-sm btn-outline-secondary" @click="openFocusModal('personal')">
               Add
             </button>
           </div>
-          <div class="content-container personal-events" style="max-height: 300px;">
-            <ul class="list-group list-group-flush" v-if="selectedDate && getPersonalEvents(selectedDate).length > 0">
-              <li v-for="(event, index) in getPersonalEvents(selectedDate)" :key="index"
+          <div class="content-container personal-focuses" style="max-height: 300px;">
+            <ul class="list-group list-group-flush" v-if="selectedDate && getPersonalFocuses(selectedDate).length > 0">
+              <li v-for="(focus, index) in getPersonalFocuses(selectedDate)" :key="index"
                   class="list-group-item py-2 d-flex justify-content-between align-items-center">
-                <span :class="{ 'completed-event': event.completed }">{{ event.text }}</span>
-                <div class="event-actions">
+                <span :class="{ 'completed-focus': focus.completed }">{{ focus.text }}</span>
+                <div class="focus-actions">
                   <input
                       type="checkbox"
                       class="form-check-input me-2"
-                      :checked="event.completed"
-                      @change="toggleEventCompletion('personal', index, selectedDate)"
+                      :checked="focus.completed"
+                      @change="toggleFocusCompletion('personal', index, selectedDate)"
                   >
                   <button
                       class="btn btn-sm btn-link text-danger p-0"
-                      @click="removeEvent('personal', index, selectedDate)"
-                      title="Remove event"
+                      @click="removeFocus('personal', index, selectedDate)"
+                      title="Remove focus"
                   >
                     <span>🗑️</span>
                   </button>
@@ -76,36 +76,36 @@
               </li>
             </ul>
             <div v-else class="card-body text-center py-2">
-              <p class="text-muted my-1" v-if="selectedDate">No personal events for this day</p>
-              <p class="text-muted my-1" v-else>Select a date to view events</p>
+              <p class="text-muted my-1" v-if="selectedDate">No personal focuses for this day</p>
+              <p class="text-muted my-1" v-else>Select a date to view focuses</p>
             </div>
           </div>
         </div>
 
-        <!-- Work Events Card - Made more compact -->
+        <!-- Work Focus Card - Made more compact -->
         <div class="card semi-transparent-card mb-3">
           <div class="card-header bg-transparent py-2 d-flex justify-content-between align-items-center">
-            <strong>Work Events</strong>
-            <button v-if="selectedDate" class="btn btn-sm btn-outline-secondary" @click="openEventModal('work')">
+            <strong>Work Focus</strong>
+            <button v-if="selectedDate" class="btn btn-sm btn-outline-secondary" @click="openFocusModal('work')">
               Add
             </button>
           </div>
-          <div class="content-container" style="max-height: 210px;"><!-- Increased by 40% from 150px -->
-            <ul class="list-group list-group-flush" v-if="selectedDate && getWorkEvents(selectedDate).length > 0">
-              <li v-for="(event, index) in getWorkEvents(selectedDate)" :key="index"
+          <div class="content-container work-focuses" style="max-height: 210px;"><!-- Increased by 40% from 150px -->
+            <ul class="list-group list-group-flush" v-if="selectedDate && getWorkFocuses(selectedDate).length > 0">
+              <li v-for="(focus, index) in getWorkFocuses(selectedDate)" :key="index"
                   class="list-group-item py-2 d-flex justify-content-between align-items-center">
-                <span :class="{ 'completed-event': event.completed }">{{ event.text }}</span>
-                <div class="event-actions">
+                <span :class="{ 'completed-focus': focus.completed }">{{ focus.text }}</span>
+                <div class="focus-actions">
                   <input
                       type="checkbox"
                       class="form-check-input me-2"
-                      :checked="event.completed"
-                      @change="toggleEventCompletion('work', index, selectedDate)"
+                      :checked="focus.completed"
+                      @change="toggleFocusCompletion('work', index, selectedDate)"
                   >
                   <button
                       class="btn btn-sm btn-link text-danger p-0"
-                      @click="removeEvent('work', index, selectedDate)"
-                      title="Remove event"
+                      @click="removeFocus('work', index, selectedDate)"
+                      title="Remove focus"
                   >
                     <span>🗑️</span>
                   </button>
@@ -113,8 +113,8 @@
               </li>
             </ul>
             <div v-else class="card-body text-center py-2">
-              <p class="text-muted my-1" v-if="selectedDate">No work events for this day</p>
-              <p class="text-muted my-1" v-else>Select a date to view events</p>
+              <p class="text-muted my-1" v-if="selectedDate">No work focuses for this day</p>
+              <p class="text-muted my-1" v-else>Select a date to view focuses</p>
             </div>
           </div>
         </div>
@@ -163,22 +163,22 @@
                   :class="{
                   'other-month': !day.isCurrentMonth,
                   'current-day': day.isToday,
-                  'has-events': hasEvents(day.date)
+                  'has-focuses': hasFocuses(day.date)
                 }"
                   @click="selectDate(day)"
               >
                 <div class="day-number">{{ day.dayNumber }}</div>
                 <!-- Event indicators -->
-                <div class="event-indicators" v-if="hasEvents(day.date)">
+                <div class="focus-indicators" v-if="hasFocuses(day.date)">
                   <span
-                      v-if="hasPersonalEvents(day.date)"
-                      class="event-dot personal-event"
-                      title="Personal event"
+                      v-if="hasPersonalFocuses(day.date)"
+                      class="focus-dot personal-focus"
+                      title="Personal focus"
                   ></span>
                   <span
-                      v-if="hasWorkEvents(day.date)"
-                      class="event-dot work-event"
-                      title="Work event"
+                      v-if="hasWorkFocuses(day.date)"
+                      class="focus-dot work-focus"
+                      title="Work focus"
                   ></span>
                 </div>
               </div>
@@ -192,12 +192,12 @@
 
 <script>
 import axios from 'axios';
-import CalendarEventModal from "@/components/modal/CalendarEventModal.vue";
+import CalendarFocusModal from "@/components/modal/CalendarFocusModal.vue";
 
 export default {
   name: "CalendarView",
   components: {
-    CalendarEventModal
+    CalendarFocusModal
   },
   data() {
     return {
@@ -209,14 +209,14 @@ export default {
       selectedDate: null,
 
       // Modal controls
-      eventModalIsOpen: false,
-      eventType: 'personal', // 'personal' or 'work'
+      focusModalIsOpen: false,
+      focusType: 'personal', // 'personal' or 'work'
 
       // Quotes
       quote: "The way to get started is to quit talking and begin doing. - Walt Disney",
 
       // Calendar events
-      events: {},
+      focuses: {},
 
       // Days of week for calendar header
       daysOfWeek: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
@@ -295,7 +295,7 @@ export default {
   },
   created() {
     // Load saved events
-    this.loadEvents();
+    this.loadFocuses();
 
     // Fetch a quote when component is created
     this.fetchQuote();
@@ -347,56 +347,56 @@ export default {
     },
 
     // Event modal methods
-    openEventModal(type) {
-      this.eventType = type;
-      this.eventModalIsOpen = true;
+    openFocusModal(type) {
+      this.focusType = type;
+      this.focusModalIsOpen = true;
     },
 
-    closeEventModal() {
-      this.eventModalIsOpen = false;
+    closeFocusModal() {
+      this.focusModalIsOpen = false;
     },
 
     // Event management methods
-    saveEvent(eventText) {
+    saveFocus(eventText) {
       if (!eventText.trim()) return;
 
       // Format the date as YYYY-MM-DD for use as a key
       const dateKey = this.formatDateKey(this.selectedDate);
 
       // Initialize the date in events object if it doesn't exist
-      if (!this.events[dateKey]) {
-        this.events[dateKey] = {
+      if (!this.focuses[dateKey]) {
+        this.focuses[dateKey] = {
           personal: [],
           work: []
         };
       }
 
       // Add the new event
-      this.events[dateKey][this.eventType].push({
+      this.focuses[dateKey][this.focusType].push({
         text: eventText.trim(),
         completed: false
       });
 
       // Save events to localStorage
-      this.saveEvents();
+      this.saveFocuses();
 
       // Close the modal
-      this.closeEventModal();
+      this.closeFocusModal();
     },
 
-    removeEvent(type, index, date) {
+    removeFocus(type, index, date) {
       const dateKey = this.formatDateKey(date);
-      if (this.events[dateKey] && this.events[dateKey][type]) {
-        this.events[dateKey][type].splice(index, 1);
-        this.saveEvents();
+      if (this.focuses[dateKey] && this.focuses[dateKey][type]) {
+        this.focuses[dateKey][type].splice(index, 1);
+        this.saveFocuses();
       }
     },
 
-    toggleEventCompletion(type, index, date) {
+    toggleFocusCompletion(type, index, date) {
       const dateKey = this.formatDateKey(date);
-      if (this.events[dateKey] && this.events[dateKey][type] && this.events[dateKey][type][index]) {
-        this.events[dateKey][type][index].completed = !this.events[dateKey][type][index].completed;
-        this.saveEvents();
+      if (this.focuses[dateKey] && this.focuses[dateKey][type] && this.focuses[dateKey][type][index]) {
+        this.focuses[dateKey][type][index].completed = !this.focuses[dateKey][type][index].completed;
+        this.saveFocuses();
       }
     },
 
@@ -405,47 +405,47 @@ export default {
       return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
     },
 
-    hasEvents(date) {
+    hasFocuses(date) {
       const dateKey = this.formatDateKey(date);
-      return this.events[dateKey] && (
-          (this.events[dateKey].personal && this.events[dateKey].personal.length > 0) ||
-          (this.events[dateKey].work && this.events[dateKey].work.length > 0)
+      return this.focuses[dateKey] && (
+          (this.focuses[dateKey].personal && this.focuses[dateKey].personal.length > 0) ||
+          (this.focuses[dateKey].work && this.focuses[dateKey].work.length > 0)
       );
     },
 
-    hasPersonalEvents(date) {
+    hasPersonalFocuses(date) {
       const dateKey = this.formatDateKey(date);
-      return this.events[dateKey] &&
-          this.events[dateKey].personal &&
-          this.events[dateKey].personal.length > 0;
+      return this.focuses[dateKey] &&
+          this.focuses[dateKey].personal &&
+          this.focuses[dateKey].personal.length > 0;
     },
 
-    hasWorkEvents(date) {
+    hasWorkFocuses(date) {
       const dateKey = this.formatDateKey(date);
-      return this.events[dateKey] &&
-          this.events[dateKey].work &&
-          this.events[dateKey].work.length > 0;
+      return this.focuses[dateKey] &&
+          this.focuses[dateKey].work &&
+          this.focuses[dateKey].work.length > 0;
     },
 
-    getPersonalEvents(date) {
+    getPersonalFocuses(date) {
       const dateKey = this.formatDateKey(date);
-      return (this.events[dateKey] && this.events[dateKey].personal) ? this.events[dateKey].personal : [];
+      return (this.focuses[dateKey] && this.focuses[dateKey].personal) ? this.focuses[dateKey].personal : [];
     },
 
-    getWorkEvents(date) {
+    getWorkFocuses(date) {
       const dateKey = this.formatDateKey(date);
-      return (this.events[dateKey] && this.events[dateKey].work) ? this.events[dateKey].work : [];
+      return (this.focuses[dateKey] && this.focuses[dateKey].work) ? this.focuses[dateKey].work : [];
     },
 
     // LocalStorage methods
-    saveEvents() {
-      localStorage.setItem('calendarEvents', JSON.stringify(this.events));
+    saveFocuses() {
+      localStorage.setItem('calendarEvents', JSON.stringify(this.focuses));
     },
 
-    loadEvents() {
+    loadFocuses() {
       const savedEvents = localStorage.getItem('calendarEvents');
       if (savedEvents) {
-        this.events = JSON.parse(savedEvents);
+        this.focuses = JSON.parse(savedEvents);
       }
     },
 
@@ -572,7 +572,7 @@ export default {
 }
 
 /* Event indicators */
-.event-indicators {
+.focus-indicators {
   position: absolute;
   bottom: 5px;
   right: 5px;
@@ -580,17 +580,17 @@ export default {
   gap: 4px;
 }
 
-.event-dot {
+.focus-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
 }
 
-.personal-event {
+.personal-focus {
   background-color: #28a745; /* Green for personal */
 }
 
-.work-event {
+.work-focus {
   background-color: #007bff; /* Blue for work */
 }
 
@@ -633,12 +633,12 @@ export default {
   overflow-y: auto;
 }
 
-.completed-event {
+.completed-focus {
   text-decoration: line-through;
   color: #6c757d;
 }
 
-.event-actions {
+.focus-actions {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -692,4 +692,5 @@ export default {
   border-color: #6c3483;
   box-shadow: 0 0 0 0.25rem rgba(142, 68, 173, 0.4);
 }
+
 </style>
