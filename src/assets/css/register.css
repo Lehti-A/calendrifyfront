@@ -25,10 +25,18 @@
 
 
 .card {
-    max-width: 1200px;
+    max-width: 600px; /* Increased from 400px (inline) but not as wide as 1200px */
     margin: auto;
     padding: 20px;
     border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Semi-transparent card styling to match the focus card in PersonalDayView */
+.semi-transparent-card {
+    background-color: rgba(255, 255, 255, 0.7) !important; /* Semi-transparent background */
+    backdrop-filter: blur(10px); /* Blur effect for background */
+    border: 1px solid rgba(255, 255, 255, 0.8);
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
@@ -39,6 +47,29 @@
 
 .form-check-label a:hover {
     text-decoration: none;
+}
+
+.form-check {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Put the label first, then the checkbox */
+.form-check-label {
+    order: 1 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.form-check-input {
+    order: 2 !important;
+    margin: 0 !important;
+    margin-left: 12px !important; /* Small gap between text and checkbox */
+    padding: 0 !important;
 }
 
 
