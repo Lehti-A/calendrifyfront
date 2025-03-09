@@ -29,7 +29,7 @@
     <template #footer>
       <div class="d-flex justify-content-center w-75 gap-3">
         <button @click="$emit('event-close-modal')" class="btn btn-secondary flex-grow-1">Cancel</button>
-        <button @click="executeLogin" class="btn btn-success flex-grow-1">Login</button>
+        <button @click="executeLogin" class="btn btn-primary flex-grow-1">Login</button>
       </div>
     </template>
 
