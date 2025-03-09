@@ -94,12 +94,20 @@ export default {
 
 <style scoped>
 /* Modal styling - to match the app's theme */
-.modal-content {
-  background-color: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.8);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+.modal-content .btn-primary {
+  background-color: #8e44ad !important;
+  border-color: #8e44ad !important;
+  color: white !important;
+}
+
+.modal-content .btn-primary:hover,
+.modal-content .btn-primary:active,
+.modal-content .btn-primary:focus,
+.modal-content .btn-primary:focus-visible {
+  background-color: #7d3c98 !important;
+  border-color: #7d3c98 !important;
+  color: white !important;
+  box-shadow: 0 0 0 0.25rem rgba(142, 68, 173, 0.4) !important;
 }
 
 
