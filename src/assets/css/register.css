@@ -23,7 +23,7 @@
     text-align: center;
 }
 .card {
-    max-width: 600px; /* Increased from 400px (inline) but not as wide as 1200px */
+    max-width: 1400px; /* Increased from 400px (inline) but not as wide as 1200px */
     margin: auto;
     padding: 20px;
     border-radius: 8px;
