@@ -127,11 +127,15 @@
           <div class="card-header bg-transparent py-2">
             <strong>Daily Inspiration</strong>
           </div>
-          <div class="card-body py-2">
-            <p class="quote-text mb-2">{{ quote }}</p>
-            <button class="btn btn-sm btn-outline-secondary" @click="fetchQuote">
-              New Quote
-            </button>
+          <div class="card-body py-2 d-flex flex-column" style="height: 117px;">
+            <div class="quote-container mb-">
+              <p class="quote-text">{{ quote }}</p>
+            </div>
+            <div class="mt-auto">
+              <button class="btn btn-sm btn-outline-secondary" @click="fetchQuote">
+                New Quote
+              </button>
+            </div>
           </div>
         </div>
 
@@ -645,15 +649,24 @@ export default {
 }
 
 /* Quote card */
-.quote-card {
-  min-height: 110px; /* Further reduced to match selected day height */
+.quote-container {
+  flex-grow: 1;
+  overflow-y: auto;
+  max-height: 80px; /* Control maximum height for quotes */
 }
 
 .quote-text {
   font-style: italic;
-  margin-bottom: 10px; /* Reduced margin */
-  line-height: 1.4; /* Adjust line height for better fit */
+  line-height: 1.4;
+  margin-bottom: 0; /* Remove bottom margin to prevent extra space */
 }
+
+/* No need for fixed height on entire card now */
+.quote-card {
+  min-height: auto;
+}
+
+
 
 /* Button styling - to match other views */
 .btn-outline-secondary {
