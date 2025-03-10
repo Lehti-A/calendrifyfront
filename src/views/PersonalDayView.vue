@@ -33,24 +33,43 @@
             <div class="card semi-transparent-card focus-card">
               <div class="card-header bg-transparent"><strong>Focus for Today</strong></div>
               <div class="card-body focus-body">
-                <div v-if="!editingFocus" @click="startEditingFocus" class="focus-view-mode">
-                  <p v-if="dailyFocus" class="focus-content">{{ dailyFocus }}</p>
-                  <p v-else class="text-muted focus-placeholder">Click here to set your focus for today...</p>
+                <div class="seamless-input-container">
+                  <!-- Placeholder text shown when no focus and not editing -->
+                  <div
+                      v-if="!isEditing && !dailyFocus"
+                      class="placeholder-text"
+                      @click="startEditing"
+                  >{{ placeholder }}</div>
+
+                  <!-- Existing content shown when not editing -->
+                  <div
+                      v-if="!isEditing && dailyFocus"
+                      class="content-text"
+                      @click="startEditing"
+                  >{{ dailyFocus }}</div>
+
+                  <!-- Editing container with input and clear button together -->
+                  <div v-if="isEditing" class="editing-wrapper">
+                    <input
+                        ref="seamlessInput"
+                        type="text"
+                        class="seamless-input"
+                        v-model="dailyFocus"
+                        @blur="handleBlur"
+                        @keydown.enter="finishEditing"
+                    >
+                    <!-- Clear button only shown when text exists -->
+                    <button
+                        v-if="dailyFocus"
+                        class="clear-focus-button"
+                        @click.stop="clearFocus"
+                        title="Clear text"
+                        type="button"
+                    >
+                      <span>×</span>
+                    </button>
+                  </div>
                 </div>
-                <div v-else class="focus-edit-mode">
-                  <textarea
-                      class="form-control focus-textarea"
-                      v-model="dailyFocus"
-                      placeholder="What's your main focus for today?"
-                      ref="focusTextarea"
-                  ></textarea>
-                </div>
-              </div>
-              <div v-if="editingFocus" class="card-footer p-1 text-end">
-                <button class="btn btn-sm btn-primary" @click="saveFocus">Save</button>
-                <button class="btn btn-sm btn-outline-secondary ms-2" @click="cancelEditFocus">Cancel</button>
-                <button v-if="dailyFocus" class="btn btn-sm btn-outline-danger float-start" @click="clearFocus">Clear
-                </button>
               </div>
             </div>
           </div>
@@ -341,6 +360,7 @@ export default {
   mounted() {
     this.loadSavedData();
 
+
     // Load the user image if it exists in localStorage
     this.loadUserImage();
 
@@ -361,10 +381,11 @@ export default {
   data() {
     return {
       selectedDate: null,
-      // Add these for the focus section
-      dailyFocus: "", // Initial value or empty string
-      editingFocus: false,
-      tempFocus: "",
+      tempFocus: "", // For canceling edits
+      clearButtonClicked: false,
+      dailyFocus: "",
+      isEditing: false,
+      placeholder: "Click here to set your focus for today...",
       userImageUrl: null,
       meetings: [
         {time: '8:00', title: 'Team Sync Meeting', showDelete: false},
@@ -473,32 +494,55 @@ export default {
       }
     },
     // Start of focus
-    startEditingFocus() {
-      this.tempFocus = this.dailyFocus; // Save current value in case user cancels
-      this.editingFocus = true;
+    startEditing() {
+      this.tempFocus = this.dailyFocus; // Store for cancellation
+      this.isEditing = true;
       this.$nextTick(() => {
-        this.$refs.focusTextarea.focus();
+        this.$refs.seamlessInput.focus();
       });
     },
-    saveFocus() {
-      this.editingFocus = false;
-      // Trim is optional - remove if you want to preserve exact spacing
+    cancelEditing() {
+      // Restore previous value
+      this.dailyFocus = this.tempFocus;
+      this.isEditing = false;
+    },
+    clearFocus(event) {
+      if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+
+      // Clear the text but keep editing mode active
+      this.dailyFocus = "";
+      this.clearButtonClicked = true;
+
+      // Wrap the focus in a delayed timeout to ensure DOM has updated
+      setTimeout(() => {
+        if (this.$refs.seamlessInput) {
+          this.$refs.seamlessInput.focus();
+        }
+      }, 50);
+    },
+    finishEditing() {
+      this.isEditing = false;
       this.dailyFocus = this.dailyFocus.trim();
 
-      // You could add code here to save to localStorage or a database
-      localStorage.setItem('personalDailyFocus', this.dailyFocus);
-    },
-    cancelEditFocus() {
-      this.dailyFocus = this.tempFocus; // Restore previous value
-      this.editingFocus = false;
-    },
-    clearFocus() {
-      if (confirm("Are you sure you want to clear your focus?")) {
-        this.dailyFocus = "";
+      if (this.dailyFocus) {
+        localStorage.setItem('personalDailyFocus', this.dailyFocus);
+      } else {
         localStorage.removeItem('personalDailyFocus');
-        this.editingFocus = false;
       }
     },
+    handleBlur(event) {
+      // Slight delay to check if clear button was clicked
+      setTimeout(() => {
+        if (!this.clearButtonClicked) {
+          this.finishEditing();
+        }
+        this.clearButtonClicked = false;
+      }, 100);
+    },
+
     toggleActivityCompletion(index) {
       this.activities[index].completed = !this.activities[index].completed;
       this.saveActivities();
@@ -818,8 +862,8 @@ export default {
 
 /* Focus of today*/
 .focus-card {
-  height: 180px !important; /* Fixed height */
-  max-height: 180px !important; /* Prevent expansion */
+  height: 180px; /* Fixed height */
+  max-height: 180px; /* Prevent expansion */
   display: flex;
   flex-direction: column;
 }
@@ -830,28 +874,71 @@ export default {
   overflow-y: auto;
 }
 
-.focus-view-mode {
-  height: 100%;
-  overflow-y: auto;
+.seamless-input-container {
+  min-height: 60px;
+  position: relative;
+  padding: 10px;
 }
 
-.focus-edit-mode {
-  height: 100%;
+.placeholder-text {
+  color: #6c757d;
+  font-style: italic;
+  cursor: text;
 }
 
-.focus-content, .focus-placeholder {
-  cursor: pointer;
-  white-space: pre-line; /* Preserves line breaks */
-  min-height: 40px;
-  font-size: 1.1rem; /* Larger font */
-  margin-bottom: 0;
+.content-text {
+  white-space: pre-line;
+  cursor: text;
 }
 
-.focus-textarea {
-  height: 100% !important;
+.seamless-input {
   width: 100%;
-  resize: none;
+  border: none;
+  background: transparent;
   font-size: 1.1rem;
+  padding: 5px 0;
+}
+
+.seamless-input:focus {
+  outline: none;
+
+}
+.editing-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+/* Clear button styling */
+.clear-focus-button {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background-color: rgba(220, 53, 69, 0.8);
+  color: white;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  opacity: 0.7;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  padding: 0;
+  z-index: 5;
+}
+
+.clear-focus-button:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.clear-focus-button span {
+  position: relative;
+  top: -1px;
 }
 
 /* Card footer styling */
