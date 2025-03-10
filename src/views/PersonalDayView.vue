@@ -273,17 +273,17 @@
             <div id="mood-icons" class="text-center">
               <span
                   class="mood-icon"
-                  :class="{ 'active-sad': selectedMood === 'sad' }"
+                  :class="{ 'active-sad': personalMood === 'sad' }"
                   @click="setMood('sad')"
                   title="Sad">😢</span>
               <span
                   class="mood-icon"
-                  :class="{ 'active-neutral': selectedMood === 'neutral' }"
+                  :class="{ 'active-neutral': personalMood === 'neutral' }"
                   @click="setMood('neutral')"
                   title="Neutral">😐</span>
               <span
                   class="mood-icon"
-                  :class="{ 'active-happy': selectedMood === 'happy' }"
+                  :class="{ 'active-happy': personalMood === 'happy' }"
                   @click="setMood('happy')"
                   title="Happy">😊</span>
             </div>
@@ -339,6 +339,8 @@ export default {
     }
   },
   mounted() {
+    this.loadSavedData();
+
     // Load the user image if it exists in localStorage
     this.loadUserImage();
 
@@ -375,7 +377,7 @@ export default {
       editingThoughts: false,
       tempThoughts: "",
       // Stores the selected mood
-      selectedMood: null,
+      personalMood: null,
       selectedGlasses: 0,
       completedStepsMilestone: 0,
       milestones: [
@@ -426,6 +428,50 @@ export default {
   },
 
   methods: {
+    loadSavedData() {
+      // Load work-specific data
+      const savedFocus = localStorage.getItem('personalDailyFocus');
+      if (savedFocus) {
+        this.dailyFocus = savedFocus;
+      }
+
+      const savedThoughts = localStorage.getItem('personalThoughts');
+      if (savedThoughts) {
+        this.otherThoughts = savedThoughts;
+      }
+
+      const savedActivities = localStorage.getItem('personalActivities');
+      if (savedActivities) {
+        this.activities = JSON.parse(savedActivities);
+      }
+
+      const savedMeetings = localStorage.getItem('personalMeetings');
+      if (savedMeetings) {
+        this.meetings = JSON.parse(savedMeetings);
+      }
+
+      const savedMood = localStorage.getItem('personalMood');
+      if (savedMood) {
+        this.personalMood = savedMood; // Correct property name
+      }
+
+      // Load user profile image
+      const savedImage = localStorage.getItem('personalProfileImage');
+      if (savedImage) {
+        this.userImageUrl = savedImage;
+      }
+
+      // Load shared data (should be the same as in PersonalDayView)
+      const savedGlasses = localStorage.getItem('sharedGlasses');
+      if (savedGlasses) {
+        this.selectedGlasses = parseInt(savedGlasses);
+      }
+
+      const savedSteps = localStorage.getItem('sharedStepsMilestone');
+      if (savedSteps) {
+        this.completedStepsMilestone = parseInt(savedSteps);
+      }
+    },
     // Start of focus
     startEditingFocus() {
       this.tempFocus = this.dailyFocus; // Save current value in case user cancels
@@ -440,7 +486,7 @@ export default {
       this.dailyFocus = this.dailyFocus.trim();
 
       // You could add code here to save to localStorage or a database
-      localStorage.setItem('dailyFocus', this.dailyFocus);
+      localStorage.setItem('personalDailyFocus', this.dailyFocus);
     },
     cancelEditFocus() {
       this.dailyFocus = this.tempFocus; // Restore previous value
@@ -449,15 +495,17 @@ export default {
     clearFocus() {
       if (confirm("Are you sure you want to clear your focus?")) {
         this.dailyFocus = "";
-        localStorage.removeItem('dailyFocus');
+        localStorage.removeItem('personalDailyFocus');
         this.editingFocus = false;
       }
     },
     toggleActivityCompletion(index) {
       this.activities[index].completed = !this.activities[index].completed;
+      this.saveActivities();
     },
     removeActivity(index) {
       this.activities.splice(index, 1);
+      this.saveActivities();
     },
     addActivity() {
       if (this.newActivity.trim()) {
@@ -466,8 +514,13 @@ export default {
           completed: false
         });
         this.newActivity = "";
+        this.saveActivities();
       }
     },
+    saveActivities() {
+      localStorage.setItem('personalActivities', JSON.stringify(this.activities));
+    },
+
     triggerImageUpload() {
       this.$refs.imageInput.click();
     },
@@ -481,7 +534,7 @@ export default {
         reader.onload = (e) => {
           this.userImageUrl = e.target.result;
           // Save to localStorage for persistence
-          localStorage.setItem('userProfileImage', this.userImageUrl);
+          localStorage.setItem('personalProfileImage', this.userImageUrl);
         };
 
         reader.readAsDataURL(file);
@@ -492,13 +545,13 @@ export default {
     deleteUserImage() {
       if (confirm('Are you sure you want to remove your profile picture?')) {
         this.userImageUrl = null;
-        localStorage.removeItem('userProfileImage');
+        localStorage.removeItem('personalProfileImage');
       }
     },
 
     // Load the user image from localStorage if available
     loadUserImage() {
-      const savedImage = localStorage.getItem('userProfileImage');
+      const savedImage = localStorage.getItem('personalProfileImage');
       if (savedImage) {
         this.userImageUrl = savedImage;
       }
@@ -523,11 +576,11 @@ export default {
       this.saveMeetings();
     },
     saveMeetings() {
-      localStorage.setItem('meetings', JSON.stringify(this.meetings));
+      localStorage.setItem('personalMeetings', JSON.stringify(this.meetings));
     },
 
     loadMeetings() {
-      const savedMeetings = localStorage.getItem('meetings');
+      const savedMeetings = localStorage.getItem('personalMeetings');
       if (savedMeetings) {
         this.meetings = JSON.parse(savedMeetings);
       }
@@ -543,7 +596,7 @@ export default {
     saveThoughts() {
       this.editingThoughts = false;
       // Optional: Save to localStorage
-      localStorage.setItem('otherThoughts', this.otherThoughts);
+      localStorage.setItem('personalThoughts', this.otherThoughts);
     },
 
     cancelEditThoughts() {
@@ -555,27 +608,33 @@ export default {
       if (confirm("Are you sure you want to clear all your thoughts?")) {
         this.otherThoughts = "";
         this.editingThoughts = false;
-        localStorage.removeItem('otherThoughts');
+        localStorage.removeItem('personalThoughts');
       }
     },
     // Start of mood
     setMood(mood) {
-      this.selectedMood = mood;
+      this.personalMood = mood;
+      localStorage.setItem('personalMood', mood);
     },
     // Glasses
     setGlasses(count) {
       this.selectedGlasses = count; // Updates the selection
+      localStorage.setItem('sharedGlasses', count); // Use the shared key
     },
-    // Steps
+
+// Steps
     setStepsMilestone(milestone) {
       this.completedStepsMilestone = milestone;
+      localStorage.setItem('sharedStepsMilestone', milestone); // Use the shared key
     },
     // Tasks/goals
     toggleTaskCompletion(index) {
       this.tasks[index].completed = !this.tasks[index].completed;
+      this.saveTasks();
     },
     removeTask(index) {
       this.tasks.splice(index, 1);
+      this.saveTasks();
     },
     addTask() {
       if (this.newTask.trim()) {
@@ -584,7 +643,12 @@ export default {
           completed: false
         });
         this.newTask = "";
+        this.saveTasks();
       }
+    },
+
+    saveTasks() {
+      localStorage.setItem('personalTasks', JSON.stringify(this.tasks));
     },
   }
 };

@@ -391,7 +391,7 @@ export default {
         this.dailyFocus = savedFocus;
       }
 
-      const savedThoughts = localStorage.getItem('otherThoughts');
+      const savedThoughts = localStorage.getItem('workThoughts');
       if (savedThoughts) {
         this.otherThoughts = savedThoughts;
       }
@@ -500,7 +500,7 @@ export default {
     },
     saveThoughts() {
       this.editingThoughts = false;
-      localStorage.setItem('otherThoughts', this.otherThoughts);
+      localStorage.setItem('workThoughts', this.otherThoughts);
     },
     cancelEditThoughts() {
       this.otherThoughts = this.tempThoughts;
@@ -510,7 +510,7 @@ export default {
       if (confirm("Are you sure you want to clear all your thoughts?")) {
         this.otherThoughts = "";
         this.editingThoughts = false;
-        localStorage.removeItem('otherThoughts');
+        localStorage.removeItem('workThoughts');
       }
     },
 
