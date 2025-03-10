@@ -425,7 +425,7 @@ export default {
 
 /* Goals card with height to match combined profile + account actions */
 .goals-card {
-  min-height: 585px; /* 597px - 2% */
+  min-height: 591px; /* 597px - 2% */
 }
 
 /* Left and right column spacing to match other views */

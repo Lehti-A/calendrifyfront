@@ -871,9 +871,31 @@ export default {
 }
 
 .task-actions {
+  display: flex !important;
+  align-items: center !important;
+  gap: 20px !important;
+  justify-content: flex-end !important;
+  min-width: 80px;
+  flex-direction: row-reverse !important; /* This reverses the visual order */
+}
+
+/* Style for the checkbox to ensure it's visible */
+.task-actions .form-check-input {
+  width: 18px;
+  height: 18px;
+  margin-right: 0 !important; /* Remove any right margin */
+  flex-shrink: 0; /* Prevent shrinking */
+}
+
+/* Style for the trash button to ensure it's visible */
+.task-actions .btn-link {
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  margin-left: 0 !important; /* Remove any left margin */
+  flex-shrink: 0; /* Prevent shrinking */
 }
 
 .image-card {

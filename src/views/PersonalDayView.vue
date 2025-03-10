@@ -67,7 +67,7 @@
                 <div class="activity-actions">
                   <input
                       type="checkbox"
-                      class="form-check-input me-2"
+                      class="form-check-input ms-2"
                       :checked="activity.completed"
                       @change="toggleActivityCompletion(index)"
                   >
@@ -129,9 +129,9 @@
         <div class="card semi-transparent-card mb-4 tasks-card">
           <div class="card-header bg-transparent"><strong>Monthly Goals</strong></div>
           <div class="content-container">
-            <ul class="list-group list-group-flush transparent-list">
+            <ul class="list-group list-group-flush">
               <li v-for="(task, index) in tasks" :key="index"
-                  class="list-group-item transparent-item d-flex align-items-center justify-content-between">
+                  class="list-group-item d-flex align-items-center justify-content-between">
                 <span :class="{ 'completed-task': task.completed }">{{ task.text }}</span>
                 <div class="task-actions">
                   <input
@@ -152,12 +152,12 @@
               </li>
             </ul>
           </div>
-          <div class="card-footer bg-transparent border-transparent">
+          <div class="card-footer bg-transparent">
             <div class="input-group">
               <input
                   type="text"
-                  class="form-control form-control-sm transparent-input"
-                  placeholder="Add new task..."
+                  class="form-control form-control-sm"
+                  placeholder="Add new goal..."
                   v-model="newTask"
                   @keyup.enter="addTask"
               >
@@ -165,6 +165,7 @@
             </div>
           </div>
         </div>
+
       </div>
 
       <!-- Right Sidebar Column (Image, Meetings, Mood, Glasses, Steps) -->
@@ -868,6 +869,11 @@ export default {
 }
 
 /*Tasks*/
+.completed-task {
+  text-decoration: line-through;
+  color: #6c757d;
+}
+
 
 
 .completed-activity {
@@ -875,10 +881,14 @@ export default {
   color: #6c757d;
 }
 
-.activity-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+.activity-actions,
+.task-actions {
+  display: flex !important;
+  align-items: center !important;
+  gap: 20px !important;
+  justify-content: flex-end !important;
+  min-width: 80px;
+  flex-direction: row-reverse !important; /* This reverses the visual order */
 }
 
 .transparent-card .card-footer.bg-transparent.border-transparent {
