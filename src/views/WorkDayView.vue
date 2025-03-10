@@ -175,10 +175,32 @@
 
       <!-- Right Sidebar Column (Image, Meetings, Steps) -->
       <div class="col-md-4 right-column">
-        <!-- Image Card - Proper Square with Same Width as Meetings -->
-        <div class="card mb-4 image-card"
-             style="width: 80%; aspect-ratio: 1/1; margin: 0 auto; padding: 0; overflow: hidden;">
-          <img src="../assets/html/vali_it_logo.png" height="200" width="200"/>
+        <!-- Image Card - With diary default image and upload functionality -->
+        <div class="card mb-4 image-card" style="width: 80%; aspect-ratio: 1/1; margin: 0 auto; padding: 0; overflow: hidden; position: relative;">
+          <!-- Default diary image shown when no user image is available -->
+          <img v-if="!userImageUrl" src="@/assets/diary.png" class="card-img" alt="Default diary image" />
+
+          <!-- User uploaded image shown when available -->
+          <img v-else :src="userImageUrl" class="card-img" alt="User profile image" />
+
+          <!-- Add button - only shown with default image -->
+          <div v-if="!userImageUrl" class="image-action-button add-button" @click="triggerImageUpload" title="Add your picture">
+            +
+          </div>
+
+          <!-- Delete button - only shown with user image -->
+          <div v-else class="image-action-button delete-button" @click="deleteUserImage" title="Remove picture">
+            ×
+          </div>
+
+          <!-- Hidden file input for image upload -->
+          <input
+              type="file"
+              ref="imageInput"
+              @change="handleImageUpload"
+              accept="image/*"
+              style="display: none;"
+          />
         </div>
 
         <!-- Meetings -->
@@ -296,6 +318,7 @@ export default {
       dailyFocus: "",
       editingFocus: false,
       tempFocus: "",
+      userImageUrl: null,
 
       // Other thoughts section
       otherThoughts: "",
@@ -388,6 +411,12 @@ export default {
         this.workMood = savedWorkMood;
       }
 
+      // Load user profile image
+      const savedImage = localStorage.getItem('workProfileImage');
+      if (savedImage) {
+        this.userImageUrl = savedImage;
+      }
+
       // Load shared data (should be the same as in PersonalDayView)
       const savedGlasses = localStorage.getItem('sharedGlasses');
       if (savedGlasses) {
@@ -399,12 +428,43 @@ export default {
         this.completedStepsMilestone = parseInt(savedSteps);
       }
     },
-
-    // Work mood method (specific to work day)
-    setWorkMood(mood) {
-      this.workMood = mood;
-      localStorage.setItem('workMood', mood);
+    triggerImageUpload() {
+      this.$refs.imageInput.click();
     },
+
+    // Handle the image file selection
+    handleImageUpload(event) {
+      const file = event.target.files[0];
+      if (file && file.type.match('image.*')) {
+        const reader = new FileReader();
+
+        reader.onload = (e) => {
+          this.userImageUrl = e.target.result;
+          // Save to localStorage for persistence - use a different key for work view
+          localStorage.setItem('workProfileImage', this.userImageUrl);
+        };
+
+        reader.readAsDataURL(file);
+      }
+    },
+
+    // Delete the user image and revert to default
+    deleteUserImage() {
+      if (confirm('Are you sure you want to remove your profile picture?')) {
+        this.userImageUrl = null;
+        localStorage.removeItem('workProfileImage');
+      }
+    },
+
+    // Load the user image from localStorage if available
+    loadUserImage() {
+      const savedImage = localStorage.getItem('workProfileImage');
+      if (savedImage) {
+        this.userImageUrl = savedImage;
+      }
+    },
+
+
     // Focus section methods
     startEditingFocus() {
       this.tempFocus = this.dailyFocus;
@@ -497,6 +557,11 @@ export default {
     saveMeetings() {
       localStorage.setItem('workMeetings', JSON.stringify(this.meetings));
     },
+    // Work mood method (specific to work day)
+    setWorkMood(mood) {
+      this.workMood = mood;
+      localStorage.setItem('workMood', mood);
+    },
 
     // Shared tracker methods (will sync with PersonalDayView)
     setGlasses(count) {
@@ -522,6 +587,55 @@ export default {
 /* Increase header font size slightly */
 .card-header strong {
   font-size: 1.15rem;
+}
+.image-card {
+  position: relative;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.image-card:hover .card-img {
+  transform: scale(1.02);
+}
+
+/* Action button styles */
+.image-action-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0; /* Start with 0 opacity to hide by default */
+  transition: all 0.2s ease;
+  z-index: 10;
+  font-size: 24px;
+  font-weight: bold;
+  text-shadow: 0 0 3px rgba(255, 255, 255, 0.8); /* White shadow for visibility against any background */
+}
+
+.add-button {
+  color: #8e44ad; /* Purple color to match your theme */
+}
+
+.delete-button {
+  color: #dc3545; /* Red color */
+}
+
+/* Only show buttons when hovering over the image */
+.image-card:hover .image-action-button {
+  opacity: 1;
 }
 
 .tracker-section h5 {

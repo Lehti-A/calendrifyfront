@@ -170,10 +170,32 @@
 
       <!-- Right Sidebar Column (Image, Meetings, Mood, Glasses, Steps) -->
       <div class="col-md-4 right-column">
-        <!-- Image Card - Proper Square with Same Width as Meetings -->
-        <div class="card mb-4 image-card"
-             style="width: 80%; aspect-ratio: 1/1; margin: 0 auto; padding: 0; overflow: hidden;">
-          <img src="../assets/html/Rain Tüür.png" height="532" width="532"/>
+        <!-- Image Card - With diary default image and upload functionality -->
+        <div class="card mb-4 image-card" style="width: 80%; aspect-ratio: 1/1; margin: 0 auto; padding: 0; overflow: hidden; position: relative;">
+          <!-- Default diary image shown when no user image is available -->
+          <img v-if="!userImageUrl" src="@/assets/diary.png" class="card-img" alt="Default diary image" />
+
+          <!-- User uploaded image shown when available -->
+          <img v-else :src="userImageUrl" class="card-img" alt="User profile image" />
+
+          <!-- Add button - only shown with default image -->
+          <div v-if="!userImageUrl" class="image-action-button add-button" @click="triggerImageUpload" title="Add your picture">
+            +
+          </div>
+
+          <!-- Delete button - only shown with user image -->
+          <div v-else class="image-action-button delete-button" @click="deleteUserImage" title="Remove picture">
+            ×
+          </div>
+
+          <!-- Hidden file input for image upload -->
+          <input
+              type="file"
+              ref="imageInput"
+              @change="handleImageUpload"
+              accept="image/*"
+              style="display: none;"
+          />
         </div>
         <!-- Meetings -->
         <div class="card semi-transparent-card mb-4 meetings-card">
@@ -316,7 +338,24 @@ export default {
       sessionStorage.removeItem('selectedCalendarDate');
     }
   },
+  mounted() {
+    // Load the user image if it exists in localStorage
+    this.loadUserImage();
 
+    // You can also load other stored data here
+    const savedFocus = localStorage.getItem('dailyFocus');
+    if (savedFocus) {
+      this.dailyFocus = savedFocus;
+    }
+
+    const savedThoughts = localStorage.getItem('otherThoughts');
+    if (savedThoughts) {
+      this.otherThoughts = savedThoughts;
+    }
+
+    // Load meetings from localStorage if they exist
+    this.loadMeetings();
+  },
   data() {
     return {
       selectedDate: null,
@@ -324,6 +363,7 @@ export default {
       dailyFocus: "", // Initial value or empty string
       editingFocus: false,
       tempFocus: "",
+      userImageUrl: null,
       meetings: [
         {time: '8:00', title: 'Team Sync Meeting', showDelete: false},
         {time: '10:00', title: 'Client Discussion', showDelete: false},
@@ -426,6 +466,41 @@ export default {
           completed: false
         });
         this.newActivity = "";
+      }
+    },
+    triggerImageUpload() {
+      this.$refs.imageInput.click();
+    },
+
+    // Handle the image file selection
+    handleImageUpload(event) {
+      const file = event.target.files[0];
+      if (file && file.type.match('image.*')) {
+        const reader = new FileReader();
+
+        reader.onload = (e) => {
+          this.userImageUrl = e.target.result;
+          // Save to localStorage for persistence
+          localStorage.setItem('userProfileImage', this.userImageUrl);
+        };
+
+        reader.readAsDataURL(file);
+      }
+    },
+
+    // Delete the user image and revert to default diary image
+    deleteUserImage() {
+      if (confirm('Are you sure you want to remove your profile picture?')) {
+        this.userImageUrl = null;
+        localStorage.removeItem('userProfileImage');
+      }
+    },
+
+    // Load the user image from localStorage if available
+    loadUserImage() {
+      const savedImage = localStorage.getItem('userProfileImage');
+      if (savedImage) {
+        this.userImageUrl = savedImage;
       }
     },
     addMeeting() {
@@ -553,6 +628,55 @@ export default {
 .container-fluid {
   max-width: 1400px;
   margin: 0 auto;
+}
+.image-card {
+  position: relative;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.image-card:hover .card-img {
+  transform: scale(1.02);
+}
+
+/* Action button styles */
+.image-action-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0; /* Start with 0 opacity to hide by default */
+  transition: all 0.2s ease;
+  z-index: 10;
+  font-size: 24px;
+  font-weight: bold;
+  text-shadow: 0 0 3px rgba(255, 255, 255, 0.8); /* White shadow for visibility against any background */
+}
+
+.add-button {
+  color: #8e44ad; /* Purple color to match your theme */
+}
+
+.delete-button {
+  color: #dc3545; /* Red color */
+}
+
+/* Only show buttons when hovering over the image */
+.image-card:hover .image-action-button {
+  opacity: 1;
 }
 
 /* Two-column layout styles */
