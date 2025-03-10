@@ -10,7 +10,7 @@
 
     <!-- Main Two-Column Layout -->
     <div class="row">
-      <!-- Left Main Column (Calendar + Focus, Work Tasks, Work Notes, Glasses/Mood) -->
+      <!-- Left Main Column (Calendar + Focus, Activities, Other Thoughts, Glasses/Mood) -->
       <div class="col-md-8 left-column">
         <!-- Calendar and Focus for Today (nested row) -->
         <div class="row mb-4">
@@ -32,17 +32,17 @@
 
           <div class="col-md-9">
             <div class="card semi-transparent-card focus-card">
-              <div class="card-header bg-transparent"><strong>Work Focus for Today</strong></div>
+              <div class="card-header bg-transparent"><strong>Focus for Today</strong></div>
               <div class="card-body focus-body">
                 <div v-if="!editingFocus" @click="startEditingFocus" class="focus-view-mode">
                   <p v-if="dailyFocus" class="focus-content">{{ dailyFocus }}</p>
-                  <p v-else class="text-muted focus-placeholder">Click here to set your work focus for today...</p>
+                  <p v-else class="text-muted focus-placeholder">Click here to set your focus for today...</p>
                 </div>
                 <div v-else class="focus-edit-mode">
                   <textarea
                       class="form-control focus-textarea"
                       v-model="dailyFocus"
-                      placeholder="What's your main work focus for today?"
+                      placeholder="What's your main focus for today?"
                       ref="focusTextarea"
                   ></textarea>
                 </div>
@@ -57,25 +57,25 @@
           </div>
         </div>
 
-        <!-- Work Tasks -->
-        <div class="card semi-transparent-card mb-4 tasks-card">
-          <div class="card-header bg-transparent"><strong>Work Tasks</strong></div>
+        <!-- Activities -->
+        <div class="card semi-transparent-card mb-4 activities-card">
+          <div class="card-header bg-transparent"><strong>Activities</strong></div>
           <div class="content-container">
             <ul class="list-group list-group-flush">
-              <li v-for="(task, index) in workTasks" :key="index"
+              <li v-for="(activity, index) in activities" :key="index"
                   class="list-group-item d-flex align-items-center justify-content-between">
-                <span :class="{ 'completed-task': task.completed }">{{ task.text }}</span>
-                <div class="task-actions">
+                <span :class="{ 'completed-activity': activity.completed }">{{ activity.text }}</span>
+                <div class="activity-actions">
                   <input
                       type="checkbox"
                       class="form-check-input me-2"
-                      :checked="task.completed"
-                      @change="toggleTaskCompletion(index)"
+                      :checked="activity.completed"
+                      @change="toggleActivityCompletion(index)"
                   >
                   <button
                       class="btn btn-sm btn-link text-danger p-0"
-                      @click="removeTask(index)"
-                      title="Remove task"
+                      @click="removeActivity(index)"
+                      title="Remove activity"
                   >
                     <i class="fas fa-eraser"></i>
                     <span v-if="!hasFontAwesome">🗑️</span>
@@ -89,35 +89,35 @@
               <input
                   type="text"
                   class="form-control form-control-sm"
-                  placeholder="Add new work task..."
-                  v-model="newTask"
-                  @keyup.enter="addTask"
+                  placeholder="Add new activity..."
+                  v-model="newActivity"
+                  @keyup.enter="addActivity"
               >
-              <button class="btn btn-outline-secondary btn-sm" type="button" @click="addTask">Add</button>
+              <button class="btn btn-outline-secondary btn-sm" type="button" @click="addActivity">Add</button>
             </div>
           </div>
         </div>
 
-        <!-- Work Notes -->
+        <!-- Other Thoughts -->
         <div class="card semi-transparent-card mb-4 thoughts-card">
-          <div class="card-header bg-transparent"><strong>Work Notes</strong></div>
+          <div class="card-header bg-transparent"><strong>Other Thoughts</strong></div>
           <div class="content-container">
             <div class="card-body">
-              <div v-if="!editingNotes" @click="startEditingNotes">
-                <p v-if="workNotes" class="thoughts-content">{{ workNotes }}</p>
-                <p v-else class="text-muted thoughts-placeholder">Click here to add work notes...</p>
+              <div v-if="!editingThoughts" @click="startEditingThoughts">
+                <p v-if="otherThoughts" class="thoughts-content">{{ otherThoughts }}</p>
+                <p v-else class="text-muted thoughts-placeholder">Click here to add your thoughts...</p>
               </div>
               <div v-else>
                 <textarea
                     class="form-control thoughts-textarea"
-                    v-model="workNotes"
-                    placeholder="Enter your work notes here..."
-                    ref="notesTextarea"
+                    v-model="otherThoughts"
+                    placeholder="Enter your thoughts here..."
+                    ref="thoughtsTextarea"
                 ></textarea>
                 <div class="mt-2">
-                  <button class="btn btn-sm btn-primary" @click="saveNotes">Save</button>
-                  <button class="btn btn-sm btn-outline-secondary ms-2" @click="cancelEditNotes">Cancel</button>
-                  <button v-if="workNotes" class="btn btn-sm btn-outline-danger float-end" @click="clearNotes">
+                  <button class="btn btn-sm btn-primary" @click="saveThoughts">Save</button>
+                  <button class="btn btn-sm btn-outline-secondary ms-2" @click="cancelEditThoughts">Cancel</button>
+                  <button v-if="otherThoughts" class="btn btn-sm btn-outline-danger float-end" @click="clearThoughts">
                     Clear
                   </button>
                 </div>
@@ -297,18 +297,18 @@ export default {
       editingFocus: false,
       tempFocus: "",
 
-      // Work notes section
-      workNotes: "",
-      editingNotes: false,
-      tempNotes: "",
+      // Other thoughts section
+      otherThoughts: "",
+      editingThoughts: false,
+      tempThoughts: "",
 
-      // Work tasks section
-      workTasks: [
+      // Activities section (formerly workTasks)
+      activities: [
         {text: "Prepare for team meeting", completed: false},
         {text: "Review project timeline", completed: false},
         {text: "Complete quarterly report", completed: false},
       ],
-      newTask: "",
+      newActivity: "",
 
       // Meetings section
       meetings: [
@@ -368,14 +368,14 @@ export default {
         this.dailyFocus = savedFocus;
       }
 
-      const savedNotes = localStorage.getItem('workNotes');
-      if (savedNotes) {
-        this.workNotes = savedNotes;
+      const savedThoughts = localStorage.getItem('otherThoughts');
+      if (savedThoughts) {
+        this.otherThoughts = savedThoughts;
       }
 
-      const savedTasks = localStorage.getItem('workTasks');
-      if (savedTasks) {
-        this.workTasks = JSON.parse(savedTasks);
+      const savedActivities = localStorage.getItem('workActivities');
+      if (savedActivities) {
+        this.activities = JSON.parse(savedActivities);
       }
 
       const savedMeetings = localStorage.getItem('workMeetings');
@@ -405,7 +405,6 @@ export default {
       this.workMood = mood;
       localStorage.setItem('workMood', mood);
     },
-
     // Focus section methods
     startEditingFocus() {
       this.tempFocus = this.dailyFocus;
@@ -424,58 +423,58 @@ export default {
       this.editingFocus = false;
     },
     clearFocus() {
-      if (confirm("Are you sure you want to clear your work focus?")) {
+      if (confirm("Are you sure you want to clear your focus?")) {
         this.dailyFocus = "";
         localStorage.removeItem('workDailyFocus');
         this.editingFocus = false;
       }
     },
 
-    // Work notes methods
-    startEditingNotes() {
-      this.tempNotes = this.workNotes;
-      this.editingNotes = true;
+    // Other thoughts methods
+    startEditingThoughts() {
+      this.tempThoughts = this.otherThoughts;
+      this.editingThoughts = true;
       this.$nextTick(() => {
-        this.$refs.notesTextarea.focus();
+        this.$refs.thoughtsTextarea.focus();
       });
     },
-    saveNotes() {
-      this.editingNotes = false;
-      localStorage.setItem('workNotes', this.workNotes);
+    saveThoughts() {
+      this.editingThoughts = false;
+      localStorage.setItem('otherThoughts', this.otherThoughts);
     },
-    cancelEditNotes() {
-      this.workNotes = this.tempNotes;
-      this.editingNotes = false;
+    cancelEditThoughts() {
+      this.otherThoughts = this.tempThoughts;
+      this.editingThoughts = false;
     },
-    clearNotes() {
-      if (confirm("Are you sure you want to clear all your work notes?")) {
-        this.workNotes = "";
-        this.editingNotes = false;
-        localStorage.removeItem('workNotes');
+    clearThoughts() {
+      if (confirm("Are you sure you want to clear all your thoughts?")) {
+        this.otherThoughts = "";
+        this.editingThoughts = false;
+        localStorage.removeItem('otherThoughts');
       }
     },
 
-    // Task methods
-    toggleTaskCompletion(index) {
-      this.workTasks[index].completed = !this.workTasks[index].completed;
-      this.saveTasks();
+    // Activity methods (formerly task methods)
+    toggleActivityCompletion(index) {
+      this.activities[index].completed = !this.activities[index].completed;
+      this.saveActivities();
     },
-    removeTask(index) {
-      this.workTasks.splice(index, 1);
-      this.saveTasks();
+    removeActivity(index) {
+      this.activities.splice(index, 1);
+      this.saveActivities();
     },
-    addTask() {
-      if (this.newTask.trim()) {
-        this.workTasks.push({
-          text: this.newTask.trim(),
+    addActivity() {
+      if (this.newActivity.trim()) {
+        this.activities.push({
+          text: this.newActivity.trim(),
           completed: false
         });
-        this.newTask = "";
-        this.saveTasks();
+        this.newActivity = "";
+        this.saveActivities();
       }
     },
-    saveTasks() {
-      localStorage.setItem('workTasks', JSON.stringify(this.workTasks));
+    saveActivities() {
+      localStorage.setItem('workActivities', JSON.stringify(this.activities));
     },
 
     // Meeting methods
@@ -572,7 +571,7 @@ export default {
 }
 
 /* Specific heights for different sections - adjusted for alignment */
-.tasks-card {
+.activities-card {
   min-height: 580px; /* Increased height to match meetings */
 }
 
@@ -729,7 +728,7 @@ export default {
   box-shadow: 0 0 0 0.25rem rgba(142, 68, 173, 0.4); /* Custom focus shadow */
 }
 
-/* Notes */
+/* Other Thoughts */
 .thoughts-content {
   cursor: pointer;
   white-space: pre-line; /* Preserves line breaks */
@@ -841,7 +840,6 @@ export default {
   justify-content: center;
 }
 
-
 .checkbox-container.checked {
   background-color: #48bb78;
   border-color: #38a169;
@@ -865,12 +863,12 @@ export default {
   color: #4a5568;
 }
 
-.completed-task {
+.completed-activity {
   text-decoration: line-through;
   color: #6c757d;
 }
 
-.task-actions {
+.activity-actions {
   display: flex !important;
   align-items: center !important;
   gap: 20px !important;
@@ -880,7 +878,7 @@ export default {
 }
 
 /* Style for the checkbox to ensure it's visible */
-.task-actions .form-check-input {
+.activity-actions .form-check-input {
   width: 18px;
   height: 18px;
   margin-right: 0 !important; /* Remove any right margin */
@@ -888,7 +886,7 @@ export default {
 }
 
 /* Style for the trash button to ensure it's visible */
-.task-actions .btn-link {
+.activity-actions .btn-link {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -917,26 +915,26 @@ export default {
 
 /* Update card footer styling for transparent look */
 .focus-card .card-footer,
-.tasks-card .card-footer,
+.activities-card .card-footer,
 .meetings-card .card-footer,
 .thoughts-card .card-footer {
   background-color: rgba(255, 255, 255, 0.3);
   border-top: 1px solid rgba(0, 0, 0, 0.1);
 }
 
-.tasks-card .btn-outline-secondary {
+.activities-card .btn-outline-secondary {
   color: #8e44ad;
   border-color: #8e44ad;
 }
 
-.tasks-card .btn-outline-secondary:hover {
+.activities-card .btn-outline-secondary:hover {
   background-color: #8e44ad;
   border-color: #8e44ad;
   color: white;
 }
 
-.tasks-card .btn-outline-secondary:active,
-.tasks-card .btn-outline-secondary:focus {
+.activities-card .btn-outline-secondary:active,
+.activities-card .btn-outline-secondary:focus {
   background-color: #7d3c98;
   border-color: #7d3c98;
   box-shadow: 0 0 0 0.25rem rgba(142, 68, 173, 0.4);

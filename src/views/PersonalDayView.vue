@@ -177,7 +177,7 @@
         </div>
         <!-- Meetings -->
         <div class="card semi-transparent-card mb-4 meetings-card">
-          <div class="card-header bg-transparent"><strong>Meetings</strong></div>
+          <div class="card-header bg-transparent"><strong>Personal Meetings</strong></div>
           <div class="content-container">
             <ul class="list-group list-group-flush">
               <li v-for="(meeting, index) in meetings" :key="index"
