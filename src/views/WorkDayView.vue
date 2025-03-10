@@ -275,36 +275,23 @@
 export default {
   name: 'WorkDayView',
   created() {
-    // DEVELOPMENT MODE: Set a temporary user ID for testing
-    sessionStorage.setItem('userId', 'temp-dev-user');
-
     // Load saved data from localStorage
     this.loadSavedData();
 
-    // Emit the event to update nav menu and background
-    this.$emit('event-update-nav-menu');
-  },
-  computed: {
-    currentDay() {
-      return new Date().getDate();
-    },
-    currentMonth() {
-      const months = [
-        'January', 'February', 'March', 'April', 'May', 'June',
-        'July', 'August', 'September', 'October', 'November', 'December'
-      ];
-      return months[new Date().getMonth()];
-    },
-    currentWeekday() {
-      const days = [
-        'Sunday', 'Monday', 'Tuesday', 'Wednesday',
-        'Thursday', 'Friday', 'Saturday'
-      ];
-      return days[new Date().getDay()];
+    const selectedCalendarDate = sessionStorage.getItem('selectedCalendarDate');
+    if (selectedCalendarDate) {
+      // Parse the date string back to a Date object
+      const [year, month, day] = selectedCalendarDate.split('-').map(Number);
+      this.selectedDate = new Date(year, month - 1, day);
+
+      // Clear the stored date once it's been used
+      sessionStorage.removeItem('selectedCalendarDate');
     }
   },
+
   data() {
     return {
+      selectedDate: null,
       // Focus section
       dailyFocus: "",
       editingFocus: false,
@@ -346,6 +333,31 @@ export default {
 
       hasFontAwesome: false // Set to true if you have Font Awesome included
     };
+  },
+  computed: {
+    currentDay() {
+      return this.selectedDate ? this.selectedDate.getDate() : new Date().getDate();
+    },
+
+// Modify the currentMonth computed property:
+    currentMonth() {
+      const months = [
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
+      ];
+      const date = this.selectedDate || new Date();
+      return months[date.getMonth()];
+    },
+
+// Modify the currentWeekday computed property:
+    currentWeekday() {
+      const days = [
+        'Sunday', 'Monday', 'Tuesday', 'Wednesday',
+        'Thursday', 'Friday', 'Saturday'
+      ];
+      const date = this.selectedDate || new Date();
+      return days[date.getDay()];
+    }
   },
   methods: {
     // Load data from localStorage (including shared data between views)

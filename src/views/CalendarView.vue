@@ -17,6 +17,12 @@
         @event-close-modal="closeFocusModal"
         @event-save="saveFocus"
     />
+    <CalendarNavigationModal
+        :modal-is-open="navigationModalIsOpen"
+        :selected-date="selectedDate"
+        @event-close-modal="closeNavigationModal"
+    />
+
 
     <!-- Main Two-Column Layout -->
     <div class="row">
@@ -170,6 +176,7 @@
                   'has-focuses': hasFocuses(day.date)
                 }"
                   @click="selectDate(day)"
+                  @dblclick="handleDayDoubleClick(day)"
               >
                 <div class="day-number">{{ day.dayNumber }}</div>
                 <!-- Event indicators -->
@@ -197,12 +204,25 @@
 <script>
 import axios from 'axios';
 import CalendarFocusModal from "@/components/modal/CalendarFocusModal.vue";
+import CalendarNavigationModal from "@/components/modal/CalendarNavigationModal.vue";
 
 export default {
   name: "CalendarView",
   components: {
-    CalendarFocusModal
+    CalendarFocusModal,
+    CalendarNavigationModal
   },
+  created() {
+    // Load saved events
+    this.loadFocuses();
+
+    // Fetch a quote when component is created
+    this.fetchQuote();
+
+    // Set today as the selected date initially
+    this.selectedDate = new Date();
+  },
+
   data() {
     return {
       // Current view month and year
@@ -211,6 +231,9 @@ export default {
 
       // Selected date
       selectedDate: null,
+
+      navigationModalIsOpen: false,
+
 
       // Modal controls
       focusModalIsOpen: false,
@@ -297,16 +320,7 @@ export default {
       return days;
     }
   },
-  created() {
-    // Load saved events
-    this.loadFocuses();
 
-    // Fetch a quote when component is created
-    this.fetchQuote();
-
-    // Set today as the selected date initially
-    this.selectedDate = new Date();
-  },
   methods: {
     // Navigation methods
     previousMonth() {
@@ -359,6 +373,20 @@ export default {
     closeFocusModal() {
       this.focusModalIsOpen = false;
     },
+
+    openNavigationModal() {
+      this.navigationModalIsOpen = true;
+    },
+
+    closeNavigationModal() {
+      this.navigationModalIsOpen = false;
+    },
+
+    handleDayDoubleClick(day) {
+      this.selectDate(day);
+      this.openNavigationModal();
+    },
+
 
     // Event management methods
     saveFocus(eventText) {
