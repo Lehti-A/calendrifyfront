@@ -565,7 +565,7 @@ export default {
 }
 
 .meetings-card {
-  min-height: 627px; /* 621px increased by 1% */
+  min-height: 632px; /* 621px increased by 1% */
   width: 80%; /* Width matches image card */
   margin-left: auto;
   margin-right: auto;
@@ -819,8 +819,8 @@ export default {
 }
 
 .checkbox-container {
-  width: 48px;
-  height: 48px;
+  width: 35px; /* Reduced by 20% from 48px */
+  height: 35px; /* Reduced by 20% from 48px */
   border: 2px solid #4a5568;
   border-radius: 0.375rem;
   background-color: #f8f9fa;
@@ -829,14 +829,15 @@ export default {
   justify-content: center;
 }
 
+
 .checkbox-container.checked {
   background-color: #48bb78;
   border-color: #38a169;
 }
 
 .checkmark-icon {
-  width: 32px;
-  height: 32px;
+  width: 26px;
+  height: 26px;
 }
 
 .milestone-label {
