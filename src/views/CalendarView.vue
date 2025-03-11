@@ -1,4 +1,3 @@
-
 <template>
   <div class="container-fluid px-4 pb-4 calendar-container">
     <!-- Header Row - Matching other views -->
@@ -19,9 +18,9 @@
 
     <!-- Main Two-Column Layout -->
     <div class="row">
-      <!-- Left Column (Selected Day Details, Events) - Originally on the right -->
+      <!-- Left Column (Selected Day Details, Events) -->
       <div class="col-md-4 left-column">
-        <!-- Selected Day Card - Made more compact -->
+        <!-- Selected Day Card -->
         <div class="card semi-transparent-card mb-3 selected-day-card" style="min-height: 124.8px;">
           <div class="card-header bg-transparent py-2">
             <strong>Selected Day</strong>
@@ -44,26 +43,26 @@
           </div>
         </div>
 
-        <!-- Personal Focus Card - With increased height -->
+        <!-- Personal Focus Card -->
         <div class="card semi-transparent-card mb-3">
           <div class="card-header bg-transparent py-2 d-flex justify-content-between align-items-center">
             <strong>Personal Focus</strong>
           </div>
           <div class="content-container personal-focuses" style="max-height: 300px;">
-            <ul class="list-group list-group-flush" v-if="selectedDate && getPersonalFocuses(selectedDate).length > 0">
-              <li v-for="(focus, index) in getPersonalFocuses(selectedDate)" :key="index"
+            <ul class="list-group list-group-flush" v-if="selectedDate && getPersonalFocuses().length > 0">
+              <li v-for="focus in getPersonalFocuses()" :key="focus._uniqueId || focus.topic"
                   class="list-group-item py-2 d-flex justify-content-between align-items-center">
-                <span :class="{ 'completed-focus': focus.completed }">{{ focus.text }}</span>
+                <span :class="{ 'completed-focus': focus.isSelected }">{{ focus.topic }}</span>
                 <div class="focus-actions">
                   <input
                       type="checkbox"
                       class="form-check-input ms-2"
-                      :checked="focus.completed"
-                      @change="toggleFocusCompletion('personal', index, selectedDate)"
+                      :checked="focus.isSelected"
+                      @change="toggleFocusCompletion(focus)"
                   >
                   <button
                       class="btn btn-sm btn-link text-danger p-0"
-                      @click="removeFocus('personal', index, selectedDate)"
+                      @click="removeFocus(focus)"
                       title="Remove focus"
                   >
                     <span>🗑️</span>
@@ -76,7 +75,7 @@
               <p class="text-muted my-1" v-else>Select a date to view focuses</p>
             </div>
           </div>
-          <!-- Add this new card footer with input field -->
+          <!-- Add focus input field -->
           <div class="card-footer bg-transparent" v-if="selectedDate">
             <div class="input-group">
               <input
@@ -91,26 +90,26 @@
           </div>
         </div>
 
-        <!-- Work Focus Card - Made more compact -->
+        <!-- Work Focus Card -->
         <div class="card semi-transparent-card mb-3">
           <div class="card-header bg-transparent py-2 d-flex justify-content-between align-items-center">
             <strong>Work Focus</strong>
           </div>
-          <div class="content-container work-focuses" style="max-height: 210px;"><!-- Increased by 40% from 150px -->
-            <ul class="list-group list-group-flush" v-if="selectedDate && getWorkFocuses(selectedDate).length > 0">
-              <li v-for="(focus, index) in getWorkFocuses(selectedDate)" :key="index"
+          <div class="content-container work-focuses" style="max-height: 210px;">
+            <ul class="list-group list-group-flush" v-if="selectedDate && getWorkFocuses().length > 0">
+              <li v-for="focus in getWorkFocuses()" :key="focus._uniqueId || focus.topic"
                   class="list-group-item py-2 d-flex justify-content-between align-items-center">
-                <span :class="{ 'completed-focus': focus.completed }">{{ focus.text }}</span>
+                <span :class="{ 'completed-focus': focus.isSelected }">{{ focus.topic }}</span>
                 <div class="focus-actions">
                   <input
                       type="checkbox"
                       class="form-check-input ms-2"
-                      :checked="focus.completed"
-                      @change="toggleFocusCompletion('work', index, selectedDate)"
+                      :checked="focus.isSelected"
+                      @change="toggleFocusCompletion(focus)"
                   >
                   <button
                       class="btn btn-sm btn-link text-danger p-0"
-                      @click="removeFocus('work', index, selectedDate)"
+                      @click="removeFocus(focus)"
                       title="Remove focus"
                   >
                     <span>🗑️</span>
@@ -123,7 +122,7 @@
               <p class="text-muted my-1" v-else>Select a date to view focuses</p>
             </div>
           </div>
-          <!-- Add this new card footer with input field -->
+          <!-- Add focus input field -->
           <div class="card-footer bg-transparent" v-if="selectedDate">
             <div class="input-group">
               <input
@@ -139,9 +138,9 @@
         </div>
       </div>
 
-      <!-- Right Column (Calendar + Quote) - Originally on the left -->
+      <!-- Right Column (Calendar + Quote) -->
       <div class="col-md-8 right-column">
-        <!-- Daily Quote Card - Made more compact -->
+        <!-- Daily Quote Card -->
         <div class="card semi-transparent-card mb-3 quote-card" style="min-height: 130px;">
           <div class="card-header bg-transparent py-2">
             <strong>Daily Inspiration</strong>
@@ -158,7 +157,7 @@
           </div>
         </div>
 
-        <!-- Calendar Month Navigation and Current Month/Year Display - More compact -->
+        <!-- Calendar Month Navigation -->
         <div class="card semi-transparent-card mb-3">
           <div class="card-header bg-transparent py-2 d-flex justify-content-between align-items-center">
             <button class="btn btn-sm btn-outline-secondary" @click="previousMonth">
@@ -217,6 +216,7 @@
 <script>
 import axios from 'axios';
 import CalendarNavigationModal from "@/components/modal/CalendarNavigationModal.vue";
+import navigationServices from "@/services/NavigationServices";
 
 export default {
   name: "CalendarView",
@@ -224,18 +224,24 @@ export default {
     CalendarNavigationModal
   },
   created() {
-    // Load saved events
-    this.loadFocuses();
+    // Set today as the selected date initially
+    this.selectedDate = new Date();
 
     // Fetch a quote when component is created
     this.fetchQuote();
 
-    // Set today as the selected date initially
-    this.selectedDate = new Date();
+    // Load focuses for the current month
+    this.loadFocusesForMonth(this.currentMonth + 1, this.currentYear);
   },
 
   data() {
     return {
+      // API base URL
+      apiBaseUrl: "",
+
+      // User ID from session storage
+      userId: Number(sessionStorage.getItem('userId')),
+
       // Current view month and year
       currentMonth: new Date().getMonth(),
       currentYear: new Date().getFullYear(),
@@ -243,22 +249,30 @@ export default {
       // Selected date
       selectedDate: null,
 
+      // Track focuses by type
+      personalFocusCount: 0,
+
+      // Modal state
       navigationModalIsOpen: false,
 
-      // New input fields for direct focus addition
+      // New input fields for focus addition
       newPersonalFocus: '',
       newWorkFocus: '',
 
-      // Quotes
+      // Quote text
       quote: "The way to get started is to quit talking and begin doing. - Walt Disney",
 
-      // Calendar events
-      focuses: {},
+      // Focuses storage
+      focuses: [],
 
       // Days of week for calendar header
-      daysOfWeek: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+      daysOfWeek: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+
+      // Next ID for Vue keys
+      nextUniqueId: 1
     };
   },
+
   computed: {
     // Get month name
     currentMonthName() {
@@ -275,7 +289,6 @@ export default {
 
       // Get first day of month
       const firstDay = new Date(this.currentYear, this.currentMonth, 1);
-      // Get first day of week (0 = Sunday, 1 = Monday, etc.)
       const startingDayOfWeek = firstDay.getDay();
 
       // Get number of days in current month
@@ -332,6 +345,161 @@ export default {
   },
 
   methods: {
+    // Load focuses for a specific month and year from the API
+    async loadFocusesForMonth(month, year) {
+      try {
+        // Load personal focuses
+        const personalResponse = await axios.get(`${this.apiBaseUrl}/focuses`, {
+          params: {
+            userId: this.userId,
+            monthNumber: month,
+            year: year,
+            type: 'P'  // Personal focuses
+          }
+        });
+
+        // Add metadata to each focus
+        const personalFocuses = personalResponse.data.map(focus => ({
+          ...focus,
+          _uniqueId: this.nextUniqueId++,
+          _type: 'P',
+          _monthNumber: month,
+          _year: year
+        }));
+
+        // Store the count of personal focuses
+        this.personalFocusCount = personalFocuses.length;
+
+        // Load work focuses
+        const workResponse = await axios.get(`${this.apiBaseUrl}/focuses`, {
+          params: {
+            userId: this.userId,
+            monthNumber: month,
+            year: year,
+            type: 'W'  // Work focuses
+          }
+        });
+
+        // Add metadata to each work focus
+        const workFocuses = workResponse.data.map(focus => ({
+          ...focus,
+          _uniqueId: this.nextUniqueId++,
+          _type: 'W',
+          _monthNumber: month,
+          _year: year
+        }));
+
+        // Combine results
+        this.focuses = [...personalFocuses, ...workFocuses];
+      } catch (error) {
+        if (error.response && error.response.status === 403) {
+          navigationServices.navigateToErrorView();
+        }
+      }
+    },
+
+    // Create a new focus
+    async createFocus(topic, type) {
+      try {
+        // Call the API to create a new focus
+        await axios.post(`${this.apiBaseUrl}/focus`, {
+          userId: this.userId,
+          topic: topic,
+          monthNumber: this.selectedDate.getMonth() + 1,
+          year: this.selectedDate.getFullYear(),
+          type: type
+        });
+
+        // Refresh the list to get the updated data
+        await this.loadFocusesForMonth(
+            this.selectedDate.getMonth() + 1,
+            this.selectedDate.getFullYear()
+        );
+      } catch (error) {
+        if (error.response && error.response.status === 403) {
+          navigationServices.navigateToErrorView();
+        }
+      }
+    },
+
+    // Update a focus's selection status
+    async updateFocusSelection(focus) {
+      try {
+        // Optimistically update the UI
+        focus.isSelected = !focus.isSelected;
+
+        // Call the API
+        await axios.patch(`${this.apiBaseUrl}/focus`, null, {
+          params: {
+            focusId: focus.id,
+            isSelected: focus.isSelected
+          }
+        });
+      } catch (error) {
+        // Revert on failure
+        focus.isSelected = !focus.isSelected;
+
+        if (error.response && error.response.status === 403) {
+          navigationServices.navigateToErrorView();
+        }
+      }
+    },
+
+    // Delete a focus
+    async deleteFocus(focus) {
+      try {
+        // Store a copy for potential restore
+        const focusCopy = { ...focus };
+        const focusIndex = this.focuses.findIndex(f =>
+            f._uniqueId === focus._uniqueId
+        );
+
+        if (focusIndex === -1) return;
+
+        // Remove from UI immediately
+        this.focuses.splice(focusIndex, 1);
+
+        // Find the matching focus on server to get its ID
+        const response = await axios.get(`${this.apiBaseUrl}/focuses`, {
+          params: {
+            userId: this.userId,
+            monthNumber: focus._monthNumber,
+            year: focus._year,
+            type: focus._type
+          }
+        });
+
+        // Find the focus with matching topic
+        const serverFocus = response.data.find(f => f.topic === focus.topic);
+
+        if (serverFocus) {
+          // Delete using the server-side focus ID
+          await axios.delete(`${this.apiBaseUrl}/focus`, {
+            params: { focusId: serverFocus.id }
+          });
+
+          // Reload data to ensure UI is in sync
+          await this.loadFocusesForMonth(
+              this.selectedDate.getMonth() + 1,
+              this.selectedDate.getFullYear()
+          );
+        } else {
+          // If we can't find the focus, restore it in the UI
+          this.focuses.splice(focusIndex, 0, focusCopy);
+        }
+      } catch (error) {
+        // Restore focus on error
+        const focusIndex = this.focuses.findIndex(f => f._uniqueId === focus._uniqueId);
+        if (focusIndex === -1) {
+          this.focuses.push(focus);
+        }
+
+        if (error.response && error.response.status === 403) {
+          navigationServices.navigateToErrorView();
+        }
+      }
+    },
+
     // Navigation methods
     previousMonth() {
       if (this.currentMonth === 0) {
@@ -340,6 +508,7 @@ export default {
       } else {
         this.currentMonth--;
       }
+      this.loadFocusesForMonth(this.currentMonth + 1, this.currentYear);
     },
 
     nextMonth() {
@@ -349,6 +518,7 @@ export default {
       } else {
         this.currentMonth++;
       }
+      this.loadFocusesForMonth(this.currentMonth + 1, this.currentYear);
     },
 
     // Date selection
@@ -388,109 +558,73 @@ export default {
       this.openNavigationModal();
     },
 
-    // New focus addition methods
-    addPersonalFocus() {
+    // Focus addition methods
+    async addPersonalFocus() {
       if (!this.newPersonalFocus.trim()) return;
 
-      this.addFocus('personal', this.newPersonalFocus);
+      await this.createFocus(this.newPersonalFocus, 'P');
       this.newPersonalFocus = '';
     },
 
-    addWorkFocus() {
+    async addWorkFocus() {
       if (!this.newWorkFocus.trim()) return;
 
-      this.addFocus('work', this.newWorkFocus);
+      await this.createFocus(this.newWorkFocus, 'W');
       this.newWorkFocus = '';
     },
 
-    addFocus(type, focusText) {
-      if (!focusText.trim() || !this.selectedDate) return;
-
-      // Format the date as YYYY-MM-DD for use as a key
-      const dateKey = this.formatDateKey(this.selectedDate);
-
-      // Initialize the date in events object if it doesn't exist
-      if (!this.focuses[dateKey]) {
-        this.focuses[dateKey] = {
-          personal: [],
-          work: []
-        };
-      }
-
-      // Add the new focus
-      this.focuses[dateKey][type].push({
-        text: focusText.trim(),
-        completed: false
-      });
-
-      // Save focuses to localStorage
-      this.saveFocuses();
+    // Focus action methods
+    async toggleFocusCompletion(focus) {
+      await this.updateFocusSelection(focus);
     },
 
-    // Existing focus management methods
-    removeFocus(type, index, date) {
-      const dateKey = this.formatDateKey(date);
-      if (this.focuses[dateKey] && this.focuses[dateKey][type]) {
-        this.focuses[dateKey][type].splice(index, 1);
-        this.saveFocuses();
-      }
+    async removeFocus(focus) {
+      await this.deleteFocus(focus);
     },
 
-    toggleFocusCompletion(type, index, date) {
-      const dateKey = this.formatDateKey(date);
-      if (this.focuses[dateKey] && this.focuses[dateKey][type] && this.focuses[dateKey][type][index]) {
-        this.focuses[dateKey][type][index].completed = !this.focuses[dateKey][type][index].completed;
-        this.saveFocuses();
-      }
-    },
+    // Focus filtering methods
+    getPersonalFocuses() {
+      if (!this.selectedDate) return [];
 
-    // Helper methods for events
-    formatDateKey(date) {
-      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-    },
-
-    hasFocuses(date) {
-      const dateKey = this.formatDateKey(date);
-      return this.focuses[dateKey] && (
-          (this.focuses[dateKey].personal && this.focuses[dateKey].personal.length > 0) ||
-          (this.focuses[dateKey].work && this.focuses[dateKey].work.length > 0)
+      // Return personal focuses based on metadata
+      return this.focuses.filter(focus =>
+          focus._type === 'P' &&
+          focus._monthNumber === (this.selectedDate.getMonth() + 1) &&
+          focus._year === this.selectedDate.getFullYear()
       );
     },
 
+    getWorkFocuses() {
+      if (!this.selectedDate) return [];
+
+      // Return work focuses based on metadata
+      return this.focuses.filter(focus =>
+          focus._type === 'W' &&
+          focus._monthNumber === (this.selectedDate.getMonth() + 1) &&
+          focus._year === this.selectedDate.getFullYear()
+      );
+    },
+
+    hasFocuses(date) {
+      return this.hasPersonalFocuses(date) || this.hasWorkFocuses(date);
+    },
+
     hasPersonalFocuses(date) {
-      const dateKey = this.formatDateKey(date);
-      return this.focuses[dateKey] &&
-          this.focuses[dateKey].personal &&
-          this.focuses[dateKey].personal.length > 0;
+      // Check if there are any personal focuses for this date
+      return this.focuses.some(focus =>
+          focus._type === 'P' &&
+          focus._monthNumber === (date.getMonth() + 1) &&
+          focus._year === date.getFullYear()
+      );
     },
 
     hasWorkFocuses(date) {
-      const dateKey = this.formatDateKey(date);
-      return this.focuses[dateKey] &&
-          this.focuses[dateKey].work &&
-          this.focuses[dateKey].work.length > 0;
-    },
-
-    getPersonalFocuses(date) {
-      const dateKey = this.formatDateKey(date);
-      return (this.focuses[dateKey] && this.focuses[dateKey].personal) ? this.focuses[dateKey].personal : [];
-    },
-
-    getWorkFocuses(date) {
-      const dateKey = this.formatDateKey(date);
-      return (this.focuses[dateKey] && this.focuses[dateKey].work) ? this.focuses[dateKey].work : [];
-    },
-
-    // LocalStorage methods
-    saveFocuses() {
-      localStorage.setItem('calendarEvents', JSON.stringify(this.focuses));
-    },
-
-    loadFocuses() {
-      const savedEvents = localStorage.getItem('calendarEvents');
-      if (savedEvents) {
-        this.focuses = JSON.parse(savedEvents);
-      }
+      // Check if there are any work focuses for this date
+      return this.focuses.some(focus =>
+          focus._type === 'W' &&
+          focus._monthNumber === (date.getMonth() + 1) &&
+          focus._year === date.getFullYear()
+      );
     },
 
     // Fetch quote from API
@@ -511,8 +645,22 @@ export default {
           this.quote = "The best way to predict the future is to create it. - Abraham Lincoln";
         }
       } catch (error) {
-        console.error("Error fetching quote:", error);
         this.quote = "The best way to predict the future is to create it. - Abraham Lincoln";
+      }
+    }
+  },
+
+  watch: {
+    // Watch for changes to the selected date
+    selectedDate(newDate) {
+      if (newDate) {
+        // If the month or year changed, load the focuses for the new month
+        const newMonth = newDate.getMonth() + 1;
+        const newYear = newDate.getFullYear();
+
+        if (newMonth !== this.currentMonth + 1 || newYear !== this.currentYear) {
+          this.loadFocusesForMonth(newMonth, newYear);
+        }
       }
     }
   }
