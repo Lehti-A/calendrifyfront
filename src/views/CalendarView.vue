@@ -9,20 +9,12 @@
       </div>
     </div>
 
-    <!-- Calendar Modal for adding events -->
-    <CalendarFocusModal
-        :modal-is-open="focusModalIsOpen"
-        :selected-date="selectedDate"
-        :focus-type="focusType"
-        @event-close-modal="closeFocusModal"
-        @event-save="saveFocus"
-    />
+    <!-- Calendar Navigation Modal -->
     <CalendarNavigationModal
         :modal-is-open="navigationModalIsOpen"
         :selected-date="selectedDate"
         @event-close-modal="closeNavigationModal"
     />
-
 
     <!-- Main Two-Column Layout -->
     <div class="row">
@@ -51,13 +43,10 @@
           </div>
         </div>
 
-        <!-- Personal Events Card - With increased height -->
+        <!-- Personal Focus Card - With increased height -->
         <div class="card semi-transparent-card mb-3">
           <div class="card-header bg-transparent py-2 d-flex justify-content-between align-items-center">
             <strong>Personal Focus</strong>
-            <button v-if="selectedDate" class="btn btn-sm btn-outline-secondary" @click="openFocusModal('personal')">
-              Add
-            </button>
           </div>
           <div class="content-container personal-focuses" style="max-height: 300px;">
             <ul class="list-group list-group-flush" v-if="selectedDate && getPersonalFocuses(selectedDate).length > 0">
@@ -67,7 +56,7 @@
                 <div class="focus-actions">
                   <input
                       type="checkbox"
-                      class="form-check-input me-2"
+                      class="form-check-input ms-2"
                       :checked="focus.completed"
                       @change="toggleFocusCompletion('personal', index, selectedDate)"
                   >
@@ -86,15 +75,25 @@
               <p class="text-muted my-1" v-else>Select a date to view focuses</p>
             </div>
           </div>
+          <!-- Add this new card footer with input field -->
+          <div class="card-footer bg-transparent" v-if="selectedDate">
+            <div class="input-group">
+              <input
+                  type="text"
+                  class="form-control form-control-sm"
+                  placeholder="Add new personal focus..."
+                  v-model="newPersonalFocus"
+                  @keyup.enter="addPersonalFocus"
+              >
+              <button class="btn btn-outline-secondary btn-sm" type="button" @click="addPersonalFocus">Add</button>
+            </div>
+          </div>
         </div>
 
         <!-- Work Focus Card - Made more compact -->
         <div class="card semi-transparent-card mb-3">
           <div class="card-header bg-transparent py-2 d-flex justify-content-between align-items-center">
             <strong>Work Focus</strong>
-            <button v-if="selectedDate" class="btn btn-sm btn-outline-secondary" @click="openFocusModal('work')">
-              Add
-            </button>
           </div>
           <div class="content-container work-focuses" style="max-height: 210px;"><!-- Increased by 40% from 150px -->
             <ul class="list-group list-group-flush" v-if="selectedDate && getWorkFocuses(selectedDate).length > 0">
@@ -104,7 +103,7 @@
                 <div class="focus-actions">
                   <input
                       type="checkbox"
-                      class="form-check-input me-2"
+                      class="form-check-input ms-2"
                       :checked="focus.completed"
                       @change="toggleFocusCompletion('work', index, selectedDate)"
                   >
@@ -121,6 +120,19 @@
             <div v-else class="card-body text-center py-2">
               <p class="text-muted my-1" v-if="selectedDate">No work focuses for this day</p>
               <p class="text-muted my-1" v-else>Select a date to view focuses</p>
+            </div>
+          </div>
+          <!-- Add this new card footer with input field -->
+          <div class="card-footer bg-transparent" v-if="selectedDate">
+            <div class="input-group">
+              <input
+                  type="text"
+                  class="form-control form-control-sm"
+                  placeholder="Add new work focus..."
+                  v-model="newWorkFocus"
+                  @keyup.enter="addWorkFocus"
+              >
+              <button class="btn btn-outline-secondary btn-sm" type="button" @click="addWorkFocus">Add</button>
             </div>
           </div>
         </div>
@@ -203,13 +215,11 @@
 
 <script>
 import axios from 'axios';
-import CalendarFocusModal from "@/components/modal/CalendarFocusModal.vue";
 import CalendarNavigationModal from "@/components/modal/CalendarNavigationModal.vue";
 
 export default {
   name: "CalendarView",
   components: {
-    CalendarFocusModal,
     CalendarNavigationModal
   },
   created() {
@@ -234,10 +244,9 @@ export default {
 
       navigationModalIsOpen: false,
 
-
-      // Modal controls
-      focusModalIsOpen: false,
-      focusType: 'personal', // 'personal' or 'work'
+      // New input fields for direct focus addition
+      newPersonalFocus: '',
+      newWorkFocus: '',
 
       // Quotes
       quote: "The way to get started is to quit talking and begin doing. - Walt Disney",
@@ -364,16 +373,7 @@ export default {
       return days[dayIndex];
     },
 
-    // Event modal methods
-    openFocusModal(type) {
-      this.focusType = type;
-      this.focusModalIsOpen = true;
-    },
-
-    closeFocusModal() {
-      this.focusModalIsOpen = false;
-    },
-
+    // Navigation modal methods
     openNavigationModal() {
       this.navigationModalIsOpen = true;
     },
@@ -387,10 +387,23 @@ export default {
       this.openNavigationModal();
     },
 
+    // New focus addition methods
+    addPersonalFocus() {
+      if (!this.newPersonalFocus.trim()) return;
 
-    // Event management methods
-    saveFocus(eventText) {
-      if (!eventText.trim()) return;
+      this.addFocus('personal', this.newPersonalFocus);
+      this.newPersonalFocus = '';
+    },
+
+    addWorkFocus() {
+      if (!this.newWorkFocus.trim()) return;
+
+      this.addFocus('work', this.newWorkFocus);
+      this.newWorkFocus = '';
+    },
+
+    addFocus(type, focusText) {
+      if (!focusText.trim() || !this.selectedDate) return;
 
       // Format the date as YYYY-MM-DD for use as a key
       const dateKey = this.formatDateKey(this.selectedDate);
@@ -403,19 +416,17 @@ export default {
         };
       }
 
-      // Add the new event
-      this.focuses[dateKey][this.focusType].push({
-        text: eventText.trim(),
+      // Add the new focus
+      this.focuses[dateKey][type].push({
+        text: focusText.trim(),
         completed: false
       });
 
-      // Save events to localStorage
+      // Save focuses to localStorage
       this.saveFocuses();
-
-      // Close the modal
-      this.closeFocusModal();
     },
 
+    // Existing focus management methods
     removeFocus(type, index, date) {
       const dateKey = this.formatDateKey(date);
       if (this.focuses[dateKey] && this.focuses[dateKey][type]) {
@@ -712,9 +723,12 @@ export default {
 }
 
 .focus-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  justify-content: flex-end !important;
+  min-width: 80px;
+  flex-direction: row-reverse !important;
 }
 
 /* Quote Card Styles */
@@ -735,5 +749,30 @@ export default {
   line-height: 1.4;
   margin-bottom: 0;
   text-shadow: 0.2px 0.2px 0px rgba(0,0,0,0.2);
+}
+.list-group-item {
+  background-color: rgba(255, 255, 255, 0.5) !important;
+  border-color: rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Input Styles */
+.input-group {
+  margin-bottom: 0;
+}
+
+.input-group .form-control {
+  background-color: rgba(255, 255, 255, 0.7);
+  border-color: rgba(142, 68, 173, 0.3);
+}
+
+.input-group .form-control:focus {
+  background-color: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 0 0.25rem rgba(142, 68, 173, 0.25);
+  border-color: #8e44ad;
+}
+
+.card-footer {
+  background-color: rgba(255, 255, 255, 0.3);
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
 }
 </style>
