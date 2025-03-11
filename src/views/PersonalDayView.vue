@@ -156,49 +156,50 @@
           </div>
         </div>
 
-        <!-- Tasks -->
+        <!-- Template Section: Replace the Monthly Goals card with this -->
         <div class="card semi-transparent-card mb-4 tasks-card">
           <div class="card-header bg-transparent"><strong>Monthly Goals</strong></div>
           <div class="content-container">
             <ul class="list-group list-group-flush">
               <li v-for="(task, index) in tasks" :key="index"
                   class="list-group-item d-flex align-items-center justify-content-between">
-                <span :class="{ 'completed-task': task.completed }">{{ task.text }}</span>
+                <!-- Task text with conditional edit input -->
+                <div class="task-text-container" style="flex-grow: 1; margin-right: 10px;">
+                  <!-- Display task text when not editing -->
+                  <span
+                      v-if="!task.isEditing"
+                      :class="{ 'completed-task': task.completed }"
+                      @click="startEditingTask(index)"
+                      style="cursor: text; display: block; width: 100%;"
+                  >{{ task.text }}</span>
+
+                  <!-- Edit input when editing -->
+                  <input
+                      v-if="task.isEditing"
+                      type="text"
+                      class="form-control form-control-sm"
+                      v-model="task.text"
+                      @blur="finishEditingTask(index)"
+                      @keyup.enter="finishEditingTask(index)"
+                      ref="taskInput"
+                      style="width: 100%;"
+                  >
+                </div>
+
+                <!-- Only keep the checkbox in task-actions -->
                 <div class="task-actions">
                   <input
                       type="checkbox"
-                      class="form-check-input me-2"
+                      class="form-check-input"
                       :checked="task.completed"
                       @change="toggleTaskCompletion(index)"
                   >
-                  <button
-                      class="btn btn-sm btn-link text-danger p-0"
-                      @click="removeTask(index)"
-                      title="Remove task"
-                  >
-                    <i class="fas fa-eraser"></i>
-                    <span v-if="!hasFontAwesome">🗑️</span>
-                  </button>
                 </div>
               </li>
             </ul>
           </div>
-          <div class="card-footer bg-transparent">
-            <div class="input-group">
-              <input
-                  type="text"
-                  class="form-control form-control-sm"
-                  placeholder="Add new goal..."
-                  v-model="newTask"
-                  @keyup.enter="addTask"
-              >
-              <button class="btn btn-outline-secondary btn-sm" type="button" @click="addTask">Add</button>
-            </div>
-          </div>
         </div>
-
       </div>
-
       <!-- Right Sidebar Column (Image, Meetings, Mood, Glasses, Steps) -->
       <div class="col-md-4 right-column">
         <!-- Image Card - With diary default image and upload functionality -->
@@ -504,6 +505,7 @@ export default {
       if (savedSteps) {
         this.completedStepsMilestone = parseInt(savedSteps);
       }
+      this.loadTasks();
     },
     // Start of focus
     startEditing() {
@@ -513,11 +515,7 @@ export default {
         this.$refs.seamlessInput.focus();
       });
     },
-    cancelEditing() {
-      // Restore previous value
-      this.dailyFocus = this.tempFocus;
-      this.isEditing = false;
-    },
+
     clearFocus(event) {
       if (event) {
         event.preventDefault();
@@ -683,29 +681,75 @@ export default {
       this.completedStepsMilestone = milestone;
       localStorage.setItem('sharedStepsMilestone', milestone); // Use the shared key
     },
-    // Tasks/goals
-    toggleTaskCompletion(index) {
-      this.tasks[index].completed = !this.tasks[index].completed;
-      this.saveTasks();
-    },
-    removeTask(index) {
-      this.tasks.splice(index, 1);
-      this.saveTasks();
-    },
-    addTask() {
-      if (this.newTask.trim()) {
-        this.tasks.push({
-          text: this.newTask.trim(),
-          completed: false
-        });
-        this.newTask = "";
-        this.saveTasks();
-      }
-    },
+    startEditingTask(index) {
+      // First, make sure all tasks have the isEditing property
+      this.tasks.forEach((task, i) => {
+        if (typeof task.isEditing === 'undefined') {
+          this.tasks[i].isEditing = false;
+        }
+      });
 
-    saveTasks() {
-      localStorage.setItem('personalTasks', JSON.stringify(this.tasks));
+      // Set the current task to editing mode
+      this.tasks[index].isEditing = true;
+
+      // Focus the input on the next render cycle
+      this.$nextTick(() => {
+        // Focus the input if refs are available
+        if (this.$refs.taskInput && this.$refs.taskInput[index]) {
+          this.$refs.taskInput[index].focus();
+        }
+      });
     },
+    finishEditingTask(index) {
+      // Exit editing mode
+      this.tasks[index].isEditing = false;
+
+      // Remove the task if empty
+      if (!this.tasks[index].text.trim()) {
+        this.tasks.splice(index, 1);
+      }
+      // Save changes
+      this.saveTasks();
+    },
+    toggleTaskCompletion(index) {
+      // Toggle the completed state
+      this.tasks[index].completed = !this.tasks[index].completed;
+
+      // Make sure the isEditing property is preserved
+      if (typeof this.tasks[index].isEditing === 'undefined') {
+        this.tasks[index].isEditing = false;
+      }
+
+      // Save the updated tasks
+      this.saveTasks();
+    },
+    saveTasks() {
+      // Make sure all tasks have the isEditing property before saving
+      const tasksToSave = this.tasks.map(task => {
+        // Create a new object with just the properties we want to save
+        return {
+          text: task.text,
+          completed: task.completed
+          // We don't save isEditing as it's a UI state
+        };
+      });
+
+      localStorage.setItem('personalTasks', JSON.stringify(tasksToSave));
+    },
+    loadTasks() {
+      const savedTasks = localStorage.getItem('personalTasks');
+      if (savedTasks) {
+        const parsedTasks = JSON.parse(savedTasks);
+
+        // Add isEditing property to each task
+        this.tasks = parsedTasks.map(task => {
+          return {
+            ...task,
+            isEditing: false
+          };
+        });
+      }
+    }
   }
 };
 </script>
@@ -958,6 +1002,30 @@ export default {
 
 .tasks-card {
   min-height: 350px;
+}
+.task-text-container {
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.task-text-container input {
+  background: transparent;
+  border: 1px solid #ced4da;
+  padding: 0.25rem 0.5rem;
+}
+
+.task-text-container input:focus {
+  box-shadow: 0 0 0 0.2rem rgba(142, 68, 173, 0.25);
+  border-color: #8e44ad;
+  outline: none;
+}
+
+/* Update task-actions to account for removed trash button */
+.task-actions {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  min-width: 40px !important; /* reduced from 80px */
 }
 
 .completed-activity,
