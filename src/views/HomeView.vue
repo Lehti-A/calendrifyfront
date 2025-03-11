@@ -13,6 +13,14 @@
       </div>
     </div>
 
+    <div v-if="showRegistrationAlert" class="account-deleted-alert">
+      <div class="alert alert-success alert-dismissible fade show" role="alert">
+        Your account has been successfully registered. You can now log in.
+        <button type="button" class="btn-close" @click="dismissRegistrationAlert" aria-label="Close"></button>
+      </div>
+    </div>
+
+
     <div class="content">
       <div v-if="!isLoggedIn" >
         <div class="row justify-content-center">
@@ -56,11 +64,13 @@ export default {
     return {
       isLoggedIn: false,
       modalIsOpen: false,
-      showAccountDeletedAlert: false
+      showAccountDeletedAlert: false,
+      showRegistrationAlert: false
     }
   },
 
   methods: {
+
     openLoginModal() {
       this.modalIsOpen = true
     },
@@ -88,10 +98,26 @@ export default {
         }, 5000);
       }
     },
+    checkRegistrationStatus() {
+      const registrationSuccess = localStorage.getItem('registrationSuccess');
+      if (registrationSuccess === 'true') {
+        this.showRegistrationAlert = true;
+        localStorage.removeItem('registrationSuccess');
+
+        // Auto-dismiss the alert after 5 seconds
+        setTimeout(() => {
+          this.dismissRegistrationAlert();
+        }, 5000);
+      }
+    },
 
     dismissAccountDeletedAlert() {
       this.showAccountDeletedAlert = false;
+    },
+    dismissRegistrationAlert() {
+      this.showRegistrationAlert = false;
     }
+
   },
 
   beforeMount() {
@@ -100,6 +126,7 @@ export default {
 
   mounted() {
     this.checkAccountDeletedStatus();
+    this.checkRegistrationStatus();
   }
 }
 </script>

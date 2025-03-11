@@ -5,7 +5,7 @@
         <h2 class="text-center mb-4">Register</h2>
 
         <form>
-          <div class="mb-3">
+          <div @submit.prevent="addNewUser">
             <label for="email" class="form-label">Email</label>
             <input
                 type="email"
@@ -105,13 +105,37 @@ export default {
       if (this.passwordNoMatch()) {
         this.errorMessage = "Paroolid ei kattu"
       } else {
-        UserService.sendPostNewUserRequest(this.newUser)
-            .then(() => NavigationServices.navigateToHomeView())
-            .catch(() => NavigationServices.navigateToErrorView())
+        // Disable the submit button to prevent multiple submissions
+        const submitBtn = document.querySelector('button[type="submit"]');
+        if (submitBtn) submitBtn.disabled = true;
 
+        UserService.sendPostNewUserRequest(this.newUser)
+            .then(() => {
+              console.log("Registration successful, navigating to home view...");
+              // Set registration success flag in localStorage
+              localStorage.setItem('registrationSuccess', 'true');
+
+              // Navigate to home view using multiple approaches for redundancy
+              NavigationServices.navigateToHomeView();
+
+              // Fallback navigation if NavigationServices fails
+              setTimeout(() => {
+                if (this.$router) {
+                  if (this.$route.name !== 'homeRoute') {
+                    this.$router.push({ name: 'homeRoute' });
+                  }
+                }
+              }, 100);
+            })
+            .catch((error) => {
+              console.error("Registration error:", error);
+              NavigationServices.navigateToErrorView();
+
+              // Re-enable the submit button if there's an error
+              if (submitBtn) submitBtn.disabled = false;
+            });
       }
     },
-
     passwordNoMatch() {
       return this.passwordRetype !== this.newUser.password
     },
