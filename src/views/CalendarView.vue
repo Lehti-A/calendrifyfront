@@ -230,8 +230,8 @@ export default {
     // Fetch a quote when component is created
     this.fetchQuote();
 
-    // Load focuses for the current month
-    this.loadFocusesForMonth(this.currentMonth + 1, this.currentYear);
+    // Load month focuses using the loadMonthFocuses helper
+    this.loadMonthFocuses(this.currentMonth + 1, this.currentYear);
   },
 
   data() {
@@ -263,13 +263,17 @@ export default {
       quote: "The way to get started is to quit talking and begin doing. - Walt Disney",
 
       // Focuses storage
-      focuses: [],
+      focuses: [],       // All focuses for the month (calendar indicators)
+      dayFocuses: [],    // Focuses for the selected day only
 
       // Days of week for calendar header
       daysOfWeek: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
 
       // Next ID for Vue keys
-      nextUniqueId: 1
+      nextUniqueId: 1,
+
+      // Loading state
+      isLoading: false
     };
   },
 
@@ -285,6 +289,7 @@ export default {
 
     // Generate calendar days for the current month view
     calendarDays() {
+      // Keep this method the same
       const days = [];
 
       // Get first day of month
@@ -345,77 +350,191 @@ export default {
   },
 
   methods: {
-    // Load focuses for a specific month and year from the API
-    async loadFocusesForMonth(month, year) {
+    // Helper method to load focuses for all days in a month (for calendar indicators)
+    async loadMonthFocuses(month, year) {
+      this.isLoading = true;
+      this.focuses = []; // Reset focuses array
+
       try {
-        // Load personal focuses
+        // Get number of days in the month
+        const daysInMonth = new Date(year, month, 0).getDate();
+
+        // For each day in the month, load both personal and work focuses
+        for (let day = 1; day <= daysInMonth; day++) {
+          try {
+            // Load personal focuses for this day
+            const personalResponse = await axios.get(`${this.apiBaseUrl}/focuses`, {
+              params: {
+                userId: this.userId,
+                monthNumber: month,
+                year: year,
+                day: day,
+                type: 'P'
+              }
+            });
+
+            // Add metadata to each focus
+            const personalFocuses = personalResponse.data.map(focus => ({
+              ...focus,
+              _uniqueId: this.nextUniqueId++,
+              _type: 'P',
+              _monthNumber: month,
+              _year: year,
+              _day: day
+            }));
+
+            // Add to focuses array
+            this.focuses.push(...personalFocuses);
+
+            // Load work focuses for this day
+            const workResponse = await axios.get(`${this.apiBaseUrl}/focuses`, {
+              params: {
+                userId: this.userId,
+                monthNumber: month,
+                year: year,
+                day: day,
+                type: 'W'
+              }
+            });
+
+            // Add metadata to each focus
+            const workFocuses = workResponse.data.map(focus => ({
+              ...focus,
+              _uniqueId: this.nextUniqueId++,
+              _type: 'W',
+              _monthNumber: month,
+              _year: year,
+              _day: day
+            }));
+
+            // Add to focuses array
+            this.focuses.push(...workFocuses);
+          } catch (error) {
+            // If there's an error loading focuses for a particular day, just continue
+            // This is likely because there are no focuses for that day
+            continue;
+          }
+        }
+
+        // If we have a selected date, load focuses for that day
+        if (this.selectedDate) {
+          this.loadFocusesForDay(this.selectedDate);
+        }
+      } catch (error) {
+        console.error("Error loading month focuses:", error);
+        if (error.response && error.response.status === 403) {
+          navigationServices.navigateToErrorView();
+        }
+      } finally {
+        this.isLoading = false;
+      }
+    },
+
+    // Load focuses for a specific day
+    async loadFocusesForDay(date) {
+      try {
+        const day = date.getDate();
+        const month = date.getMonth() + 1;
+        const year = date.getFullYear();
+
+        // Load personal focuses for the specific day
         const personalResponse = await axios.get(`${this.apiBaseUrl}/focuses`, {
           params: {
             userId: this.userId,
             monthNumber: month,
             year: year,
-            type: 'P'  // Personal focuses
+            day: day,
+            type: 'P'
           }
         });
 
-        // Add metadata to each focus
+        // Add metadata
         const personalFocuses = personalResponse.data.map(focus => ({
           ...focus,
           _uniqueId: this.nextUniqueId++,
           _type: 'P',
           _monthNumber: month,
-          _year: year
+          _year: year,
+          _day: day
         }));
 
-        // Store the count of personal focuses
-        this.personalFocusCount = personalFocuses.length;
-
-        // Load work focuses
+        // Load work focuses for the specific day
         const workResponse = await axios.get(`${this.apiBaseUrl}/focuses`, {
           params: {
             userId: this.userId,
             monthNumber: month,
             year: year,
-            type: 'W'  // Work focuses
+            day: day,
+            type: 'W'
           }
         });
 
-        // Add metadata to each work focus
+        // Add metadata
         const workFocuses = workResponse.data.map(focus => ({
           ...focus,
           _uniqueId: this.nextUniqueId++,
           _type: 'W',
           _monthNumber: month,
-          _year: year
+          _year: year,
+          _day: day
         }));
 
-        // Combine results
-        this.focuses = [...personalFocuses, ...workFocuses];
+        // Store only focuses for the current day
+        this.dayFocuses = [...personalFocuses, ...workFocuses];
+        this.personalFocusCount = personalFocuses.length;
+
+        // Update the focuses array with these new focuses (may replace existing ones)
+        // This ensures consistency between dayFocuses and the main focuses array
+        this.updateFocusesArray(personalFocuses, workFocuses, day, month, year);
       } catch (error) {
+        console.error("Error loading focuses for day:", error);
+        this.dayFocuses = []; // Reset on error
         if (error.response && error.response.status === 403) {
           navigationServices.navigateToErrorView();
         }
       }
     },
 
+    // Helper to update the main focuses array with day-specific focuses
+    updateFocusesArray(personalFocuses, workFocuses, day, month, year) {
+      // Remove any existing focuses for this day
+      this.focuses = this.focuses.filter(focus =>
+          !(focus._day === day &&
+              focus._monthNumber === month &&
+              focus._year === year)
+      );
+
+      // Add the new focuses
+      this.focuses.push(...personalFocuses, ...workFocuses);
+    },
+
     // Create a new focus
     async createFocus(topic, type) {
+      if (!topic.trim()) return;
+
       try {
-        // Call the API to create a new focus
+        // Create the focus on the server
         await axios.post(`${this.apiBaseUrl}/focus`, {
           userId: this.userId,
           topic: topic,
+          day: this.selectedDate.getDate(),
           monthNumber: this.selectedDate.getMonth() + 1,
           year: this.selectedDate.getFullYear(),
           type: type
         });
 
-        // Refresh the list to get the updated data
-        await this.loadFocusesForMonth(
+        // Refresh the day's focuses
+        await this.loadFocusesForDay(this.selectedDate);
+
+        // Reload all month focuses to update calendar indicators
+        // In a real app, you might optimize this by only updating the indicators
+        // But for simplicity and reliability, we'll just reload everything
+        await this.loadMonthFocuses(
             this.selectedDate.getMonth() + 1,
             this.selectedDate.getFullYear()
         );
       } catch (error) {
+        console.error("Error creating focus:", error);
         if (error.response && error.response.status === 403) {
           navigationServices.navigateToErrorView();
         }
@@ -425,8 +544,14 @@ export default {
     // Update a focus's selection status
     async updateFocusSelection(focus) {
       try {
+        // Store original state in case we need to revert
+        const originalIsSelected = focus.isSelected;
+
         // Optimistically update the UI
         focus.isSelected = !focus.isSelected;
+
+        // Update in both arrays for consistency
+        this.updateFocusStatusInArrays(focus);
 
         // Call the API
         await axios.patch(`${this.apiBaseUrl}/focus`, null, {
@@ -436,8 +561,11 @@ export default {
           }
         });
       } catch (error) {
-        // Revert on failure
+        console.error("Error updating focus:", error);
+
+        // Revert changes on failure
         focus.isSelected = !focus.isSelected;
+        this.updateFocusStatusInArrays(focus);
 
         if (error.response && error.response.status === 403) {
           navigationServices.navigateToErrorView();
@@ -445,58 +573,67 @@ export default {
       }
     },
 
+    // Helper to update a focus's status in both arrays
+    updateFocusStatusInArrays(focus) {
+      // Update in focuses array
+      const mainFocus = this.focuses.find(f => f.id === focus.id);
+      if (mainFocus) {
+        mainFocus.isSelected = focus.isSelected;
+      }
+
+      // Update in dayFocuses array
+      const dayFocus = this.dayFocuses.find(f => f.id === focus.id);
+      if (dayFocus) {
+        dayFocus.isSelected = focus.isSelected;
+      }
+    },
+
     // Delete a focus
     async deleteFocus(focus) {
       try {
-        // Store a copy for potential restore
-        const focusCopy = { ...focus };
-        const focusIndex = this.focuses.findIndex(f =>
-            f._uniqueId === focus._uniqueId
-        );
+        // First, remove from both UI arrays
+        this.removeFocusFromArrays(focus);
 
-        if (focusIndex === -1) return;
-
-        // Remove from UI immediately
-        this.focuses.splice(focusIndex, 1);
-
-        // Find the matching focus on server to get its ID
-        const response = await axios.get(`${this.apiBaseUrl}/focuses`, {
-          params: {
-            userId: this.userId,
-            monthNumber: focus._monthNumber,
-            year: focus._year,
-            type: focus._type
-          }
+        // Delete on the server
+        await axios.delete(`${this.apiBaseUrl}/focus`, {
+          params: { focusId: focus.id }
         });
 
-        // Find the focus with matching topic
-        const serverFocus = response.data.find(f => f.topic === focus.topic);
+        // Reload data to ensure UI is in sync
+        await this.loadFocusesForDay(this.selectedDate);
+        await this.loadMonthFocuses(
+            this.selectedDate.getMonth() + 1,
+            this.selectedDate.getFullYear()
+        );
+      } catch (error) {
+        console.error("Error deleting focus:", error);
 
-        if (serverFocus) {
-          // Delete using the server-side focus ID
-          await axios.delete(`${this.apiBaseUrl}/focus`, {
-            params: { focusId: serverFocus.id }
-          });
-
+        // Don't try to restore on error - we'll reload data instead
+        if (error.response && error.response.status === 403) {
+          navigationServices.navigateToErrorView();
+        } else {
           // Reload data to ensure UI is in sync
-          await this.loadFocusesForMonth(
+          await this.loadFocusesForDay(this.selectedDate);
+          await this.loadMonthFocuses(
               this.selectedDate.getMonth() + 1,
               this.selectedDate.getFullYear()
           );
-        } else {
-          // If we can't find the focus, restore it in the UI
-          this.focuses.splice(focusIndex, 0, focusCopy);
         }
-      } catch (error) {
-        // Restore focus on error
-        const focusIndex = this.focuses.findIndex(f => f._uniqueId === focus._uniqueId);
-        if (focusIndex === -1) {
-          this.focuses.push(focus);
-        }
+      }
+    },
 
-        if (error.response && error.response.status === 403) {
-          navigationServices.navigateToErrorView();
-        }
+    // Helper to remove a focus from both arrays
+    removeFocusFromArrays(focus) {
+      // Remove from focuses array
+      const mainIndex = this.focuses.findIndex(f => f.id === focus.id);
+      if (mainIndex !== -1) {
+        this.focuses.splice(mainIndex, 1);
+      }
+
+      // Remove from dayFocuses array
+      const dayIndex = this.dayFocuses.findIndex(f => f.id === focus.id);
+      if (dayIndex !== -1) {
+        this.dayFocuses.splice(dayIndex, 1);
       }
     },
 
@@ -508,7 +645,9 @@ export default {
       } else {
         this.currentMonth--;
       }
-      this.loadFocusesForMonth(this.currentMonth + 1, this.currentYear);
+
+      // Load focuses for the new month
+      this.loadMonthFocuses(this.currentMonth + 1, this.currentYear);
     },
 
     nextMonth() {
@@ -518,12 +657,18 @@ export default {
       } else {
         this.currentMonth++;
       }
-      this.loadFocusesForMonth(this.currentMonth + 1, this.currentYear);
+
+      // Load focuses for the new month
+      this.loadMonthFocuses(this.currentMonth + 1, this.currentYear);
     },
 
     // Date selection
     selectDate(day) {
+      // Update the selected date
       this.selectedDate = new Date(day.date);
+
+      // Load focuses for the selected day
+      this.loadFocusesForDay(this.selectedDate);
     },
 
     // Get month name by index
@@ -573,7 +718,7 @@ export default {
       this.newWorkFocus = '';
     },
 
-    // Focus action methods
+    // Focus action methods - these are the public methods used in the template
     async toggleFocusCompletion(focus) {
       await this.updateFocusSelection(focus);
     },
@@ -582,46 +727,39 @@ export default {
       await this.deleteFocus(focus);
     },
 
-    // Focus filtering methods
+    // Focus filtering methods - these return focuses for the UI
     getPersonalFocuses() {
       if (!this.selectedDate) return [];
 
-      // Return personal focuses based on metadata
-      return this.focuses.filter(focus =>
-          focus._type === 'P' &&
-          focus._monthNumber === (this.selectedDate.getMonth() + 1) &&
-          focus._year === this.selectedDate.getFullYear()
-      );
+      // Return personal focuses for the selected day
+      return this.dayFocuses.filter(focus => focus._type === 'P');
     },
 
     getWorkFocuses() {
       if (!this.selectedDate) return [];
 
-      // Return work focuses based on metadata
-      return this.focuses.filter(focus =>
-          focus._type === 'W' &&
-          focus._monthNumber === (this.selectedDate.getMonth() + 1) &&
-          focus._year === this.selectedDate.getFullYear()
-      );
+      // Return work focuses for the selected day
+      return this.dayFocuses.filter(focus => focus._type === 'W');
     },
 
+    // Methods to check if a date has focuses - used for calendar indicators
     hasFocuses(date) {
       return this.hasPersonalFocuses(date) || this.hasWorkFocuses(date);
     },
 
     hasPersonalFocuses(date) {
-      // Check if there are any personal focuses for this date
       return this.focuses.some(focus =>
           focus._type === 'P' &&
+          focus._day === date.getDate() &&
           focus._monthNumber === (date.getMonth() + 1) &&
           focus._year === date.getFullYear()
       );
     },
 
     hasWorkFocuses(date) {
-      // Check if there are any work focuses for this date
       return this.focuses.some(focus =>
           focus._type === 'W' &&
+          focus._day === date.getDate() &&
           focus._monthNumber === (date.getMonth() + 1) &&
           focus._year === date.getFullYear()
       );
@@ -659,12 +797,13 @@ export default {
         const newYear = newDate.getFullYear();
 
         if (newMonth !== this.currentMonth + 1 || newYear !== this.currentYear) {
-          this.loadFocusesForMonth(newMonth, newYear);
+          this.loadMonthFocuses(newMonth, newYear);
         }
       }
     }
   }
 };
 </script>
+
 
 <style src="@/assets/css/calendarview.css" scoped></style>
