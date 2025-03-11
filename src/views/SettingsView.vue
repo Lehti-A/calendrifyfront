@@ -6,6 +6,14 @@
         <h1 class="mb-1 fw-bold simple-header">
           SETTINGS
         </h1>
+
+        <!-- Success alert for profile update -->
+        <div v-if="showProfileUpdateAlert" class="mt-3 mx-auto profile-update-alert">
+          <div class="alert alert-success alert-dismissible fade show" role="alert">
+            Profile updated successfully!
+            <button type="button" class="btn-close" @click="dismissProfileUpdateAlert" aria-label="Close"></button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -16,32 +24,10 @@
     />
 
     <!-- Delete Account Confirmation Modal -->
-    <div class="modal fade" id="deleteAccountModal" tabindex="-1" aria-labelledby="deleteAccountModalLabel"
-         aria-hidden="true"
-         ref="deleteAccountModal" v-if="deleteAccountModalOpen">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="deleteAccountModalLabel">Delete Account</h5>
-            <button type="button" class="btn-close" @click="closeDeleteAccountModal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            <p>Are you sure you want to delete your account? This action cannot be undone.</p>
-            <div class="mb-3">
-              <label for="confirmDeletePassword" class="form-label">Enter your password to confirm</label>
-              <input type="password" class="form-control" id="confirmDeletePassword" v-model="deleteAccountPassword"/>
-            </div>
-            <div v-if="deleteAccountError" class="alert alert-danger">
-              {{ deleteAccountError }}
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" @click="closeDeleteAccountModal">Cancel</button>
-            <button type="button" class="btn btn-danger" @click="confirmDeleteAccount">Delete Account</button>
-          </div>
-        </div>
-      </div>
-    </div>
+    <DeleteAccountModal
+        :modal-is-open="deleteAccountModalOpen"
+        @event-close-modal="closeDeleteAccountModal"
+    />
 
     <!-- Main Two-Column Layout -->
     <div class="row justify-content-center">
@@ -150,11 +136,13 @@
 
 <script>
 import ChangePasswordModal from "@/components/modal/ChangePasswordModal.vue";
+import DeleteAccountModal from "@/components/modal/DeleteAccountModal.vue";
 
 export default {
   name: 'SettingsView',
   components: {
-    ChangePasswordModal
+    ChangePasswordModal,
+    DeleteAccountModal
   },
   data() {
     return {
@@ -178,9 +166,8 @@ export default {
       passwordModalOpen: false,
       deleteAccountModalOpen: false,
 
-      // Delete account confirmation
-      deleteAccountPassword: '',
-      deleteAccountError: '',
+      // Alert controls
+      showProfileUpdateAlert: false,
 
       // UI helpers
       hasFontAwesome: false
@@ -237,8 +224,18 @@ export default {
       // Save to localStorage for demo purposes
       localStorage.setItem('userProfile', JSON.stringify(this.userProfile));
 
-      // Show success message (you can implement a toast notification)
-      alert('Profile updated successfully!');
+      // Show success message
+      this.showProfileUpdateAlert = true;
+
+      // Auto-dismiss the alert after 4 seconds
+      setTimeout(() => {
+        this.dismissProfileUpdateAlert();
+      }, 4000);
+    },
+
+    // Dismiss profile update alert
+    dismissProfileUpdateAlert() {
+      this.showProfileUpdateAlert = false;
     },
 
     // Goal management
@@ -272,27 +269,9 @@ export default {
     // Delete account modal methods
     openDeleteAccountModal() {
       this.deleteAccountModalOpen = true;
-      this.deleteAccountPassword = '';
-      this.deleteAccountError = '';
     },
     closeDeleteAccountModal() {
       this.deleteAccountModalOpen = false;
-    },
-    confirmDeleteAccount() {
-      // Validate password
-      if (!this.deleteAccountPassword) {
-        this.deleteAccountError = 'Please enter your password to confirm';
-        return;
-      }
-
-      // In a real app, you would call an API to delete the account
-      console.log('Deleting account');
-
-      // Clear session storage
-      sessionStorage.clear();
-
-      // Redirect to home page
-      window.location.href = '/';
     }
   }
 };
@@ -413,6 +392,19 @@ export default {
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+/* Profile update alert styling */
+.profile-update-alert {
+  max-width: 500px;
+}
+
+.profile-update-alert .alert {
+  background-color: rgba(25, 135, 84, 0.9);
+  color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border: none;
 }
 
 /* Modal styling */
