@@ -659,11 +659,13 @@ export default {
     },
 
     clearThoughts() {
-      if (confirm("Are you sure you want to clear all your thoughts?")) {
-        this.otherThoughts = "";
-        this.editingThoughts = false;
-        localStorage.removeItem('personalThoughts');
-      }
+      // Clear the text but keep editing mode active
+      this.otherThoughts = "";
+      this.$nextTick(() => {
+        if (this.$refs.thoughtsTextarea) {
+          this.$refs.thoughtsTextarea.focus();
+        }
+      });
     },
     // Start of mood
     setMood(mood) {

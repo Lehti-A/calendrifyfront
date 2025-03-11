@@ -507,11 +507,6 @@ export default {
         this.$refs.seamlessInput.focus();
       });
     },
-    cancelEditing() {
-      // Restore previous value
-      this.dailyFocus = this.tempFocus;
-      this.isEditing = false;
-    },
     clearFocus(event) {
       if (event) {
         event.preventDefault();
@@ -565,11 +560,13 @@ export default {
       this.editingThoughts = false;
     },
     clearThoughts() {
-      if (confirm("Are you sure you want to clear all your thoughts?")) {
-        this.otherThoughts = "";
-        this.editingThoughts = false;
-        localStorage.removeItem('workThoughts');
-      }
+      // Clear the text but keep editing mode active
+      this.otherThoughts = "";
+      this.$nextTick(() => {
+        if (this.$refs.thoughtsTextarea) {
+          this.$refs.thoughtsTextarea.focus();
+        }
+      });
     },
 
     // Activity methods (formerly task methods)
