@@ -9,39 +9,11 @@
       </div>
     </div>
 
-    <!-- Password Change Modal -->
-    <div class="modal fade" id="passwordModal" tabindex="-1" aria-labelledby="passwordModalLabel" aria-hidden="true"
-         ref="passwordModal" v-if="passwordModalOpen">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="passwordModalLabel">Change Password</h5>
-            <button type="button" class="btn-close" @click="closePasswordModal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            <div class="mb-3">
-              <label for="currentPassword" class="form-label">Current Password</label>
-              <input type="password" class="form-control" id="currentPassword" v-model="passwordData.currentPassword"/>
-            </div>
-            <div class="mb-3">
-              <label for="newPassword" class="form-label">New Password</label>
-              <input type="password" class="form-control" id="newPassword" v-model="passwordData.newPassword"/>
-            </div>
-            <div class="mb-3">
-              <label for="confirmPassword" class="form-label">Confirm New Password</label>
-              <input type="password" class="form-control" id="confirmPassword" v-model="passwordData.confirmPassword"/>
-            </div>
-            <div v-if="passwordError" class="alert alert-danger">
-              {{ passwordError }}
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" @click="closePasswordModal">Cancel</button>
-            <button type="button" class="btn btn-primary" @click="updatePassword">Save Password</button>
-          </div>
-        </div>
-      </div>
-    </div>
+    <!-- Password Change Modal - Using new component -->
+    <ChangePasswordModal
+        :modal-is-open="passwordModalOpen"
+        @event-close-modal="closePasswordModal"
+    />
 
     <!-- Delete Account Confirmation Modal -->
     <div class="modal fade" id="deleteAccountModal" tabindex="-1" aria-labelledby="deleteAccountModalLabel"
@@ -177,9 +149,13 @@
 </template>
 
 <script>
+import ChangePasswordModal from "@/components/modal/ChangePasswordModal.vue";
 
 export default {
   name: 'SettingsView',
+  components: {
+    ChangePasswordModal
+  },
   data() {
     return {
       // User profile settings
@@ -201,14 +177,6 @@ export default {
       // Modal controls
       passwordModalOpen: false,
       deleteAccountModalOpen: false,
-
-      // Password change data
-      passwordData: {
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: ''
-      },
-      passwordError: '',
 
       // Delete account confirmation
       deleteAccountPassword: '',
@@ -296,41 +264,9 @@ export default {
     // Password modal methods
     openPasswordModal() {
       this.passwordModalOpen = true;
-      this.passwordData = {
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: ''
-      };
-      this.passwordError = '';
     },
     closePasswordModal() {
       this.passwordModalOpen = false;
-    },
-    updatePassword() {
-      // Validate passwords
-      if (!this.passwordData.currentPassword) {
-        this.passwordError = 'Please enter your current password';
-        return;
-      }
-
-      if (!this.passwordData.newPassword) {
-        this.passwordError = 'Please enter a new password';
-        return;
-      }
-
-      if (this.passwordData.newPassword !== this.passwordData.confirmPassword) {
-        this.passwordError = 'New passwords do not match';
-        return;
-      }
-
-      // In a real app, you would call an API to update the password
-      console.log('Updating password');
-
-      // Close modal on success
-      this.closePasswordModal();
-
-      // Show success message
-      alert('Password updated successfully!');
     },
 
     // Delete account modal methods
