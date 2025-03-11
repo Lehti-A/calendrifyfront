@@ -712,9 +712,17 @@ export default {
 
 <style scoped>
 
+/* General Layout Styles */
 .personal-day-container {
-  padding-top: 170px; /* This value should be larger than the nav position (80px) plus its height */
+  padding-top: 170px; /* Space for navigation bar */
 }
+
+.container-fluid {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Typography Styles */
 .simple-header,
 .card-header strong,
 .tracker-section h5 {
@@ -722,7 +730,11 @@ export default {
   font-weight: 700 !important;
 }
 
-/* Increase header font size slightly */
+.simple-header {
+  color: #ffffff;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+}
+
 .card-header strong {
   font-size: 1.15rem;
 }
@@ -731,158 +743,107 @@ export default {
   font-size: 1.2rem;
   font-weight: 600 !important;
 }
-/* Ensure the header row doesn't get hidden */
+
+/* Header and Row Styles */
 .header-row {
   position: relative;
   margin-bottom: 2rem !important;
 }
 
-/* Simple bold white header */
-.simple-header {
-  color: #ffffff; /* White text */
-  font-weight: 700; /* Bold */
-  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3); /* Subtle shadow for legibility */
-}
-
-/* Make the overall container wider */
-.container-fluid {
-  max-width: 1400px;
-  margin: 0 auto;
-}
-.image-card {
-  position: relative;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.card-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.3s ease;
-}
-
-.image-card:hover .card-img {
-  transform: scale(1.02);
-}
-
-/* Action button styles */
-.image-action-button {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  opacity: 0; /* Start with 0 opacity to hide by default */
-  transition: all 0.2s ease;
-  z-index: 10;
-  font-size: 24px;
-  font-weight: bold;
-  text-shadow: 0 0 3px rgba(255, 255, 255, 0.8); /* White shadow for visibility against any background */
-}
-
-.add-button {
-  color: #8e44ad; /* Purple color to match your theme */
-}
-
-.delete-button {
-  color: #dc3545; /* Red color */
-}
-
-/* Only show buttons when hovering over the image */
-.image-card:hover .image-action-button {
-  opacity: 1;
-}
-
-/* Two-column layout styles */
+/* Column Layout */
 .left-column > .card,
 .right-column > .card {
   height: auto;
   margin-bottom: 1rem;
 }
 
-/* Card styles */
+/* Card Styles */
 .card {
   display: flex;
   flex-direction: column;
 }
 
-/* Content containers */
 .content-container {
   width: 100%;
   flex-grow: 1;
 }
 
-/* Specific heights for different sections */
-.activities-card {
-  min-height: 500px; /* Further increased height */
+.semi-transparent-card {
+  background-color: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-.meetings-card {
-  min-height: 600px; /* Further increased height */
-  width: 80%; /* Width matches image card */
-  margin-left: auto;
-  margin-right: auto;
-  margin-top: 30px; /* Push meetings down for better spacing */
+.semi-transparent-card .card-header {
+  background-color: rgba(255, 255, 255, 0.3);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  font-size: 1.1rem;
 }
 
-.thoughts-card {
-  min-height: 250px; /* Increased height */
+/* Card Footer Styling */
+.focus-card .card-footer,
+.activities-card .card-footer,
+.meetings-card .card-footer,
+.thoughts-card .card-footer {
+  background-color: rgba(255, 255, 255, 0.3);
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
 }
 
-.tasks-card {
-  min-height: 350px; /* Further increased height */
+/* Button Styles */
+.btn-link.text-danger {
+  opacity: 0.7;
+  transition: opacity 0.2s;
 }
 
-/* Calendar box */
+.btn-link.text-danger:hover {
+  opacity: 1;
+}
+
+/* Calendar Styles */
 .calendar-card {
-  background-color: rgba(142, 68, 173, 0.7); /* Purple color with 70% opacity */
+  background-color: rgba(142, 68, 173, 0.7);
   color: white;
   border: none;
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   overflow: hidden;
-  height: 180px !important; /* Fixed height */
-  max-height: 180px !important; /* Prevent expansion */
+  height: 180px !important;
+  max-height: 180px !important;
 }
 
 .calendar-month {
   background-color: rgba(0, 0, 0, 0.2);
-  padding: 12px 0; /* Increased padding */
-  font-size: 1.1rem; /* Larger font */
+  padding: 12px 0;
+  font-size: 1.1rem;
   font-weight: 500;
   text-transform: uppercase;
 }
 
 .calendar-day {
-  font-size: 3.2rem; /* Larger font */
+  font-size: 3.2rem;
   font-weight: bold;
-  padding: 15px 0 10px; /* Increased padding */
+  padding: 15px 0 10px;
 }
 
 .calendar-weekday {
-  font-size: 1.1rem; /* Larger font */
-  padding-bottom: 15px; /* Increased padding */
+  font-size: 1.1rem;
+  padding-bottom: 15px;
   text-transform: uppercase;
   font-weight: 500;
 }
 
-/* Focus of today*/
+/* Focus Card Styles */
 .focus-card {
-  height: 180px; /* Fixed height */
-  max-height: 180px; /* Prevent expansion */
+  height: 180px;
+  max-height: 180px;
   display: flex;
   flex-direction: column;
 }
 
 .focus-body {
   flex: 1;
-  padding: 0.6rem 0.75rem; /* Slightly reduced top/bottom padding */
+  padding: 0.6rem 0.75rem;
   overflow-y: hidden;
   position: relative;
 }
@@ -904,125 +865,125 @@ export default {
   cursor: text;
 }
 
-.seamless-input {
-  width: 100%;
-  border: none;
-  background: transparent;
-  font-size: 1.1rem;
-  padding: 5px 0;
-  height: 24px; /* Control height */
-}
-
-.seamless-input:focus {
-  outline: none;
-
-}
 .editing-wrapper {
   display: flex;
   flex-direction: column;
   width: 100%;
   gap: 10px;
 }
+
+.seamless-input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  font-size: 1.1rem;
+  padding: 5px 0;
+  height: 24px;
+}
+
+.seamless-input:focus {
+  outline: none;
+}
+
 .focus-button-row {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
   margin-top: 2px;
 }
+
 .focus-save-btn, .focus-clear-btn {
   font-size: 0.75rem;
   padding: 0.15rem 0.6rem;
   height: 24px;
 }
+
 .focus-save-btn:hover {
   background-color: #7d3c98;
   border-color: #7d3c98;
 }
 
-/* Change the checkmark to text */
-.save-focus-button span {
-  content: "Save";
-}
-
-.clear-focus-button span {
-  position: relative;
-  top: -1px;
-}
-
-/* Card footer styling */
-.focus-card .card-footer {
-  padding: 0.25rem 0.5rem;
-  background-color: white;
-  border-top: 1px solid rgba(0, 0, 0, 0.125);
-}
-
-/* Focus and Thoughts save buttons - NEW STYLE to match calendar purple */
+/* Purple Theme Button Styles */
 .focus-card .btn-primary,
-.thoughts-card .btn-primary {
-  background-color: #8e44ad; /* Same purple as calendar */
+.thoughts-card .btn-primary,
+.meetings-card .btn-primary {
+  background-color: #8e44ad;
   border-color: #8e44ad;
 }
 
 .focus-card .btn-primary:hover,
-.thoughts-card .btn-primary:hover {
-  background-color: #7d3c98; /* Slightly darker on hover */
+.thoughts-card .btn-primary:hover,
+.meetings-card .btn-primary:hover {
+  background-color: #7d3c98;
   border-color: #7d3c98;
 }
 
 .focus-card .btn-primary:active,
 .focus-card .btn-primary:focus,
 .thoughts-card .btn-primary:active,
-.thoughts-card .btn-primary:focus {
-  background-color: #6c3483; /* Even darker when active/focused */
+.thoughts-card .btn-primary:focus,
+.meetings-card .btn-primary:active,
+.meetings-card .btn-primary:focus {
+  background-color: #6c3483;
   border-color: #6c3483;
-  box-shadow: 0 0 0 0.25rem rgba(142, 68, 173, 0.4); /* Custom focus shadow */
+  box-shadow: 0 0 0 0.25rem rgba(142, 68, 173, 0.4);
 }
 
-/* Meetings */
-.meeting-content {
-  display: flex;
-  align-items: center;
-  position: relative;
-  width: 100%;
-}
-
-.meeting-item {
-  padding: 12px 15px;
-  position: relative;
-}
-
-/* Style for the delete button */
-.btn-link.text-danger {
-  opacity: 0.7;
-  transition: opacity 0.2s;
-}
-
-.btn-link.text-danger:hover {
-  opacity: 1;
-}
-
-/* Add Meeting button - NEW STYLE to match calendar purple */
-.meetings-card .btn-primary {
-  background-color: #8e44ad; /* Same purple as calendar */
+.activities-card .btn-outline-secondary,
+.tasks-card .btn-outline-secondary {
+  color: #8e44ad;
   border-color: #8e44ad;
 }
 
-.meetings-card .btn-primary:hover {
-  background-color: #7d3c98; /* Slightly darker on hover */
+.activities-card .btn-outline-secondary:hover,
+.tasks-card .btn-outline-secondary:hover {
+  background-color: #8e44ad;
+  border-color: #8e44ad;
+  color: white;
+}
+
+.activities-card .btn-outline-secondary:active,
+.activities-card .btn-outline-secondary:focus,
+.tasks-card .btn-outline-secondary:active,
+.tasks-card .btn-outline-secondary:focus {
+  background-color: #7d3c98;
   border-color: #7d3c98;
+  box-shadow: 0 0 0 0.25rem rgba(142, 68, 173, 0.4);
 }
 
-.meetings-card .btn-primary:active,
-.meetings-card .btn-primary:focus {
-  background-color: #6c3483; /* Even darker when active/focused */
-  border-color: #6c3483;
-  box-shadow: 0 0 0 0.25rem rgba(142, 68, 173, 0.4); /* Custom focus shadow */
+/* Activities and Tasks Styles */
+.activities-card {
+  min-height: 500px;
 }
 
-/* other thoughts*/
+.tasks-card {
+  min-height: 350px;
+}
+
+.completed-activity,
+.completed-task {
+  text-decoration: line-through;
+  color: #6c757d;
+}
+
+.activity-actions,
+.task-actions {
+  display: flex !important;
+  align-items: center !important;
+  gap: 20px !important;
+  justify-content: flex-end !important;
+  min-width: 80px;
+  flex-direction: row-reverse !important;
+}
+
+/* Other Thoughts Styles */
+.thoughts-card {
+  min-height: 250px;
+}
+
 .thoughts-content {
   cursor: pointer;
-  white-space: pre-line; /* Preserves line breaks */
+  white-space: pre-line;
   min-height: 40px;
 }
 
@@ -1036,7 +997,77 @@ export default {
   resize: vertical;
 }
 
-/* Trackers Container */
+/* Meetings Styles */
+.meetings-card {
+  min-height: 600px;
+  width: 80%;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 30px;
+}
+
+.meeting-content {
+  display: flex;
+  align-items: center;
+  position: relative;
+  width: 100%;
+}
+
+.meeting-item {
+  padding: 12px 15px;
+  position: relative;
+}
+
+/* Image Card Styles */
+.image-card {
+  position: relative;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.image-card:hover .card-img {
+  transform: scale(1.02);
+}
+
+.image-action-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: all 0.2s ease;
+  z-index: 10;
+  font-size: 24px;
+  font-weight: bold;
+  text-shadow: 0 0 3px rgba(255, 255, 255, 0.8);
+}
+
+.add-button {
+  color: #8e44ad;
+}
+
+.delete-button {
+  color: #dc3545;
+}
+
+.image-card:hover .image-action-button {
+  opacity: 1;
+}
+
+/* Trackers Styles */
 .trackers-container {
   display: flex;
   flex-direction: column;
@@ -1046,33 +1077,32 @@ export default {
   margin-bottom: 1.5rem;
 }
 
-/* Mood */
+/* Mood Tracker */
 .mood-icon {
   font-size: 2rem;
   cursor: pointer;
   margin: 0 0.5rem;
   transition: color 0.3s ease;
   filter: grayscale(100%);
-  color: #adb5bd !important; /* Default gray */
+  color: #adb5bd !important;
 }
 
-/* Active colors for each mood */
 .active-sad {
   filter: grayscale(0%);
-  color: #ff4d4d !important; /* Red */
+  color: #ff4d4d !important;
 }
 
 .active-neutral {
   filter: grayscale(0%);
-  color: #ffc107 !important; /* Yellow */
+  color: #ffc107 !important;
 }
 
 .active-happy {
   filter: grayscale(0%);
-  color: #28a745 !important; /* Green */
+  color: #28a745 !important;
 }
 
-/* Glasses */
+/* Water Tracker */
 .water-icons {
   display: flex;
   justify-content: center;
@@ -1086,12 +1116,12 @@ export default {
 .glass-container {
   width: 24px;
   height: 32px;
-  border: 2px solid #4a5568; /* Darker, thicker border */
+  border: 2px solid #4a5568;
   border-radius: 0 0 8px 8px;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1); /* Subtle shadow */
-  background-color: #f8f9fa; /* Very light background */
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  background-color: #f8f9fa;
 }
 
 .water-fill {
@@ -1103,7 +1133,7 @@ export default {
   transition: height 0.3s ease;
 }
 
-/*Steps */
+/* Steps Tracker */
 .steps-milestones {
   display: flex;
   justify-content: center;
@@ -1149,81 +1179,5 @@ export default {
   text-align: center;
   font-size: 1rem;
   color: #4a5568;
-}
-
-/*Tasks*/
-.completed-task {
-  text-decoration: line-through;
-  color: #6c757d;
-}
-
-
-
-.completed-activity {
-  text-decoration: line-through;
-  color: #6c757d;
-}
-
-.activity-actions,
-.task-actions {
-  display: flex !important;
-  align-items: center !important;
-  gap: 20px !important;
-  justify-content: flex-end !important;
-  min-width: 80px;
-  flex-direction: row-reverse !important; /* This reverses the visual order */
-}
-
-.transparent-card .card-footer.bg-transparent.border-transparent {
-  background-color: rgba(255, 255, 255, 0.3);
-  border-color: rgba(255, 255, 255, 0.2);
-}
-
-.image-card {
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
-
-.semi-transparent-card {
-  background-color: rgba(255, 255, 255, 0.7); /* Slight transparency */
-  backdrop-filter: blur(10px); /* Blur effect for background */
-  border: 1px solid rgba(255, 255, 255, 0.8);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.semi-transparent-card .card-header {
-  background-color: rgba(255, 255, 255, 0.3);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-  font-size: 1.1rem;
-}
-
-/* Update card footer styling for transparent look */
-.focus-card .card-footer,
-.activities-card .card-footer,
-.meetings-card .card-footer,
-.thoughts-card .card-footer {
-  background-color: rgba(255, 255, 255, 0.3);
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
-}
-
-.activities-card .btn-outline-secondary,
-.tasks-card .btn-outline-secondary {
-  color: #8e44ad;
-  border-color: #8e44ad;
-}
-
-.activities-card .btn-outline-secondary:hover,
-.tasks-card .btn-outline-secondary:hover {
-  background-color: #8e44ad;
-  border-color: #8e44ad;
-  color: white;
-}
-
-.activities-card .btn-outline-secondary:active,
-.activities-card .btn-outline-secondary:focus,
-.tasks-card .btn-outline-secondary:active,
-.tasks-card .btn-outline-secondary:focus {
-  background-color: #7d3c98;
-  border-color: #7d3c98;
-  box-shadow: 0 0 0 0.25rem rgba(142, 68, 173, 0.4);
 }
 </style>

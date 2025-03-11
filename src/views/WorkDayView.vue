@@ -34,24 +34,57 @@
             <div class="card semi-transparent-card focus-card">
               <div class="card-header bg-transparent"><strong>Focus for Today</strong></div>
               <div class="card-body focus-body">
-                <div v-if="!editingFocus" @click="startEditingFocus" class="focus-view-mode">
-                  <p v-if="dailyFocus" class="focus-content">{{ dailyFocus }}</p>
-                  <p v-else class="text-muted focus-placeholder">Click here to set your focus for today...</p>
+                <div class="seamless-input-container">
+                  <!-- Placeholder text shown when no focus and not editing -->
+                  <div
+                      v-if="!isEditing && !dailyFocus"
+                      class="placeholder-text"
+                      @click="startEditing"
+                  >{{ placeholder }}
+                  </div>
+
+                  <!-- Existing content shown when not editing -->
+                  <div
+                      v-if="!isEditing && dailyFocus"
+                      class="content-text"
+                      @click="startEditing"
+                  >{{ dailyFocus }}
+                  </div>
+
+                  <!-- Editing container with input and clear button together -->
+                  <div v-if="isEditing" class="editing-wrapper">
+                    <input
+                        ref="seamlessInput"
+                        type="text"
+                        class="seamless-input"
+                        v-model="dailyFocus"
+                        @blur="handleBlur"
+                        @keydown.enter="finishEditing"
+                    >
+                    <div class="focus-button-row">
+                      <!-- Save button -->
+                      <button
+                          class="btn btn-sm btn-primary focus-save-btn"
+                          @click.stop="finishEditing"
+                          title="Save"
+                          type="button"
+                      >
+                        Save
+                      </button>
+
+                      <!-- Clear button only shown when text exists -->
+                      <button
+                          v-if="dailyFocus"
+                          class="btn btn-sm btn-outline-danger focus-clear-btn"
+                          @click.stop="clearFocus"
+                          title="Clear text"
+                          type="button"
+                      >
+                        Clear
+                      </button>
+                    </div>
+                  </div>
                 </div>
-                <div v-else class="focus-edit-mode">
-                  <textarea
-                      class="form-control focus-textarea"
-                      v-model="dailyFocus"
-                      placeholder="What's your main focus for today?"
-                      ref="focusTextarea"
-                  ></textarea>
-                </div>
-              </div>
-              <div v-if="editingFocus" class="card-footer p-1 text-end">
-                <button class="btn btn-sm btn-primary" @click="saveFocus">Save</button>
-                <button class="btn btn-sm btn-outline-secondary ms-2" @click="cancelEditFocus">Cancel</button>
-                <button v-if="dailyFocus" class="btn btn-sm btn-outline-danger float-start" @click="clearFocus">Clear
-                </button>
               </div>
             </div>
           </div>
@@ -176,15 +209,17 @@
       <!-- Right Sidebar Column (Image, Meetings, Steps) -->
       <div class="col-md-4 right-column">
         <!-- Image Card - With diary default image and upload functionality -->
-        <div class="card mb-4 image-card" style="width: 80%; aspect-ratio: 1/1; margin: 0 auto; padding: 0; overflow: hidden; position: relative;">
+        <div class="card mb-4 image-card"
+             style="width: 80%; aspect-ratio: 1/1; margin: 0 auto; padding: 0; overflow: hidden; position: relative;">
           <!-- Default diary image shown when no user image is available -->
-          <img v-if="!userImageUrl" src="@/assets/diary.png" class="card-img" alt="Default diary image" />
+          <img v-if="!userImageUrl" src="@/assets/diary.png" class="card-img" alt="Default diary image"/>
 
           <!-- User uploaded image shown when available -->
-          <img v-else :src="userImageUrl" class="card-img" alt="User profile image" />
+          <img v-else :src="userImageUrl" class="card-img" alt="User profile image"/>
 
           <!-- Add button - only shown with default image -->
-          <div v-if="!userImageUrl" class="image-action-button add-button" @click="triggerImageUpload" title="Add your picture">
+          <div v-if="!userImageUrl" class="image-action-button add-button" @click="triggerImageUpload"
+               title="Add your picture">
             +
           </div>
 
@@ -316,8 +351,10 @@ export default {
       selectedDate: null,
       // Focus section
       dailyFocus: "",
-      editingFocus: false,
+      isEditing: false,
       tempFocus: "",
+      clearButtonClicked: false,
+      placeholder: "Click here to set your focus for today...",
       userImageUrl: null,
 
       // Other thoughts section
@@ -328,15 +365,12 @@ export default {
       // Activities section (formerly workTasks)
       activities: [
         {text: "Prepare for team meeting", completed: false},
-        {text: "Review project timeline", completed: false},
-        {text: "Complete quarterly report", completed: false},
       ],
       newActivity: "",
 
       // Meetings section
       meetings: [
-        {time: '9:00', title: 'Team Standup', showDelete: false},
-        {time: '13:30', title: 'Client Call', showDelete: false},
+
       ],
       newMeetingTime: '',
       newMeetingTitle: '',
@@ -465,31 +499,55 @@ export default {
     },
 
 
-    // Focus section methods
-    startEditingFocus() {
-      this.tempFocus = this.dailyFocus;
-      this.editingFocus = true;
+// Focus section methods
+    startEditing() {
+      this.tempFocus = this.dailyFocus; // Store for cancellation
+      this.isEditing = true;
       this.$nextTick(() => {
-        this.$refs.focusTextarea.focus();
+        this.$refs.seamlessInput.focus();
       });
     },
-    saveFocus() {
-      this.editingFocus = false;
-      this.dailyFocus = this.dailyFocus.trim();
-      localStorage.setItem('workDailyFocus', this.dailyFocus);
-    },
-    cancelEditFocus() {
+    cancelEditing() {
+      // Restore previous value
       this.dailyFocus = this.tempFocus;
-      this.editingFocus = false;
+      this.isEditing = false;
     },
-    clearFocus() {
-      if (confirm("Are you sure you want to clear your focus?")) {
-        this.dailyFocus = "";
+    clearFocus(event) {
+      if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+
+      // Clear the text but keep editing mode active
+      this.dailyFocus = "";
+      this.clearButtonClicked = true;
+
+      // Wrap the focus in a delayed timeout to ensure DOM has updated
+      setTimeout(() => {
+        if (this.$refs.seamlessInput) {
+          this.$refs.seamlessInput.focus();
+        }
+      }, 50);
+    },
+    finishEditing() {
+      this.isEditing = false;
+      this.dailyFocus = this.dailyFocus.trim();
+
+      if (this.dailyFocus) {
+        localStorage.setItem('workDailyFocus', this.dailyFocus);
+      } else {
         localStorage.removeItem('workDailyFocus');
-        this.editingFocus = false;
       }
     },
-
+    handleBlur(event) {
+      // Slight delay to check if clear button was clicked
+      setTimeout(() => {
+        if (!this.clearButtonClicked) {
+          this.finishEditing();
+        }
+        this.clearButtonClicked = false;
+      }, 100);
+    },
     // Other thoughts methods
     startEditingThoughts() {
       this.tempThoughts = this.otherThoughts;
@@ -577,6 +635,17 @@ export default {
 </script>
 
 <style scoped>
+/* General Layout Styles */
+.work-day-container {
+  padding-top: 170px; /* Match PersonalDayView top padding */
+}
+
+.container-fluid {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Typography Styles */
 .simple-header,
 .card-header strong,
 .tracker-section h5 {
@@ -584,10 +653,304 @@ export default {
   font-weight: 700 !important;
 }
 
-/* Increase header font size slightly */
+.simple-header {
+  color: #ffffff;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+}
+
 .card-header strong {
   font-size: 1.15rem;
 }
+
+.tracker-section h5 {
+  font-size: 1.2rem;
+  font-weight: 600 !important;
+}
+
+/* Header and Row Styles */
+.header-row {
+  position: relative;
+  margin-bottom: 2rem !important;
+}
+
+/* Column Layout */
+.left-column > .card,
+.right-column > .card {
+  height: auto;
+  margin-bottom: 1rem;
+}
+
+/* Card Styles */
+.card {
+  display: flex;
+  flex-direction: column;
+}
+
+.content-container {
+  width: 100%;
+  flex-grow: 1;
+}
+
+.semi-transparent-card {
+  background-color: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.semi-transparent-card .card-header {
+  background-color: rgba(255, 255, 255, 0.3);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  font-size: 1.1rem;
+}
+
+/* Card Footer Styling */
+.focus-card .card-footer,
+.activities-card .card-footer,
+.meetings-card .card-footer,
+.thoughts-card .card-footer {
+  background-color: rgba(255, 255, 255, 0.3);
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Button Styles */
+.btn-link.text-danger {
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.btn-link.text-danger:hover {
+  opacity: 1;
+}
+
+/* Purple Theme Button Styles */
+.focus-card .btn-primary,
+.thoughts-card .btn-primary,
+.meetings-card .btn-primary {
+  background-color: #8e44ad;
+  border-color: #8e44ad;
+}
+
+.focus-card .btn-primary:hover,
+.thoughts-card .btn-primary:hover,
+.meetings-card .btn-primary:hover {
+  background-color: #7d3c98;
+  border-color: #7d3c98;
+}
+
+.focus-card .btn-primary:active,
+.focus-card .btn-primary:focus,
+.thoughts-card .btn-primary:active,
+.thoughts-card .btn-primary:focus,
+.meetings-card .btn-primary:active,
+.meetings-card .btn-primary:focus {
+  background-color: #6c3483;
+  border-color: #6c3483;
+  box-shadow: 0 0 0 0.25rem rgba(142, 68, 173, 0.4);
+}
+
+.activities-card .btn-outline-secondary {
+  color: #8e44ad;
+  border-color: #8e44ad;
+}
+
+.activities-card .btn-outline-secondary:hover {
+  background-color: #8e44ad;
+  border-color: #8e44ad;
+  color: white;
+}
+
+.activities-card .btn-outline-secondary:active,
+.activities-card .btn-outline-secondary:focus {
+  background-color: #7d3c98;
+  border-color: #7d3c98;
+  box-shadow: 0 0 0 0.25rem rgba(142, 68, 173, 0.4);
+}
+
+/* Calendar Styles */
+.calendar-card {
+  background-color: rgba(142, 68, 173, 0.7);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  height: 180px !important;
+  max-height: 180px !important;
+}
+
+.calendar-month {
+  background-color: rgba(0, 0, 0, 0.2);
+  padding: 12px 0;
+  font-size: 1.1rem;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.calendar-day {
+  font-size: 3.2rem;
+  font-weight: bold;
+  padding: 15px 0 10px;
+}
+
+.calendar-weekday {
+  font-size: 1.1rem;
+  padding-bottom: 15px;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+/* Focus Card Styles */
+.focus-card {
+  height: 180px;
+  max-height: 180px;
+  display: flex;
+  flex-direction: column;
+}
+
+.focus-body {
+  flex: 1;
+  padding: 0.6rem 0.75rem;
+  overflow-y: hidden;
+  position: relative;
+}
+
+.seamless-input-container {
+  min-height: 60px;
+  position: relative;
+  padding: 10px;
+}
+
+.placeholder-text {
+  color: #6c757d;
+  font-style: italic;
+  cursor: text;
+}
+
+.content-text {
+  white-space: pre-line;
+  cursor: text;
+}
+
+.editing-wrapper {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 10px;
+}
+
+.seamless-input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  font-size: 1.1rem;
+  padding: 5px 0;
+  height: 24px;
+}
+
+.seamless-input:focus {
+  outline: none;
+}
+
+.focus-button-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 2px;
+}
+
+.focus-save-btn, .focus-clear-btn {
+  font-size: 0.75rem;
+  padding: 0.15rem 0.6rem;
+  height: 24px;
+}
+
+.focus-save-btn:hover {
+  background-color: #7d3c98;
+  border-color: #7d3c98;
+}
+
+/* Activities and Tasks Styles */
+.activities-card {
+  min-height: 580px;
+}
+
+.completed-activity {
+  text-decoration: line-through;
+  color: #6c757d;
+}
+
+.activity-actions {
+  display: flex !important;
+  align-items: center !important;
+  gap: 20px !important;
+  justify-content: flex-end !important;
+  min-width: 80px;
+  flex-direction: row-reverse !important;
+}
+
+/* Style for the checkbox to ensure it's visible */
+.activity-actions .form-check-input {
+  width: 18px;
+  height: 18px;
+  margin-right: 0 !important;
+  flex-shrink: 0;
+}
+
+/* Style for the trash button to ensure it's visible */
+.activity-actions .btn-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  margin-left: 0 !important;
+  flex-shrink: 0;
+}
+
+/* Other Thoughts Styles */
+.thoughts-card {
+  min-height: 200px;
+}
+
+.thoughts-content {
+  cursor: pointer;
+  white-space: pre-line;
+  min-height: 40px;
+}
+
+.thoughts-placeholder {
+  cursor: pointer;
+  min-height: 40px;
+}
+
+.thoughts-textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+/* Meetings Styles */
+.meetings-card {
+  min-height: 632px;
+  width: 80%;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 30px;
+}
+
+.meeting-content {
+  display: flex;
+  align-items: center;
+  position: relative;
+  width: 100%;
+}
+
+.meeting-item {
+  padding: 12px 15px;
+  position: relative;
+}
+
+/* Image Card Styles */
 .image-card {
   position: relative;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
@@ -606,7 +969,6 @@ export default {
   transform: scale(1.02);
 }
 
-/* Action button styles */
 .image-action-button {
   position: absolute;
   top: 10px;
@@ -617,249 +979,27 @@ export default {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  opacity: 0; /* Start with 0 opacity to hide by default */
+  opacity: 0;
   transition: all 0.2s ease;
   z-index: 10;
   font-size: 24px;
   font-weight: bold;
-  text-shadow: 0 0 3px rgba(255, 255, 255, 0.8); /* White shadow for visibility against any background */
+  text-shadow: 0 0 3px rgba(255, 255, 255, 0.8);
 }
 
 .add-button {
-  color: #8e44ad; /* Purple color to match your theme */
+  color: #8e44ad;
 }
 
 .delete-button {
-  color: #dc3545; /* Red color */
+  color: #dc3545;
 }
 
-/* Only show buttons when hovering over the image */
 .image-card:hover .image-action-button {
   opacity: 1;
 }
 
-.tracker-section h5 {
-  font-size: 1.2rem;
-  font-weight: 600 !important;
-}
-.work-day-container {
-  padding-top: 170px; /* Match PersonalDayView top padding */
-}
-
-/* Ensure the header row doesn't get hidden */
-.header-row {
-  position: relative;
-  margin-bottom: 2rem !important;
-}
-
-/* Simple bold white header */
-.simple-header {
-  color: #ffffff; /* White text */
-  font-weight: 700; /* Bold */
-  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3); /* Subtle shadow for legibility */
-}
-
-/* Make the overall container wider */
-.container-fluid {
-  max-width: 1400px;
-  margin: 0 auto;
-}
-
-/* Two-column layout styles */
-.left-column > .card,
-.right-column > .card {
-  height: auto;
-  margin-bottom: 1rem;
-}
-
-/* Card styles */
-.card {
-  display: flex;
-  flex-direction: column;
-}
-
-/* Content containers */
-.content-container {
-  width: 100%;
-  flex-grow: 1;
-}
-
-/* Specific heights for different sections - adjusted for alignment */
-.activities-card {
-  min-height: 580px; /* Increased height to match meetings */
-}
-
-.meetings-card {
-  min-height: 632px; /* 621px increased by 1% */
-  width: 80%; /* Width matches image card */
-  margin-left: auto;
-  margin-right: auto;
-  margin-top: 30px; /* Push meetings down for better spacing */
-}
-
-.thoughts-card {
-  min-height: 200px; /* Adjusted height */
-}
-
-/* Calendar box */
-.calendar-card {
-  background-color: rgba(142, 68, 173, 0.7); /* Purple color with 70% opacity */
-  color: white;
-  border: none;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-  height: 180px !important; /* Fixed height */
-  max-height: 180px !important; /* Prevent expansion */
-}
-
-.calendar-month {
-  background-color: rgba(0, 0, 0, 0.2);
-  padding: 12px 0; /* Increased padding */
-  font-size: 1.1rem; /* Larger font */
-  font-weight: 500;
-  text-transform: uppercase;
-}
-
-.calendar-day {
-  font-size: 3.2rem; /* Larger font */
-  font-weight: bold;
-  padding: 15px 0 10px; /* Increased padding */
-}
-
-.calendar-weekday {
-  font-size: 1.1rem; /* Larger font */
-  padding-bottom: 15px; /* Increased padding */
-  text-transform: uppercase;
-  font-weight: 500;
-}
-
-/* Focus of today*/
-.focus-card {
-  height: 180px !important; /* Fixed height */
-  max-height: 180px !important; /* Prevent expansion */
-  display: flex;
-  flex-direction: column;
-}
-
-.focus-body {
-  flex: 1;
-  padding: 0.75rem;
-  overflow-y: auto;
-}
-
-.focus-view-mode {
-  height: 100%;
-  overflow-y: auto;
-}
-
-.focus-edit-mode {
-  height: 100%;
-}
-
-.focus-content, .focus-placeholder {
-  cursor: pointer;
-  white-space: pre-line; /* Preserves line breaks */
-  min-height: 40px;
-  font-size: 1.1rem; /* Larger font */
-  margin-bottom: 0;
-}
-
-.focus-textarea {
-  height: 100% !important;
-  width: 100%;
-  resize: none;
-  font-size: 1.1rem;
-}
-
-/* Card footer styling */
-.focus-card .card-footer {
-  padding: 0.25rem 0.5rem;
-  background-color: white;
-  border-top: 1px solid rgba(0, 0, 0, 0.125);
-}
-
-/* Focus and Thoughts save buttons - same purple style */
-.focus-card .btn-primary,
-.thoughts-card .btn-primary {
-  background-color: #8e44ad; /* Same purple as calendar */
-  border-color: #8e44ad;
-}
-
-.focus-card .btn-primary:hover,
-.thoughts-card .btn-primary:hover {
-  background-color: #7d3c98; /* Slightly darker on hover */
-  border-color: #7d3c98;
-}
-
-.focus-card .btn-primary:active,
-.focus-card .btn-primary:focus,
-.thoughts-card .btn-primary:active,
-.thoughts-card .btn-primary:focus {
-  background-color: #6c3483; /* Even darker when active/focused */
-  border-color: #6c3483;
-  box-shadow: 0 0 0 0.25rem rgba(142, 68, 173, 0.4); /* Custom focus shadow */
-}
-
-/* Meetings */
-.meeting-content {
-  display: flex;
-  align-items: center;
-  position: relative;
-  width: 100%;
-}
-
-.meeting-item {
-  padding: 12px 15px;
-  position: relative;
-}
-
-/* Style for the delete button */
-.btn-link.text-danger {
-  opacity: 0.7;
-  transition: opacity 0.2s;
-}
-
-.btn-link.text-danger:hover {
-  opacity: 1;
-}
-
-/* Add Meeting button - to match calendar purple */
-.meetings-card .btn-primary {
-  background-color: #8e44ad; /* Same purple as calendar */
-  border-color: #8e44ad;
-}
-
-.meetings-card .btn-primary:hover {
-  background-color: #7d3c98; /* Slightly darker on hover */
-  border-color: #7d3c98;
-}
-
-.meetings-card .btn-primary:active,
-.meetings-card .btn-primary:focus {
-  background-color: #6c3483; /* Even darker when active/focused */
-  border-color: #6c3483;
-  box-shadow: 0 0 0 0.25rem rgba(142, 68, 173, 0.4); /* Custom focus shadow */
-}
-
-/* Other Thoughts */
-.thoughts-content {
-  cursor: pointer;
-  white-space: pre-line; /* Preserves line breaks */
-  min-height: 40px;
-}
-
-.thoughts-placeholder {
-  cursor: pointer;
-  min-height: 40px;
-}
-
-.thoughts-textarea {
-  min-height: 100px;
-  resize: vertical;
-}
-
-/* Trackers Container */
+/* Trackers Styles */
 .trackers-container {
   display: flex;
   flex-direction: column;
@@ -867,38 +1007,36 @@ export default {
   margin: 0 auto;
 }
 
-/* Tracker Section */
 .tracker-section {
   margin-bottom: 1.5rem;
 }
 
-/* Mood */
+/* Mood Tracker */
 .mood-icon {
   font-size: 2rem;
   cursor: pointer;
   margin: 0 0.5rem;
   transition: color 0.3s ease;
   filter: grayscale(100%);
-  color: #adb5bd !important; /* Default gray */
+  color: #adb5bd !important;
 }
 
-/* Active colors for each mood */
 .active-sad {
   filter: grayscale(0%);
-  color: #ff4d4d !important; /* Red for stressed */
+  color: #ff4d4d !important;
 }
 
 .active-neutral {
   filter: grayscale(0%);
-  color: #ffc107 !important; /* Yellow for neutral */
+  color: #ffc107 !important;
 }
 
 .active-happy {
   filter: grayscale(0%);
-  color: #28a745 !important; /* Green for productive */
+  color: #28a745 !important;
 }
 
-/* Glasses */
+/* Water Tracker */
 .water-icons {
   display: flex;
   justify-content: center;
@@ -910,14 +1048,14 @@ export default {
 }
 
 .glass-container {
-  width: 32px; /* Increased width */
-  height: 40px; /* Increased height */
-  border: 2px solid #4a5568; /* Darker, thicker border */
+  width: 32px;
+  height: 40px;
+  border: 2px solid #4a5568;
   border-radius: 0 0 8px 8px;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1); /* Subtle shadow */
-  background-color: #f8f9fa; /* Very light background */
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  background-color: #f8f9fa;
 }
 
 .water-fill {
@@ -929,7 +1067,7 @@ export default {
   transition: height 0.3s ease;
 }
 
-/*Steps */
+/* Steps Tracker */
 .steps-milestones {
   display: flex;
   justify-content: center;
@@ -944,8 +1082,8 @@ export default {
 }
 
 .checkbox-container {
-  width: 35px; /* Reduced by 20% from 48px */
-  height: 35px; /* Reduced by 20% from 48px */
+  width: 35px;
+  height: 35px;
   border: 2px solid #4a5568;
   border-radius: 0.375rem;
   background-color: #f8f9fa;
@@ -975,82 +1113,5 @@ export default {
   text-align: center;
   font-size: 1rem;
   color: #4a5568;
-}
-
-.completed-activity {
-  text-decoration: line-through;
-  color: #6c757d;
-}
-
-.activity-actions {
-  display: flex !important;
-  align-items: center !important;
-  gap: 20px !important;
-  justify-content: flex-end !important;
-  min-width: 80px;
-  flex-direction: row-reverse !important; /* This reverses the visual order */
-}
-
-/* Style for the checkbox to ensure it's visible */
-.activity-actions .form-check-input {
-  width: 18px;
-  height: 18px;
-  margin-right: 0 !important; /* Remove any right margin */
-  flex-shrink: 0; /* Prevent shrinking */
-}
-
-/* Style for the trash button to ensure it's visible */
-.activity-actions .btn-link {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  margin-left: 0 !important; /* Remove any left margin */
-  flex-shrink: 0; /* Prevent shrinking */
-}
-
-.image-card {
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
-
-.semi-transparent-card {
-  background-color: rgba(255, 255, 255, 0.7); /* Slight transparency */
-  backdrop-filter: blur(10px); /* Blur effect for background */
-  border: 1px solid rgba(255, 255, 255, 0.8);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.semi-transparent-card .card-header {
-  background-color: rgba(255, 255, 255, 0.3);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-  font-size: 1.1rem;
-}
-
-/* Update card footer styling for transparent look */
-.focus-card .card-footer,
-.activities-card .card-footer,
-.meetings-card .card-footer,
-.thoughts-card .card-footer {
-  background-color: rgba(255, 255, 255, 0.3);
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
-}
-
-.activities-card .btn-outline-secondary {
-  color: #8e44ad;
-  border-color: #8e44ad;
-}
-
-.activities-card .btn-outline-secondary:hover {
-  background-color: #8e44ad;
-  border-color: #8e44ad;
-  color: white;
-}
-
-.activities-card .btn-outline-secondary:active,
-.activities-card .btn-outline-secondary:focus {
-  background-color: #7d3c98;
-  border-color: #7d3c98;
-  box-shadow: 0 0 0 0.25rem rgba(142, 68, 173, 0.4);
 }
 </style>
