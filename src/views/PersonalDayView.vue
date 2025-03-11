@@ -58,16 +58,28 @@
                         @blur="handleBlur"
                         @keydown.enter="finishEditing"
                     >
-                    <!-- Clear button only shown when text exists -->
-                    <button
-                        v-if="dailyFocus"
-                        class="clear-focus-button"
-                        @click.stop="clearFocus"
-                        title="Clear text"
-                        type="button"
-                    >
-                      <span>×</span>
-                    </button>
+                    <div class="focus-button-row">
+                      <!-- Save button -->
+                      <button
+                          class="btn btn-sm btn-primary focus-save-btn"
+                          @click.stop="finishEditing"
+                          title="Save"
+                          type="button"
+                      >
+                        Save
+                      </button>
+
+                      <!-- Clear button only shown when text exists -->
+                      <button
+                          v-if="dailyFocus"
+                          class="btn btn-sm btn-outline-danger focus-clear-btn"
+                          @click.stop="clearFocus"
+                          title="Clear text"
+                          type="button"
+                      >
+                        Clear
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -870,8 +882,9 @@ export default {
 
 .focus-body {
   flex: 1;
-  padding: 0.75rem;
-  overflow-y: auto;
+  padding: 0.6rem 0.75rem; /* Slightly reduced top/bottom padding */
+  overflow-y: hidden;
+  position: relative;
 }
 
 .seamless-input-container {
@@ -897,6 +910,7 @@ export default {
   background: transparent;
   font-size: 1.1rem;
   padding: 5px 0;
+  height: 24px; /* Control height */
 }
 
 .seamless-input:focus {
@@ -904,36 +918,30 @@ export default {
 
 }
 .editing-wrapper {
-  position: relative;
-  width: 100%;
-}
-
-/* Clear button styling */
-.clear-focus-button {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background-color: rgba(220, 53, 69, 0.8);
-  color: white;
-  border: none;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  font-size: 16px;
-  line-height: 1;
-  opacity: 0.7;
-  transition: opacity 0.2s ease, transform 0.2s ease;
-  padding: 0;
-  z-index: 5;
+  flex-direction: column;
+  width: 100%;
+  gap: 10px;
+}
+.focus-button-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 2px;
+}
+.focus-save-btn, .focus-clear-btn {
+  font-size: 0.75rem;
+  padding: 0.15rem 0.6rem;
+  height: 24px;
+}
+.focus-save-btn:hover {
+  background-color: #7d3c98;
+  border-color: #7d3c98;
 }
 
-.clear-focus-button:hover {
-  opacity: 1;
-  transform: scale(1.1);
+/* Change the checkmark to text */
+.save-focus-button span {
+  content: "Save";
 }
 
 .clear-focus-button span {
