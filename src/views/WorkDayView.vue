@@ -484,10 +484,8 @@ export default {
 
     // Delete the user image and revert to default
     deleteUserImage() {
-      if (confirm('Are you sure you want to remove your profile picture?')) {
         this.userImageUrl = null;
         localStorage.removeItem('workProfileImage');
-      }
     },
 
     // Load the user image from localStorage if available
@@ -512,7 +510,6 @@ export default {
         event.preventDefault();
         event.stopPropagation();
       }
-
       // Clear the text but keep editing mode active
       this.dailyFocus = "";
       this.clearButtonClicked = true;

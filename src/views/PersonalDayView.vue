@@ -597,10 +597,8 @@ export default {
 
     // Delete the user image and revert to default diary image
     deleteUserImage() {
-      if (confirm('Are you sure you want to remove your profile picture?')) {
         this.userImageUrl = null;
         localStorage.removeItem('personalProfileImage');
-      }
     },
 
     // Load the user image from localStorage if available
