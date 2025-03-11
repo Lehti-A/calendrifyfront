@@ -19,11 +19,11 @@
         <div class="modal-body text-center">
           <p>Select which view you would like to see for this date:</p>
           <div class="mt-4 d-flex justify-content-center gap-3">
-            <button type="button" class="btn btn-primary" @click="navigateToView('personal')">
-              Personal Day View
-            </button>
             <button type="button" class="btn btn-primary" @click="navigateToView('work')">
               Work Day View
+            </button>
+            <button type="button" class="btn btn-primary" @click="navigateToView('personal')">
+              Personal Day View
             </button>
           </div>
         </div>
