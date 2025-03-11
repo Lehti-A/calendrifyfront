@@ -508,16 +508,12 @@ export default {
 </script>
 
 <style scoped>
+/* General Layout Styles */
 .calendar-container {
   padding-top: 140px; /* Reduced top padding to fit more content in the viewport */
 }
 
-/* Header styling - slightly more compact */
-.header-row {
-  position: relative;
-  margin-bottom: 1.5rem !important; /* Reduced margin */
-}
-
+/* Typography Styles */
 .simple-header,
 .card-header strong {
   font-family: 'Quicksand', sans-serif !important;
@@ -525,20 +521,24 @@ export default {
 }
 
 .simple-header {
-  color: #ffffff; /* White text */
-  font-weight: 700; /* Bold */
-  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3); /* Subtle shadow for legibility */
+  color: #ffffff;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
 }
 
-/* Card header styling */
 .card-header strong {
   font-size: 1.15rem;
 }
 
-/* Semi-transparent cards */
+/* Header and Row Styles */
+.header-row {
+  position: relative;
+  margin-bottom: 1.5rem !important;
+}
+
+/* Card Styles */
 .semi-transparent-card {
-  background-color: rgba(255, 255, 255, 0.7); /* Slight transparency */
-  backdrop-filter: blur(10px); /* Blur effect for background */
+  background-color: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.8);
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
@@ -549,7 +549,80 @@ export default {
   font-size: 1.1rem;
 }
 
-/* Calendar styles */
+/* Button Styles */
+.btn-outline-secondary {
+  color: #8e44ad;
+  border-color: #8e44ad;
+}
+
+.btn-outline-secondary:hover,
+.btn-outline-secondary:active,
+.btn-outline-secondary:focus {
+  background-color: #8e44ad;
+  border-color: #8e44ad;
+  color: white !important;
+}
+
+.btn-outline-secondary.active {
+  background-color: #8e44ad !important;
+  border-color: #8e44ad !important;
+  color: white !important;
+}
+
+.btn-primary {
+  background-color: #8e44ad;
+  border-color: #8e44ad;
+}
+
+.btn-primary:hover {
+  background-color: #7d3c98;
+  border-color: #7d3c98;
+}
+
+.btn-primary:active,
+.btn-primary:focus {
+  background-color: #6c3483;
+  border-color: #6c3483;
+  box-shadow: 0 0 0 0.25rem rgba(142, 68, 173, 0.4);
+}
+
+/* Selected Day Calendar Card */
+.selected-day-card {
+  min-height: 124.8px;
+}
+
+.calendar-card-selected {
+  background-color: rgba(142, 68, 173, 0.7);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  width: 100%;
+}
+
+.calendar-month {
+  background-color: rgba(0, 0, 0, 0.2);
+  padding: 5px 0;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.calendar-day {
+  font-size: 2.2rem;
+  font-weight: bold;
+  padding: 5px 0 3px;
+}
+
+.calendar-weekday {
+  font-size: 0.9rem;
+  padding-bottom: 5px;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+/* Calendar Grid Styles */
 .calendar-week-header {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -569,7 +642,7 @@ export default {
   grid-template-columns: repeat(7, 1fr);
   grid-template-rows: repeat(6, 1fr);
   gap: 2px;
-  height: 290px; /* Reduced by another 5% from 326px */
+  height: 290px;
 }
 
 .calendar-day-cell {
@@ -603,7 +676,7 @@ export default {
   margin-bottom: 5px;
 }
 
-/* Event indicators */
+/* Focus Indicators */
 .focus-indicators {
   position: absolute;
   bottom: 5px;
@@ -619,46 +692,14 @@ export default {
 }
 
 .personal-focus {
-  background-color: #28a745; /* Green for personal */
+  background-color: #28a745;
 }
 
 .work-focus {
-  background-color: #007bff; /* Blue for work */
+  background-color: #007bff;
 }
 
-/* Selected day calendar card */
-.calendar-card-selected {
-  background-color: rgba(142, 68, 173, 0.7); /* Purple color with 70% opacity */
-  color: white;
-  border: none;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-  width: 100%;
-}
-
-.calendar-month {
-  background-color: rgba(0, 0, 0, 0.2);
-  padding: 5px 0; /* Reduced padding */
-  font-size: 0.9rem; /* Smaller font */
-  font-weight: 500;
-  text-transform: uppercase;
-}
-
-.calendar-day {
-  font-size: 2.2rem; /* Smaller font */
-  font-weight: bold;
-  padding: 5px 0 3px; /* Reduced padding */
-}
-
-.calendar-weekday {
-  font-size: 0.9rem; /* Smaller font */
-  padding-bottom: 5px; /* Reduced padding */
-  text-transform: uppercase;
-  font-weight: 500;
-}
-
-/* Event lists */
+/* Focus Lists Styles */
 .content-container {
   width: 100%;
   max-height: 250px;
@@ -676,62 +717,23 @@ export default {
   gap: 10px;
 }
 
-/* Quote card */
-.quote-container {
-  flex-grow: 1;
-  overflow-y: auto;
-  max-height: 80px; /* Control maximum height for quotes */
-}
-
-.quote-text {
-  font-style: italic;
-  line-height: 1.4;
-  margin-bottom: 0; /* Remove bottom margin to prevent extra space */
-}
-
-/* No need for fixed height on entire card now */
+/* Quote Card Styles */
 .quote-card {
   min-height: auto;
 }
 
-
-
-/* Button styling - to match other views */
-.btn-outline-secondary {
-  color: #8e44ad;
-  border-color: #8e44ad;
+.quote-container {
+  flex-grow: 1;
+  overflow-y: hidden;
+  max-height: 80px;
 }
 
-.btn-outline-secondary:hover,
-.btn-outline-secondary:active,
-.btn-outline-secondary:focus {
-  background-color: #8e44ad;
-  border-color: #8e44ad;
-  color: white !important; /* Force white text when button is active/hover/focus */
+.quote-text {
+  font-size: 1.15rem;
+  font-style: italic;
+  font-weight: 400;
+  line-height: 1.4;
+  margin-bottom: 0;
+  text-shadow: 0.2px 0.2px 0px rgba(0,0,0,0.2);
 }
-
-.btn-outline-secondary.active {
-  background-color: #8e44ad !important;
-  border-color: #8e44ad !important;
-  color: white !important;
-}
-
-/* Primary button styling (used in modals) */
-.btn-primary {
-  background-color: #8e44ad; /* Same purple as calendar */
-  border-color: #8e44ad;
-}
-
-.btn-primary:hover {
-  background-color: #7d3c98; /* Slightly darker on hover */
-  border-color: #7d3c98;
-}
-
-.btn-primary:active,
-.btn-primary:focus {
-  background-color: #6c3483; /* Even darker when active/focused */
-  border-color: #6c3483;
-  box-shadow: 0 0 0 0.25rem rgba(142, 68, 173, 0.4);
-}
-
 </style>
