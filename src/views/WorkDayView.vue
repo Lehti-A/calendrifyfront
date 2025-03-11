@@ -212,7 +212,7 @@
         <div class="card mb-4 image-card"
              style="width: 80%; aspect-ratio: 1/1; margin: 0 auto; padding: 0; overflow: hidden; position: relative;">
           <!-- Default diary image shown when no user image is available -->
-          <img v-if="!userImageUrl" src="@/assets/diary.png" class="card-img" alt="Default diary image"/>
+          <img v-if="!userImageUrl" src="../assets/images/diary.png" class="card-img" alt="Default diary image"/>
 
           <!-- User uploaded image shown when available -->
           <img v-else :src="userImageUrl" class="card-img" alt="User profile image"/>

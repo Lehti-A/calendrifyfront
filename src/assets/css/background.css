@@ -1,5 +1,5 @@
 .background-logged-out {
-    background-image: url('@/assets/calendrifynew.gif'); /* ✅ Use relative path */
+    background-image: url('@/assets/images/calendrifynew.gif'); /* ✅ Use relative path */
     background-size: cover;        /* ✅ Makes sure the image covers the entire screen */
     background-repeat: no-repeat;  /* ✅ Prevents tiling */
     background-position: center;   /* ✅ Centers the image */
@@ -11,7 +11,7 @@
 }
 
 .background-logged-in {
-    background-image: url('@/assets/background.png'); /* Alternative background */
+    background-image: url('@/assets/images/background.png'); /* Alternative background */
     background-size: cover;
     background-repeat: no-repeat;
     background-position: center;
