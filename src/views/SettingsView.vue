@@ -374,10 +374,15 @@ export default {
   border-color: #8e44ad;
 }
 
-.btn-outline-primary:hover {
-  background-color: #8e44ad;
-  border-color: #8e44ad;
+.btn-outline-primary:hover,
+.btn-outline-primary:active,
+.btn-outline-primary:focus {
+  background-color: #8e44ad !important;
+  border-color: #8e44ad !important;
+  color: white !important;
+  box-shadow: 0 0 0 0.25rem rgba(142, 68, 173, 0.4) !important;
 }
+
 
 /* Content containers for goals - matched to full height */
 .content-container {
