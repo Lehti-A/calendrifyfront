@@ -357,9 +357,12 @@
 </template>
 
 <script>
+import DayService from '@/services/DayService';
+
 export default {
   name: 'PersonalDayView',
   created() {
+    // Determine if we came from calendar or directly
     const selectedCalendarDate = sessionStorage.getItem('selectedCalendarDate');
     if (selectedCalendarDate) {
       // Parse the date string back to a Date object
@@ -368,43 +371,32 @@ export default {
 
       // Clear the stored date once it's been used
       sessionStorage.removeItem('selectedCalendarDate');
+    } else {
+      // Default to today if no date was passed
+      this.selectedDate = new Date();
     }
-  },
-  mounted() {
+
+    this.userId = Number(sessionStorage.getItem('userId') || '1'); // Fallback to user 1 if not set
+
+    // Load saved data from backend
     this.loadSavedData();
-
-
-    // Load the user image if it exists in localStorage
-    this.loadUserImage();
-
-    // You can also load other stored data here
-    const savedFocus = localStorage.getItem('dailyFocus');
-    if (savedFocus) {
-      this.dailyFocus = savedFocus;
-    }
-
-    const savedThoughts = localStorage.getItem('otherThoughts');
-    if (savedThoughts) {
-      this.otherThoughts = savedThoughts;
-    }
-
-    // Load meetings from localStorage if they exist
-    this.loadMeetings();
   },
+
   data() {
     return {
+      // Add new properties for backend integration
+      userId: null,
+      dayId: null,
       selectedDate: null,
+      isLoading: false,
+
       tempFocus: "", // For canceling edits
       clearButtonClicked: false,
       dailyFocus: "",
       isEditing: false,
       placeholder: "Click here to set your focus for today...",
       userImageUrl: null,
-      meetings: [
-        {time: '8:00', title: 'Team Sync Meeting', showDelete: false},
-        {time: '10:00', title: 'Client Discussion', showDelete: false},
-
-      ],
+      meetings: [],
       newMeetingTime: '',
       newMeetingTitle: '',
       otherThoughts: "",
@@ -420,16 +412,9 @@ export default {
         {steps: 7500, label: "7,500"},
         {steps: 10000, label: "10,000+"}
       ],
-      activities: [
-        {text: "Read at least 15min", completed: false},
-        {text: "Sport session", completed: false},
-        {text: "Meditation session", completed: false},
-      ],
+      activities: [],
       newActivity: "",
-      tasks: [
-        {text: "Play tennis", completed: false},
-        {text: "Uurida, et kuidas me linnukeste asjaga süsteemi update-ime", completed: false}
-      ],
+      tasks: [],
       newTask: "",
       hasFontAwesome: false // Set to true if you have Font Awesome included
     };
@@ -439,8 +424,6 @@ export default {
     currentDay() {
       return this.selectedDate ? this.selectedDate.getDate() : new Date().getDate();
     },
-
-// Modify the currentMonth computed property:
     currentMonth() {
       const months = [
         'January', 'February', 'March', 'April', 'May', 'June',
@@ -449,8 +432,6 @@ export default {
       const date = this.selectedDate || new Date();
       return months[date.getMonth()];
     },
-
-// Modify the currentWeekday computed property:
     currentWeekday() {
       const days = [
         'Sunday', 'Monday', 'Tuesday', 'Wednesday',
@@ -458,22 +439,47 @@ export default {
       ];
       const date = this.selectedDate || new Date();
       return days[date.getDay()];
+    },
+    // Format date for API calls in YYYY-MM-DD format
+    formattedDate() {
+      const date = this.selectedDate || new Date();
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
     }
   },
 
   methods: {
-    loadSavedData() {
-      // Load work-specific data
-      const savedFocus = localStorage.getItem('personalDailyFocus');
-      if (savedFocus) {
-        this.dailyFocus = savedFocus;
-      }
+    // Load data from backend
+    async loadSavedData() {
+      this.isLoading = true;
+      try {
+        // First, check if we need to create/get a day record for this date
+        const newDay = {
+          userId: this.userId,
+          date: this.formattedDate,
+          type: "P" // P for Personal day
+        };
 
-      const savedThoughts = localStorage.getItem('personalThoughts');
-      if (savedThoughts) {
-        this.otherThoughts = savedThoughts;
-      }
+        const response = await DayService.addNewDay(newDay);
+        const dayData = response.data;
 
+        // Store the dayId for future updates
+        this.dayId = dayData.id;
+
+        // Set the data from backend
+        this.dailyFocus = dayData.focus || "";
+        this.otherThoughts = dayData.thoughts || "";
+
+        // Then load the rest of the data from localStorage for now
+        this.loadLocalStorageData();
+      } catch (error) {
+        console.error("Error loading day data:", error);
+      } finally {
+        this.isLoading = false;
+      }
+    },
+
+    // Temporary method to load data from localStorage until all API endpoints are implemented
+    loadLocalStorageData() {
       const savedActivities = localStorage.getItem('personalActivities');
       if (savedActivities) {
         this.activities = JSON.parse(savedActivities);
@@ -486,7 +492,7 @@ export default {
 
       const savedMood = localStorage.getItem('personalMood');
       if (savedMood) {
-        this.personalMood = savedMood; // Correct property name
+        this.personalMood = savedMood;
       }
 
       // Load user profile image
@@ -505,9 +511,22 @@ export default {
       if (savedSteps) {
         this.completedStepsMilestone = parseInt(savedSteps);
       }
-      this.loadTasks();
+
+      // Load tasks
+      const savedTasks = localStorage.getItem('personalTasks');
+      if (savedTasks) {
+        const parsedTasks = JSON.parse(savedTasks);
+        // Add isEditing property to each task
+        this.tasks = parsedTasks.map(task => {
+          return {
+            ...task,
+            isEditing: false
+          };
+        });
+      }
     },
-    // Start of focus
+
+    // Start of focus methods
     startEditing() {
       this.tempFocus = this.dailyFocus; // Store for cancellation
       this.isEditing = true;
@@ -533,16 +552,25 @@ export default {
         }
       }, 50);
     },
-    finishEditing() {
+
+    // Update finishEditing to save to backend
+    async finishEditing() {
       this.isEditing = false;
       this.dailyFocus = this.dailyFocus.trim();
 
-      if (this.dailyFocus) {
-        localStorage.setItem('personalDailyFocus', this.dailyFocus);
-      } else {
-        localStorage.removeItem('personalDailyFocus');
+      if (this.dayId) {
+        try {
+          const updateData = {
+            id: this.dayId,
+            focus: this.dailyFocus
+          };
+          await DayService.updateDayFocus(updateData);
+        } catch (error) {
+          console.error("Error updating focus:", error);
+        }
       }
     },
+
     handleBlur(event) {
       // Slight delay to check if clear button was clicked
       setTimeout(() => {
@@ -553,14 +581,17 @@ export default {
       }, 100);
     },
 
+    // Activity methods
     toggleActivityCompletion(index) {
       this.activities[index].completed = !this.activities[index].completed;
       this.saveActivities();
     },
+
     removeActivity(index) {
       this.activities.splice(index, 1);
       this.saveActivities();
     },
+
     addActivity() {
       if (this.newActivity.trim()) {
         this.activities.push({
@@ -571,15 +602,16 @@ export default {
         this.saveActivities();
       }
     },
+
     saveActivities() {
       localStorage.setItem('personalActivities', JSON.stringify(this.activities));
     },
 
+    // Image methods
     triggerImageUpload() {
       this.$refs.imageInput.click();
     },
 
-    // Handle the image file selection
     handleImageUpload(event) {
       const file = event.target.files[0];
       if (file && file.type.match('image.*')) {
@@ -595,19 +627,19 @@ export default {
       }
     },
 
-    // Delete the user image and revert to default diary image
     deleteUserImage() {
-        this.userImageUrl = null;
-        localStorage.removeItem('personalProfileImage');
+      this.userImageUrl = null;
+      localStorage.removeItem('personalProfileImage');
     },
 
-    // Load the user image from localStorage if available
     loadUserImage() {
       const savedImage = localStorage.getItem('personalProfileImage');
       if (savedImage) {
         this.userImageUrl = savedImage;
       }
     },
+
+    // Meeting methods
     addMeeting() {
       if (this.newMeetingTime.trim() && this.newMeetingTitle.trim()) {
         this.meetings.push({
@@ -618,25 +650,21 @@ export default {
         // Clear the input fields
         this.newMeetingTime = '';
         this.newMeetingTitle = '';
-        // Optional: Save to localStorage
+        // Save to localStorage
         this.saveMeetings();
       }
     },
+
     removeMeeting(index) {
       this.meetings.splice(index, 1);
-      // Optional: Save to localStorage
       this.saveMeetings();
     },
+
     saveMeetings() {
       localStorage.setItem('personalMeetings', JSON.stringify(this.meetings));
     },
 
-    loadMeetings() {
-      const savedMeetings = localStorage.getItem('personalMeetings');
-      if (savedMeetings) {
-        this.meetings = JSON.parse(savedMeetings);
-      }
-    },
+    // Thoughts methods
     startEditingThoughts() {
       this.tempThoughts = this.otherThoughts; // Save current value in case user cancels
       this.editingThoughts = true;
@@ -645,10 +673,22 @@ export default {
         this.$refs.thoughtsTextarea.focus();
       });
     },
-    saveThoughts() {
+
+    // Update saveThoughts to save to backend
+    async saveThoughts() {
       this.editingThoughts = false;
-      // Optional: Save to localStorage
-      localStorage.setItem('personalThoughts', this.otherThoughts);
+
+      if (this.dayId) {
+        try {
+          const updateData = {
+            id: this.dayId,
+            thoughts: this.otherThoughts
+          };
+          await DayService.updateDayThought(updateData);
+        } catch (error) {
+          console.error("Error updating thoughts:", error);
+        }
+      }
     },
 
     cancelEditThoughts() {
@@ -665,22 +705,25 @@ export default {
         }
       });
     },
-    // Start of mood
+
+    // Mood methods
     setMood(mood) {
       this.personalMood = mood;
       localStorage.setItem('personalMood', mood);
     },
-    // Glasses
+
+    // Tracker methods
     setGlasses(count) {
       this.selectedGlasses = count; // Updates the selection
       localStorage.setItem('sharedGlasses', count); // Use the shared key
     },
 
-// Steps
     setStepsMilestone(milestone) {
       this.completedStepsMilestone = milestone;
       localStorage.setItem('sharedStepsMilestone', milestone); // Use the shared key
     },
+
+    // Task methods
     startEditingTask(index) {
       // First, make sure all tasks have the isEditing property
       this.tasks.forEach((task, i) => {
@@ -700,6 +743,7 @@ export default {
         }
       });
     },
+
     finishEditingTask(index) {
       // Exit editing mode
       this.tasks[index].isEditing = false;
@@ -711,6 +755,7 @@ export default {
       // Save changes
       this.saveTasks();
     },
+
     toggleTaskCompletion(index) {
       // Toggle the completed state
       this.tasks[index].completed = !this.tasks[index].completed;
@@ -723,6 +768,7 @@ export default {
       // Save the updated tasks
       this.saveTasks();
     },
+
     saveTasks() {
       // Make sure all tasks have the isEditing property before saving
       const tasksToSave = this.tasks.map(task => {
@@ -735,20 +781,6 @@ export default {
       });
 
       localStorage.setItem('personalTasks', JSON.stringify(tasksToSave));
-    },
-    loadTasks() {
-      const savedTasks = localStorage.getItem('personalTasks');
-      if (savedTasks) {
-        const parsedTasks = JSON.parse(savedTasks);
-
-        // Add isEditing property to each task
-        this.tasks = parsedTasks.map(task => {
-          return {
-            ...task,
-            isEditing: false
-          };
-        });
-      }
     }
   }
 };
