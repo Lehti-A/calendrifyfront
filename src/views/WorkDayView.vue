@@ -1,5 +1,5 @@
 <template>
-  <div class="container-fluid px-4 pb-4 work-day-container">
+  <div  class="container-fluid px-4 pb-4 work-day-container">
     <div class="row mb-5 align-items-center header-row">
       <div class="col text-center">
         <h1 class="mb-1 fw-bold simple-header">
@@ -333,6 +333,14 @@ import DayService from '@/services/DayService';
 
 export default {
   name: 'WorkDayView',
+
+  // Lifecycle hooks in chronological order
+  beforeMount() {
+    // Clear any previous data
+    this.dailyFocus = "";
+    this.otherThoughts = "";
+  },
+
   created() {
     // Determine if we came from calendar or directly
     const selectedCalendarDate = sessionStorage.getItem('selectedCalendarDate');
@@ -349,25 +357,38 @@ export default {
     }
 
     this.userId = Number(sessionStorage.getItem('userId') || '1'); // Fallback to user 1 if not set
+  },
 
-    // Load saved data from backend
-    this.loadSavedData();
+  mounted() {
+    // Load data after component is fully mounted
+    this.$nextTick(() => {
+      this.loadSavedData();
+    });
+  },
+
+  beforeDestroy() {
+    // Clear sensitive data when navigating away
+    this.dailyFocus = "";
+    this.otherThoughts = "";
+    this.dayId = null;
   },
 
   data() {
     return {
-      // Add new properties for backend integration
+      // Backend integration properties
       userId: null,
       dayId: null,
       selectedDate: null,
       isLoading: false,
 
-      // Keep all your existing data properties
+      // Focus section
       dailyFocus: "",
       isEditing: false,
       tempFocus: "",
       clearButtonClicked: false,
       placeholder: "Click here to set your focus for today...",
+
+      // Profile image
       userImageUrl: null,
 
       // Other thoughts section
@@ -375,10 +396,8 @@ export default {
       editingThoughts: false,
       tempThoughts: "",
 
-      // Activities section (formerly workTasks)
-      activities: [
-        {text: "Prepare for team meeting", completed: false},
-      ],
+      // Activities section
+      activities: [],
       newActivity: "",
 
       // Meetings section
@@ -386,7 +405,7 @@ export default {
       newMeetingTime: '',
       newMeetingTitle: '',
 
-      // Work mood tracker (specific to work day)
+      // Work mood tracker
       workMood: null,
 
       // Trackers that will sync with personal day view
@@ -402,8 +421,8 @@ export default {
       hasFontAwesome: false
     };
   },
+
   computed: {
-    // Keep your existing computed properties
     currentDay() {
       return this.selectedDate ? this.selectedDate.getDate() : new Date().getDate();
     },
@@ -429,12 +448,15 @@ export default {
       return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
     }
   },
+
   methods: {
+    // ===== DATA LOADING METHODS =====
+
     // Load data from backend
     async loadSavedData() {
       this.isLoading = true;
       try {
-        // First, check if we need to create/get a day record for this date
+        // Create/get a day record for this date
         const newDay = {
           userId: this.userId,
           date: this.formattedDate,
@@ -444,67 +466,77 @@ export default {
         const response = await DayService.addNewDay(newDay);
         const dayData = response.data;
 
+        console.log("Backend response:", dayData);
+
         // Store the dayId for future updates
-        this.dayId = dayData.id;
+        this.dayId = dayData.dayId;
 
-        // Set the data from backend
-        this.dailyFocus = dayData.focus || "";
-        this.otherThoughts = dayData.thoughts || "";
+        // Set the data from backend, ensuring we don't use any date-related content
+        if (dayData.focus === this.formattedDate || dayData.focus === dayData.date) {
+          this.dailyFocus = "";
+        } else {
+          this.dailyFocus = dayData.focus || "";
+        }
 
-        // Then load the rest of the data from localStorage for now
-        // (You'll want to move this to backend APIs as well)
-        this.loadLocalStorageData();
+        // Check if thoughts contains just the date string and clear it if so
+        if (dayData.thoughts === this.formattedDate || dayData.thoughts === dayData.date) {
+          this.otherThoughts = "";
+        } else {
+          this.otherThoughts = dayData.thoughts || "";
+        }
+
+        // We'll implement backend calls for these later
+        this.activities = [];
+        this.meetings = [];
+        this.workMood = null;
+        this.selectedGlasses = 0;
+        this.completedStepsMilestone = 0;
+
+        // Load the user image
+        this.loadUserImage();
       } catch (error) {
         console.error("Error loading day data:", error);
+        this.dailyFocus = "";
+        this.otherThoughts = "";
       } finally {
         this.isLoading = false;
       }
     },
 
-    // Temporary method to load data from localStorage until all API endpoints are implemented
-    loadLocalStorageData() {
-      const savedActivities = localStorage.getItem('workActivities');
-      if (savedActivities) {
-        this.activities = JSON.parse(savedActivities);
-      }
+    // ===== FOCUS METHODS =====
 
-      const savedMeetings = localStorage.getItem('workMeetings');
-      if (savedMeetings) {
-        this.meetings = JSON.parse(savedMeetings);
-      }
-
-      const savedWorkMood = localStorage.getItem('workMood');
-      if (savedWorkMood) {
-        this.workMood = savedWorkMood;
-      }
-
-      // Load user profile image
-      const savedImage = localStorage.getItem('workProfileImage');
-      if (savedImage) {
-        this.userImageUrl = savedImage;
-      }
-
-      // Load shared data (should be the same as in PersonalDayView)
-      const savedGlasses = localStorage.getItem('sharedGlasses');
-      if (savedGlasses) {
-        this.selectedGlasses = parseInt(savedGlasses);
-      }
-
-      const savedSteps = localStorage.getItem('sharedStepsMilestone');
-      if (savedSteps) {
-        this.completedStepsMilestone = parseInt(savedSteps);
-      }
+    startEditing() {
+      this.tempFocus = this.dailyFocus; // Store for cancellation
+      this.isEditing = true;
+      this.$nextTick(() => {
+        this.$refs.seamlessInput.focus();
+      });
     },
 
-    // Update the finishEditing method to save focus to backend
+    clearFocus(event) {
+      if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+      this.dailyFocus = "";
+      this.clearButtonClicked = true;
+
+      setTimeout(() => {
+        if (this.$refs.seamlessInput) {
+          this.$refs.seamlessInput.focus();
+        }
+      }, 50);
+    },
+
     async finishEditing() {
       this.isEditing = false;
       this.dailyFocus = this.dailyFocus.trim();
 
       if (this.dayId) {
         try {
+          console.log("Saving focus with dayId:", this.dayId, "content:", this.dailyFocus);
           const updateData = {
-            id: this.dayId,
+            dayId: this.dayId,
             focus: this.dailyFocus
           };
           await DayService.updateDayFocus(updateData);
@@ -514,76 +546,7 @@ export default {
       }
     },
 
-    // Update the saveThoughts method to save to backend
-    async saveThoughts() {
-      this.editingThoughts = false;
-
-      if (this.dayId) {
-        try {
-          const updateData = {
-            id: this.dayId,
-            thoughts: this.otherThoughts
-          };
-          await DayService.updateDayThought(updateData);
-        } catch (error) {
-          console.error("Error updating thoughts:", error);
-        }
-      }
-    },
-
-    // Keep all your other existing methods
-    triggerImageUpload() {
-      this.$refs.imageInput.click();
-    },
-    handleImageUpload(event) {
-      const file = event.target.files[0];
-      if (file && file.type.match('image.*')) {
-        const reader = new FileReader();
-
-        reader.onload = (e) => {
-          this.userImageUrl = e.target.result;
-          // Save to localStorage for persistence - use a different key for work view
-          localStorage.setItem('workProfileImage', this.userImageUrl);
-        };
-
-        reader.readAsDataURL(file);
-      }
-    },
-    deleteUserImage() {
-      this.userImageUrl = null;
-      localStorage.removeItem('workProfileImage');
-    },
-    loadUserImage() {
-      const savedImage = localStorage.getItem('workProfileImage');
-      if (savedImage) {
-        this.userImageUrl = savedImage;
-      }
-    },
-    startEditing() {
-      this.tempFocus = this.dailyFocus; // Store for cancellation
-      this.isEditing = true;
-      this.$nextTick(() => {
-        this.$refs.seamlessInput.focus();
-      });
-    },
-    clearFocus(event) {
-      if (event) {
-        event.preventDefault();
-        event.stopPropagation();
-      }
-      // Clear the text but keep editing mode active
-      this.dailyFocus = "";
-      this.clearButtonClicked = true;
-
-      // Wrap the focus in a delayed timeout to ensure DOM has updated
-      setTimeout(() => {
-        if (this.$refs.seamlessInput) {
-          this.$refs.seamlessInput.focus();
-        }
-      }, 50);
-    },
     handleBlur(event) {
-      // Slight delay to check if clear button was clicked
       setTimeout(() => {
         if (!this.clearButtonClicked) {
           this.finishEditing();
@@ -591,6 +554,9 @@ export default {
         this.clearButtonClicked = false;
       }, 100);
     },
+
+    // ===== THOUGHTS METHODS =====
+
     startEditingThoughts() {
       this.tempThoughts = this.otherThoughts;
       this.editingThoughts = true;
@@ -598,12 +564,32 @@ export default {
         this.$refs.thoughtsTextarea.focus();
       });
     },
+
+    async saveThoughts() {
+      this.editingThoughts = false;
+
+      if (this.dayId) {
+        try {
+          console.log("Saving thoughts with dayId:", this.dayId, "content:", this.otherThoughts);
+          const updateData = {
+            dayId: this.dayId,
+            thoughts: this.otherThoughts
+          };
+          await DayService.updateDayThought(updateData);
+        } catch (error) {
+          console.error("Error updating thoughts:", error);
+        }
+      } else {
+        console.error("Cannot update thoughts: No dayId available");
+      }
+    },
+
     cancelEditThoughts() {
       this.otherThoughts = this.tempThoughts;
       this.editingThoughts = false;
     },
+
     clearThoughts() {
-      // Clear the text but keep editing mode active
       this.otherThoughts = "";
       this.$nextTick(() => {
         if (this.$refs.thoughtsTextarea) {
@@ -611,14 +597,17 @@ export default {
         }
       });
     },
+
+    // ===== ACTIVITY METHODS =====
+
     toggleActivityCompletion(index) {
       this.activities[index].completed = !this.activities[index].completed;
-      this.saveActivities();
     },
+
     removeActivity(index) {
       this.activities.splice(index, 1);
-      this.saveActivities();
     },
+
     addActivity() {
       if (this.newActivity.trim()) {
         this.activities.push({
@@ -626,12 +615,43 @@ export default {
           completed: false
         });
         this.newActivity = "";
-        this.saveActivities();
       }
     },
-    saveActivities() {
-      localStorage.setItem('workActivities', JSON.stringify(this.activities));
+
+    // ===== IMAGE METHODS =====
+
+    triggerImageUpload() {
+      this.$refs.imageInput.click();
     },
+
+    handleImageUpload(event) {
+      const file = event.target.files[0];
+      if (file && file.type.match('image.*')) {
+        const reader = new FileReader();
+
+        reader.onload = (e) => {
+          this.userImageUrl = e.target.result;
+          localStorage.setItem('workProfileImage', this.userImageUrl);
+        };
+
+        reader.readAsDataURL(file);
+      }
+    },
+
+    deleteUserImage() {
+      this.userImageUrl = null;
+      localStorage.removeItem('workProfileImage');
+    },
+
+    loadUserImage() {
+      const savedImage = localStorage.getItem('workProfileImage');
+      if (savedImage) {
+        this.userImageUrl = savedImage;
+      }
+    },
+
+    // ===== MEETING METHODS =====
+
     addMeeting() {
       if (this.newMeetingTime.trim() && this.newMeetingTitle.trim()) {
         this.meetings.push({
@@ -641,32 +661,28 @@ export default {
         });
         this.newMeetingTime = '';
         this.newMeetingTitle = '';
-        this.saveMeetings();
       }
     },
+
     removeMeeting(index) {
       this.meetings.splice(index, 1);
-      this.saveMeetings();
     },
-    saveMeetings() {
-      localStorage.setItem('workMeetings', JSON.stringify(this.meetings));
-    },
+
+    // ===== TRACKER METHODS =====
+
     setWorkMood(mood) {
       this.workMood = mood;
-      localStorage.setItem('workMood', mood);
     },
+
     setGlasses(count) {
       this.selectedGlasses = count;
-      localStorage.setItem('sharedGlasses', count);
     },
+
     setStepsMilestone(milestone) {
       this.completedStepsMilestone = milestone;
-      localStorage.setItem('sharedStepsMilestone', milestone);
     }
   }
 };
 </script>
-
-
 
 <style src="@/assets/css/workdayview.css" scoped></style>

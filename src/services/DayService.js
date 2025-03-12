@@ -27,7 +27,12 @@ export default {
      * @returns {Promise} - Promise with the update result
      */
     updateDayFocus(updateFocusDay) {
-        return axios.patch('/day-focus', updateFocusDay);
+
+        const requestData = {
+            id: updateFocusDay.dayId,
+            focus: updateFocusDay.focus
+        }
+        return axios.patch('/day-focus', requestData);
     },
 
     /**
@@ -36,6 +41,10 @@ export default {
      * @returns {Promise} - Promise with the update result
      */
     updateDayThought(updateThoughtDay) {
-        return axios.patch('/day-thought', updateThoughtDay);
+        const requestData = {
+            id: updateThoughtDay.dayId,
+            thoughts: updateThoughtDay.thoughts
+        };
+        return axios.patch('/day-thought', requestData);
     }
 }

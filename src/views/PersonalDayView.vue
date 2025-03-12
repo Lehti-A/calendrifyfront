@@ -156,7 +156,7 @@
           </div>
         </div>
 
-        <!-- Template Section: Replace the Monthly Goals card with this -->
+        <!-- Template Section: Personal Goals -->
         <div class="card semi-transparent-card mb-4 tasks-card">
           <div class="card-header bg-transparent"><strong>Personal Goals</strong></div>
           <div class="content-container">
@@ -384,27 +384,39 @@ export default {
 
   data() {
     return {
-      // Add new properties for backend integration
+      // Backend integration properties
       userId: null,
       dayId: null,
       selectedDate: null,
       isLoading: false,
 
-      tempFocus: "", // For canceling edits
-      clearButtonClicked: false,
+      // Focus section
       dailyFocus: "",
       isEditing: false,
+      tempFocus: "",
+      clearButtonClicked: false,
       placeholder: "Click here to set your focus for today...",
+
+      // Profile image
       userImageUrl: null,
+
+      // Meetings section
       meetings: [],
       newMeetingTime: '',
       newMeetingTitle: '',
+
+      // Other thoughts section
       otherThoughts: "",
       editingThoughts: false,
       tempThoughts: "",
-      // Stores the selected mood
+
+      // Mood tracker
       personalMood: null,
+
+      // Water tracker
       selectedGlasses: 0,
+
+      // Steps tracker
       completedStepsMilestone: 0,
       milestones: [
         {steps: 2500, label: "2,500"},
@@ -412,10 +424,15 @@ export default {
         {steps: 7500, label: "7,500"},
         {steps: 10000, label: "10,000+"}
       ],
+
+      // Activities section
       activities: [],
       newActivity: "",
+
+      // Tasks/goals section
       tasks: [],
       newTask: "",
+
       hasFontAwesome: false // Set to true if you have Font Awesome included
     };
   },
@@ -448,11 +465,10 @@ export default {
   },
 
   methods: {
-    // Load data from backend
     async loadSavedData() {
       this.isLoading = true;
       try {
-        // First, check if we need to create/get a day record for this date
+        // Create/get a day record for this date
         const newDay = {
           userId: this.userId,
           date: this.formattedDate,
@@ -462,71 +478,46 @@ export default {
         const response = await DayService.addNewDay(newDay);
         const dayData = response.data;
 
-        // Store the dayId for future updates
-        this.dayId = dayData.id;
+        console.log("Backend response:", dayData);
 
-        // Set the data from backend
-        this.dailyFocus = dayData.focus || "";
-        this.otherThoughts = dayData.thoughts || "";
+        // Store the dayId for future updates - making sure we're using the right property name
+        this.dayId = dayData.dayId;
 
-        // Then load the rest of the data from localStorage for now
-        this.loadLocalStorageData();
+        // Set the data from backend, ensuring we don't use any date-related content
+        if (dayData.focus === this.formattedDate || dayData.focus === dayData.date) {
+          this.dailyFocus = "";
+        } else {
+          this.dailyFocus = dayData.focus || "";
+        }
+
+        // Check if thoughts contains just the date string and clear it if so
+        if (dayData.thoughts === this.formattedDate || dayData.thoughts === dayData.date) {
+          this.otherThoughts = "";
+        } else {
+          this.otherThoughts = dayData.thoughts || "";
+        }
+
+        // We'll implement backend calls for these later
+        // For now just initialize them as empty
+        this.activities = [];
+        this.meetings = [];
+        this.tasks = [];
+        this.personalMood = null;
+        this.selectedGlasses = 0;
+        this.completedStepsMilestone = 0;
+
+        // Load the user image - still using localStorage for now
+        this.loadUserImage();
       } catch (error) {
         console.error("Error loading day data:", error);
+        // Ensure fields are empty if there's an error
+        this.dailyFocus = "";
+        this.otherThoughts = "";
       } finally {
         this.isLoading = false;
       }
     },
-
-    // Temporary method to load data from localStorage until all API endpoints are implemented
-    loadLocalStorageData() {
-      const savedActivities = localStorage.getItem('personalActivities');
-      if (savedActivities) {
-        this.activities = JSON.parse(savedActivities);
-      }
-
-      const savedMeetings = localStorage.getItem('personalMeetings');
-      if (savedMeetings) {
-        this.meetings = JSON.parse(savedMeetings);
-      }
-
-      const savedMood = localStorage.getItem('personalMood');
-      if (savedMood) {
-        this.personalMood = savedMood;
-      }
-
-      // Load user profile image
-      const savedImage = localStorage.getItem('personalProfileImage');
-      if (savedImage) {
-        this.userImageUrl = savedImage;
-      }
-
-      // Load shared data (should be the same as in PersonalDayView)
-      const savedGlasses = localStorage.getItem('sharedGlasses');
-      if (savedGlasses) {
-        this.selectedGlasses = parseInt(savedGlasses);
-      }
-
-      const savedSteps = localStorage.getItem('sharedStepsMilestone');
-      if (savedSteps) {
-        this.completedStepsMilestone = parseInt(savedSteps);
-      }
-
-      // Load tasks
-      const savedTasks = localStorage.getItem('personalTasks');
-      if (savedTasks) {
-        const parsedTasks = JSON.parse(savedTasks);
-        // Add isEditing property to each task
-        this.tasks = parsedTasks.map(task => {
-          return {
-            ...task,
-            isEditing: false
-          };
-        });
-      }
-    },
-
-    // Start of focus methods
+    // Focus methods
     startEditing() {
       this.tempFocus = this.dailyFocus; // Store for cancellation
       this.isEditing = true;
@@ -553,15 +544,16 @@ export default {
       }, 50);
     },
 
-    // Update finishEditing to save to backend
+    // Save focus to backend
     async finishEditing() {
       this.isEditing = false;
       this.dailyFocus = this.dailyFocus.trim();
 
       if (this.dayId) {
         try {
+          console.log("Saving focus with dayId:", this.dayId, "content:", this.dailyFocus);
           const updateData = {
-            id: this.dayId,
+            dayId: this.dayId, // Changed from id to dayId
             focus: this.dailyFocus
           };
           await DayService.updateDayFocus(updateData);
@@ -581,15 +573,13 @@ export default {
       }, 100);
     },
 
-    // Activity methods
+    // Activity methods - will be updated for backend integration later
     toggleActivityCompletion(index) {
       this.activities[index].completed = !this.activities[index].completed;
-      this.saveActivities();
     },
 
     removeActivity(index) {
       this.activities.splice(index, 1);
-      this.saveActivities();
     },
 
     addActivity() {
@@ -599,12 +589,7 @@ export default {
           completed: false
         });
         this.newActivity = "";
-        this.saveActivities();
       }
-    },
-
-    saveActivities() {
-      localStorage.setItem('personalActivities', JSON.stringify(this.activities));
     },
 
     // Image methods
@@ -619,7 +604,7 @@ export default {
 
         reader.onload = (e) => {
           this.userImageUrl = e.target.result;
-          // Save to localStorage for persistence
+          // Still using localStorage for images until we implement backend storage
           localStorage.setItem('personalProfileImage', this.userImageUrl);
         };
 
@@ -639,7 +624,7 @@ export default {
       }
     },
 
-    // Meeting methods
+    // Meeting methods - will be updated for backend integration later
     addMeeting() {
       if (this.newMeetingTime.trim() && this.newMeetingTitle.trim()) {
         this.meetings.push({
@@ -647,21 +632,13 @@ export default {
           title: this.newMeetingTitle.trim(),
           showDelete: false
         });
-        // Clear the input fields
         this.newMeetingTime = '';
         this.newMeetingTitle = '';
-        // Save to localStorage
-        this.saveMeetings();
       }
     },
 
     removeMeeting(index) {
       this.meetings.splice(index, 1);
-      this.saveMeetings();
-    },
-
-    saveMeetings() {
-      localStorage.setItem('personalMeetings', JSON.stringify(this.meetings));
     },
 
     // Thoughts methods
@@ -674,20 +651,23 @@ export default {
       });
     },
 
-    // Update saveThoughts to save to backend
+    // Save thoughts to backend
     async saveThoughts() {
       this.editingThoughts = false;
 
       if (this.dayId) {
         try {
+          console.log("Saving thoughts with dayId:", this.dayId, "content:", this.otherThoughts);
           const updateData = {
-            id: this.dayId,
+            dayId: this.dayId, // Changed from id to dayId
             thoughts: this.otherThoughts
           };
           await DayService.updateDayThought(updateData);
         } catch (error) {
           console.error("Error updating thoughts:", error);
         }
+      } else {
+        console.error("Cannot update thoughts: No dayId available");
       }
     },
 
@@ -706,24 +686,22 @@ export default {
       });
     },
 
-    // Mood methods
+    // Mood tracker - will be updated for backend integration later
     setMood(mood) {
       this.personalMood = mood;
-      localStorage.setItem('personalMood', mood);
     },
 
-    // Tracker methods
+    // Water tracker - will be updated for backend integration later
     setGlasses(count) {
-      this.selectedGlasses = count; // Updates the selection
-      localStorage.setItem('sharedGlasses', count); // Use the shared key
+      this.selectedGlasses = count;
     },
 
+    // Steps tracker - will be updated for backend integration later
     setStepsMilestone(milestone) {
       this.completedStepsMilestone = milestone;
-      localStorage.setItem('sharedStepsMilestone', milestone); // Use the shared key
     },
 
-    // Task methods
+    // Task/goals methods - will be updated for backend integration later
     startEditingTask(index) {
       // First, make sure all tasks have the isEditing property
       this.tasks.forEach((task, i) => {
@@ -752,8 +730,6 @@ export default {
       if (!this.tasks[index].text.trim()) {
         this.tasks.splice(index, 1);
       }
-      // Save changes
-      this.saveTasks();
     },
 
     toggleTaskCompletion(index) {
@@ -764,23 +740,6 @@ export default {
       if (typeof this.tasks[index].isEditing === 'undefined') {
         this.tasks[index].isEditing = false;
       }
-
-      // Save the updated tasks
-      this.saveTasks();
-    },
-
-    saveTasks() {
-      // Make sure all tasks have the isEditing property before saving
-      const tasksToSave = this.tasks.map(task => {
-        // Create a new object with just the properties we want to save
-        return {
-          text: task.text,
-          completed: task.completed
-          // We don't save isEditing as it's a UI state
-        };
-      });
-
-      localStorage.setItem('personalTasks', JSON.stringify(tasksToSave));
     }
   }
 };
