@@ -158,7 +158,7 @@
 
         <!-- Template Section: Replace the Monthly Goals card with this -->
         <div class="card semi-transparent-card mb-4 tasks-card">
-          <div class="card-header bg-transparent"><strong>Monthly Goals</strong></div>
+          <div class="card-header bg-transparent"><strong>Personal Goals</strong></div>
           <div class="content-container">
             <ul class="list-group list-group-flush">
               <li v-for="(task, index) in tasks" :key="index"
