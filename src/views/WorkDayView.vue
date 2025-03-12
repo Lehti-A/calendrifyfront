@@ -246,16 +246,16 @@
         <div class="card semi-transparent-card mb-4 meetings-card">
           <div class="card-header bg-transparent"><strong>Work Meetings</strong></div>
           <div class="content-container">
-            <ul class="list-group list-group-flush">
-              <li v-for="(meeting, index) in meetings" :key="index"
+            <ul class="list-group list-group-flush" v-if="meetings.length > 0">
+              <li v-for="(meeting, index) in meetings" :key="meeting.meetingId || index"
                   class="list-group-item meeting-item"
                   @mouseenter="meeting.showDelete = true"
                   @mouseleave="meeting.showDelete = false">
                 <div class="meeting-content">
-                  <span class="meeting-info"
-                        style="width: calc(100% - 40px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                    {{ meeting.time }} - {{ meeting.title }}
-                  </span>
+          <span class="meeting-info"
+                style="width: calc(100% - 40px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+            {{ meeting.time }} - {{ meeting.title }}
+          </span>
                   <span
                       v-if="meeting.showDelete"
                       @click="removeMeeting(index)"
@@ -265,13 +265,21 @@
                 </div>
               </li>
             </ul>
+            <div v-else-if="isLoadingMeetings" class="text-center py-3">
+              <div class="spinner-border spinner-border-sm" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+            </div>
+            <div v-else class="card-body text-center py-2">
+              <p class="text-muted my-1">No meetings yet</p>
+            </div>
           </div>
           <div class="card-footer bg-transparent">
             <div class="mb-2">
               <input
                   type="text"
                   class="form-control form-control-sm"
-                  placeholder="Time (e.g. 14:00)"
+                  placeholder="Time (e.g. 14:00, 14.30, 2:30pm)"
                   v-model="newMeetingTime"
               >
             </div>
@@ -293,6 +301,7 @@
             </button>
           </div>
         </div>
+
 
         <!-- Trackers Container -->
         <div class="trackers-container">
@@ -336,6 +345,7 @@
 import DayService from '@/services/DayService';
 import ActivityService from "@/services/ActivityService";
 import navigationServices from "@/services/NavigationServices";
+import MeetingService from "@/services/MeetingService";
 
 export default {
   name: 'WorkDayView',
@@ -411,6 +421,7 @@ export default {
       meetings: [],
       newMeetingTime: '',
       newMeetingTitle: '',
+      isLoadingMeetings: false,
 
       // Work mood tracker
       workMood: null,
@@ -492,11 +503,11 @@ export default {
           this.otherThoughts = dayData.thoughts || "";
         }
 
-
+        // Load activities and meetings for this day
         this.loadActivities();
+        this.loadMeetings(); // Add this line
 
         // We'll implement backend calls for these later
-        this.meetings = [];
         this.workMood = null;
         this.selectedGlasses = 0;
         this.completedStepsMilestone = 0;
@@ -511,7 +522,6 @@ export default {
         this.isLoading = false;
       }
     },
-
     // ===== FOCUS METHODS =====
 
     startEditing() {
@@ -722,25 +732,91 @@ export default {
     },
 
     // ===== MEETING METHODS =====
+    async loadMeetings() {
+      if (!this.dayId) {
+        console.error("Cannot load meetings: No dayId available");
+        return;
+      }
 
-    addMeeting() {
-      if (this.newMeetingTime.trim() && this.newMeetingTitle.trim()) {
-        this.meetings.push({
-          time: this.newMeetingTime.trim(),
-          title: this.newMeetingTitle.trim(),
+      this.isLoadingMeetings = true;
+      try {
+        const response = await MeetingService.getMeetings(this.dayId);
+        // Transform backend data to match UI format
+        this.meetings = response.data.map(meeting => ({
+          meetingId: meeting.meetingId,
+          time: this.formatTimeFromBackend(meeting.time),
+          title: meeting.subject,
           showDelete: false
-        });
+        }));
+        console.log("Loaded meetings:", this.meetings);
+      } catch (error) {
+        console.error("Error loading meetings:", error);
+        this.meetings = [];
+        if (error.response?.status === 403) navigationServices.navigateToErrorView();
+      } finally {
+        this.isLoadingMeetings = false;
+      }
+    },
+    async addMeeting() {
+      if (!this.newMeetingTime.trim() || !this.newMeetingTitle.trim() || !this.dayId) {
+        return;
+      }
+
+      // Get the user input
+      let timeInput = this.newMeetingTime.trim();
+
+      // Try to format the time input to HH:mm
+      const formattedTime = this.formatTimeInput(timeInput);
+
+      if (!formattedTime) {
+        alert("Please enter a valid time (e.g., 14:30, 14.30, 1430, or 2.30pm)");
+        return;
+      }
+
+      try {
+        const newMeetingData = {
+          time: formattedTime, // Use the formatted time
+          subject: this.newMeetingTitle.trim(),
+          dayId: this.dayId
+        };
+
+        await MeetingService.addMeeting(newMeetingData);
+
+        // Clear input
         this.newMeetingTime = '';
         this.newMeetingTitle = '';
+
+        // Reload meetings to get the new one with its ID
+        this.loadMeetings();
+      } catch (error) {
+        console.error("Error adding meeting:", error);
+        if (error.response?.status === 403) navigationServices.navigateToErrorView();
       }
     },
 
-    removeMeeting(index) {
-      this.meetings.splice(index, 1);
+    async removeMeeting(index) {
+      const meetingId = this.meetings[index].meetingId;
+      if (!meetingId) {
+        console.error("Cannot delete meeting: No meetingId available");
+        return;
+      }
+
+      try {
+        await MeetingService.deleteMeeting(meetingId);
+
+        // Update local state
+        this.meetings.splice(index, 1);
+      } catch (error) {
+        console.error("Error deleting meeting:", error);
+        if (error.response?.status === 403) {
+          navigationServices.navigateToErrorView();
+        } else {
+          // Reload meetings to ensure UI is in sync with backend
+          this.loadMeetings();
+        }
+      }
     },
-
     // ===== TRACKER METHODS =====
-
     setWorkMood(mood) {
       this.workMood = mood;
     },
@@ -751,6 +827,86 @@ export default {
 
     setStepsMilestone(milestone) {
       this.completedStepsMilestone = milestone;
+    },
+    formatTimeFromBackend(timeValue) {
+      // If it's already a string in HH:mm format, return it
+      if (typeof timeValue === 'string' && /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(timeValue)) {
+        return timeValue;
+      }
+
+      // If it's a string in HH:mm:ss format, truncate it
+      if (typeof timeValue === 'string' && /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/.test(timeValue)) {
+        return timeValue.substring(0, 5);
+      }
+
+      // If it's an object with hour and minute properties (possible LocalTime representation)
+      if (timeValue && typeof timeValue === 'object') {
+        if ('hour' in timeValue && 'minute' in timeValue) {
+          const hour = String(timeValue.hour).padStart(2, '0');
+          const minute = String(timeValue.minute).padStart(2, '0');
+          return `${hour}:${minute}`;
+        }
+      }
+
+      // Default case - return the original or a placeholder
+      return timeValue || "00:00";
+    },
+    formatTimeInput(input) {
+      // Remove all spaces
+      input = input.replace(/\s+/g, '');
+
+      // Already in HH:mm format
+      if (/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(input)) {
+        return input.length === 4 ? `0${input}` : input; // Ensure 5 chars (HH:mm)
+      }
+
+      // Format with period HH.mm
+      if (/^([0-1]?[0-9]|2[0-3])\.([0-5][0-9])$/.test(input)) {
+        const [hours, minutes] = input.split('.');
+        return `${hours.padStart(2, '0')}:${minutes}`;
+      }
+
+      // 4-digit format (e.g., 1430)
+      if (/^([0-1][0-9]|2[0-3])([0-5][0-9])$/.test(input)) {
+        return `${input.substring(0, 2)}:${input.substring(2, 4)}`;
+      }
+
+      // 3-digit format (e.g., 930)
+      if (/^([1-9])([0-5][0-9])$/.test(input)) {
+        return `0${input.charAt(0)}:${input.substring(1, 3)}`;
+      }
+
+      // Handle AM/PM formats
+      if (/^(1[0-2]|0?[1-9])(:|\.)?([0-5][0-9])?(am|pm|AM|PM)$/.test(input)) {
+        const isPM = /pm/i.test(input);
+        input = input.replace(/am|pm|AM|PM/g, '');
+
+        let hours, minutes;
+        if (input.includes(':') || input.includes('.')) {
+          [hours, minutes] = input.split(/[:\.]/);
+        } else if (input.length === 3 || input.length === 4) {
+          hours = input.length === 3 ? input.charAt(0) : input.substring(0, 2);
+          minutes = input.length === 3 ? input.substring(1, 3) : input.substring(2, 4);
+        } else {
+          hours = input;
+          minutes = "00";
+        }
+
+        // Convert hours to 24-hour format if PM
+        if (isPM && parseInt(hours) < 12) {
+          hours = (parseInt(hours) + 12).toString();
+        }
+
+        // Convert 12 AM to 00
+        if (!isPM && hours === "12") {
+          hours = "00";
+        }
+
+        return `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`;
+      }
+
+      // If we can't parse it, return null
+      return null;
     }
   }
 };
