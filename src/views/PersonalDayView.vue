@@ -808,16 +808,20 @@ export default {
         return;
       }
 
-      // Validate time format (HH:mm)
-      const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
-      if (!timeRegex.test(this.newMeetingTime.trim())) {
-        alert("Please enter time in the format HH:mm (e.g., 14:30)");
+      // Get the user input
+      let timeInput = this.newMeetingTime.trim();
+
+      // Try to format the time input to HH:mm
+      const formattedTime = this.formatTimeInput(timeInput);
+
+      if (!formattedTime) {
+        alert("Please enter a valid time (e.g., 14.30, 1430, or 2.30pm)");
         return;
       }
 
       try {
         const newMeetingData = {
-          time: this.newMeetingTime.trim(),
+          time: formattedTime, // Use the formatted time
           subject: this.newMeetingTitle.trim(),
           dayId: this.dayId
         };
@@ -828,17 +832,14 @@ export default {
         this.newMeetingTime = '';
         this.newMeetingTitle = '';
 
-        // Reload meetings to get the new one with its ID
+        // Reload meetings
         this.loadMeetings();
       } catch (error) {
         console.error("Error adding meeting:", error);
-        if (error.response) {
-          console.error("Response data:", error.response.data);
-          console.error("Response status:", error.response.status);
-        }
         if (error.response?.status === 403) navigationServices.navigateToErrorView();
       }
     },
+
     async removeMeeting(index) {
       const meetingId = this.meetings[index].meetingId;
       if (!meetingId) {
@@ -886,6 +887,63 @@ export default {
       // Default case - log the issue and return a placeholder
       console.error("Unknown time format:", timeValue);
       return timeValue || "00:00";
+    },
+    formatTimeInput(input) {
+      // Remove all spaces
+      input = input.replace(/\s+/g, '');
+
+      // Already in HH:mm format
+      if (/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(input)) {
+        return input.length === 4 ? `0${input}` : input; // Ensure 5 chars (HH:mm)
+      }
+
+      // Format with period HH.mm
+      if (/^([0-1]?[0-9]|2[0-3])\.([0-5][0-9])$/.test(input)) {
+        const [hours, minutes] = input.split('.');
+        return `${hours.padStart(2, '0')}:${minutes}`;
+      }
+
+      // 4-digit format (e.g., 1430)
+      if (/^([0-1][0-9]|2[0-3])([0-5][0-9])$/.test(input)) {
+        return `${input.substring(0, 2)}:${input.substring(2, 4)}`;
+      }
+
+      // 3-digit format (e.g., 930)
+      if (/^([1-9])([0-5][0-9])$/.test(input)) {
+        return `0${input.charAt(0)}:${input.substring(1, 3)}`;
+      }
+
+      // Handle AM/PM formats
+      if (/^(1[0-2]|0?[1-9])(:|\.)?([0-5][0-9])?(am|pm|AM|PM)$/.test(input)) {
+        const isPM = /pm/i.test(input);
+        input = input.replace(/am|pm|AM|PM/g, '');
+
+        let hours, minutes;
+        if (input.includes(':') || input.includes('.')) {
+          [hours, minutes] = input.split(/[:\.]/);
+        } else if (input.length === 3 || input.length === 4) {
+          hours = input.length === 3 ? input.charAt(0) : input.substring(0, 2);
+          minutes = input.length === 3 ? input.substring(1, 3) : input.substring(2, 4);
+        } else {
+          hours = input;
+          minutes = "00";
+        }
+
+        // Convert hours to 24-hour format if PM
+        if (isPM && parseInt(hours) < 12) {
+          hours = (parseInt(hours) + 12).toString();
+        }
+
+        // Convert 12 AM to 00
+        if (!isPM && hours === "12") {
+          hours = "00";
+        }
+
+        return `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`;
+      }
+
+      // If we can't parse it, return null
+      return null;
     },
     // ===== TRACKER METHODS =====
 
