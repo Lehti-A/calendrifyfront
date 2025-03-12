@@ -237,16 +237,16 @@
         <div class="card semi-transparent-card mb-4 meetings-card">
           <div class="card-header bg-transparent"><strong>Personal Meetings</strong></div>
           <div class="content-container">
-            <ul class="list-group list-group-flush">
-              <li v-for="(meeting, index) in meetings" :key="index"
+            <ul class="list-group list-group-flush" v-if="meetings.length > 0">
+              <li v-for="(meeting, index) in meetings" :key="meeting.meetingId || index"
                   class="list-group-item meeting-item"
                   @mouseenter="meeting.showDelete = true"
                   @mouseleave="meeting.showDelete = false">
                 <div class="meeting-content">
-                  <span class="meeting-info"
-                        style="width: calc(100% - 40px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                    {{ meeting.time }} - {{ meeting.title }}
-                  </span>
+          <span class="meeting-info"
+                style="width: calc(100% - 40px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+            {{ meeting.time }} - {{ meeting.title }}
+          </span>
                   <span
                       v-if="meeting.showDelete"
                       @click="removeMeeting(index)"
@@ -256,6 +256,14 @@
                 </div>
               </li>
             </ul>
+            <div v-else-if="isLoadingMeetings" class="text-center py-3">
+              <div class="spinner-border spinner-border-sm" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+            </div>
+            <div v-else class="card-body text-center py-2">
+              <p class="text-muted my-1">No meetings yet</p>
+            </div>
           </div>
           <div class="card-footer bg-transparent">
             <div class="mb-2">
@@ -364,6 +372,7 @@
 import DayService from '@/services/DayService';
 import ActivityService from '@/services/ActivityService';
 import navigationServices from '@/services/NavigationServices';
+import MeetingService from "@/services/MeetingService";
 
 export default {
   name: 'PersonalDayView',
@@ -439,6 +448,7 @@ export default {
       meetings: [],
       newMeetingTime: '',
       newMeetingTitle: '',
+      isLoadingMeetings: false,
 
       // Mood tracker
       personalMood: null,
@@ -526,11 +536,11 @@ export default {
           this.otherThoughts = dayData.thoughts || "";
         }
 
-        // Load activities for this day
+        // Load activities and meetings for this day
         this.loadActivities();
+        this.loadMeetings(); // Add this line
 
         // We'll implement backend calls for these later
-        this.meetings = [];
         this.tasks = [];
         this.personalMood = null;
         this.selectedGlasses = 0;
@@ -758,23 +768,125 @@ export default {
     },
 
     // ===== MEETING METHODS =====
+    async loadMeetings() {
+      if (!this.dayId) {
+        console.error("Cannot load meetings: No dayId available");
+        return;
+      }
 
-    addMeeting() {
-      if (this.newMeetingTime.trim() && this.newMeetingTitle.trim()) {
-        this.meetings.push({
-          time: this.newMeetingTime.trim(),
-          title: this.newMeetingTitle.trim(),
-          showDelete: false
+      this.isLoadingMeetings = true;
+      try {
+        console.log("Fetching meetings for dayId:", this.dayId);
+        const response = await MeetingService.getMeetings(this.dayId);
+        console.log("Raw meetings response:", response);
+
+        // Transform backend data to match UI format
+        this.meetings = response.data.map(meeting => {
+          console.log("Processing meeting:", meeting);
+          return {
+            meetingId: meeting.meetingId,
+            time: this.formatTimeFromBackend(meeting.time),
+            title: meeting.subject,
+            showDelete: false
+          };
         });
+        console.log("Processed meetings:", this.meetings);
+      } catch (error) {
+        console.error("Error loading meetings:", error);
+        if (error.response) {
+          console.error("Response data:", error.response.data);
+          console.error("Response status:", error.response.status);
+        }
+        this.meetings = [];
+        if (error.response?.status === 403) navigationServices.navigateToErrorView();
+      } finally {
+        this.isLoadingMeetings = false;
+      }
+    },
+    async addMeeting() {
+      if (!this.newMeetingTime.trim() || !this.newMeetingTitle.trim() || !this.dayId) {
+        return;
+      }
+
+      // Validate time format (HH:mm)
+      const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+      if (!timeRegex.test(this.newMeetingTime.trim())) {
+        alert("Please enter time in the format HH:mm (e.g., 14:30)");
+        return;
+      }
+
+      try {
+        const newMeetingData = {
+          time: this.newMeetingTime.trim(),
+          subject: this.newMeetingTitle.trim(),
+          dayId: this.dayId
+        };
+
+        await MeetingService.addMeeting(newMeetingData);
+
+        // Clear input
         this.newMeetingTime = '';
         this.newMeetingTitle = '';
+
+        // Reload meetings to get the new one with its ID
+        this.loadMeetings();
+      } catch (error) {
+        console.error("Error adding meeting:", error);
+        if (error.response) {
+          console.error("Response data:", error.response.data);
+          console.error("Response status:", error.response.status);
+        }
+        if (error.response?.status === 403) navigationServices.navigateToErrorView();
+      }
+    },
+    async removeMeeting(index) {
+      const meetingId = this.meetings[index].meetingId;
+      if (!meetingId) {
+        console.error("Cannot delete meeting: No meetingId available");
+        return;
+      }
+
+      try {
+        await MeetingService.deleteMeeting(meetingId);
+
+        // Update local state
+        this.meetings.splice(index, 1);
+      } catch (error) {
+        console.error("Error deleting meeting:", error);
+        if (error.response?.status === 403) {
+          navigationServices.navigateToErrorView();
+        } else {
+          // Reload meetings to ensure UI is in sync with backend
+          this.loadMeetings();
+        }
       }
     },
 
-    removeMeeting(index) {
-      this.meetings.splice(index, 1);
-    },
+// Helper function to format time from backend (LocalTime)
+    formatTimeFromBackend(timeValue) {
+      // If it's already a string in HH:mm format, return it
+      if (typeof timeValue === 'string' && /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(timeValue)) {
+        return timeValue;
+      }
 
+      // If it's a string in HH:mm:ss format, truncate it
+      if (typeof timeValue === 'string' && /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/.test(timeValue)) {
+        return timeValue.substring(0, 5);
+      }
+
+      // If it's an object with hour and minute properties (possible LocalTime representation)
+      if (timeValue && typeof timeValue === 'object') {
+        if ('hour' in timeValue && 'minute' in timeValue) {
+          const hour = String(timeValue.hour).padStart(2, '0');
+          const minute = String(timeValue.minute).padStart(2, '0');
+          return `${hour}:${minute}`;
+        }
+      }
+
+      // Default case - log the issue and return a placeholder
+      console.error("Unknown time format:", timeValue);
+      return timeValue || "00:00";
+    },
     // ===== TRACKER METHODS =====
 
     setMood(mood) {
