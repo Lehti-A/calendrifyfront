@@ -91,28 +91,32 @@
         <div class="card semi-transparent-card mb-4 activities-card">
           <div class="card-header bg-transparent"><strong>Activities</strong></div>
           <div class="content-container">
-            <ul class="list-group list-group-flush">
-              <li v-for="(activity, index) in activities" :key="index"
-                  class="list-group-item d-flex align-items-center justify-content-between">
-                <span :class="{ 'completed-activity': activity.completed }">{{ activity.text }}</span>
+            <ul class="list-group list-group-flush" v-if="activities.length > 0">
+              <li v-for="activity in activities" :key="activity.activityId"
+                  class="list-group-item py-2 d-flex justify-content-between align-items-center">
+                <span :class="{ 'completed-activity': activity.isDone }">{{ activity.topic }}</span>
                 <div class="activity-actions">
                   <input
                       type="checkbox"
                       class="form-check-input ms-2"
-                      :checked="activity.completed"
-                      @change="toggleActivityCompletion(index)"
+                      :checked="activity.isDone"
+                      @change="toggleActivityCompletion(activity.activityId, !activity.isDone)"
                   >
                   <button
                       class="btn btn-sm btn-link text-danger p-0"
-                      @click="removeActivity(index)"
-                      title="Remove activity"
-                  >
-                    <i class="fas fa-eraser"></i>
-                    <span v-if="!hasFontAwesome">🗑️</span>
-                  </button>
+                      @click="removeActivity(activity.activityId)"
+                      title="Remove activity">🗑️</button>
                 </div>
               </li>
             </ul>
+            <div v-else-if="isLoadingActivities" class="text-center py-3">
+              <div class="spinner-border spinner-border-sm" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+            </div>
+            <div v-else class="card-body text-center py-2">
+              <p class="text-muted my-1">No activities yet</p>
+            </div>
           </div>
           <div class="card-footer bg-transparent">
             <div class="input-group">
@@ -358,9 +362,19 @@
 
 <script>
 import DayService from '@/services/DayService';
+import ActivityService from '@/services/ActivityService';
+import navigationServices from '@/services/NavigationServices';
 
 export default {
   name: 'PersonalDayView',
+
+  // Lifecycle hooks in chronological order
+  beforeMount() {
+    // Clear any previous data
+    this.dailyFocus = "";
+    this.otherThoughts = "";
+  },
+
   created() {
     // Determine if we came from calendar or directly
     const selectedCalendarDate = sessionStorage.getItem('selectedCalendarDate');
@@ -377,9 +391,20 @@ export default {
     }
 
     this.userId = Number(sessionStorage.getItem('userId') || '1'); // Fallback to user 1 if not set
+  },
 
-    // Load saved data from backend
-    this.loadSavedData();
+  mounted() {
+    // Load data after component is fully mounted
+    this.$nextTick(() => {
+      this.loadSavedData();
+    });
+  },
+
+  beforeDestroy() {
+    // Clear sensitive data when navigating away
+    this.dailyFocus = "";
+    this.otherThoughts = "";
+    this.dayId = null;
   },
 
   data() {
@@ -389,6 +414,7 @@ export default {
       dayId: null,
       selectedDate: null,
       isLoading: false,
+      isLoadingActivities: false,
 
       // Focus section
       dailyFocus: "",
@@ -400,15 +426,19 @@ export default {
       // Profile image
       userImageUrl: null,
 
-      // Meetings section
-      meetings: [],
-      newMeetingTime: '',
-      newMeetingTitle: '',
-
       // Other thoughts section
       otherThoughts: "",
       editingThoughts: false,
       tempThoughts: "",
+
+      // Activities section
+      activities: [],
+      newActivity: "",
+
+      // Meetings section
+      meetings: [],
+      newMeetingTime: '',
+      newMeetingTitle: '',
 
       // Mood tracker
       personalMood: null,
@@ -425,15 +455,11 @@ export default {
         {steps: 10000, label: "10,000+"}
       ],
 
-      // Activities section
-      activities: [],
-      newActivity: "",
-
       // Tasks/goals section
       tasks: [],
       newTask: "",
 
-      hasFontAwesome: false // Set to true if you have Font Awesome included
+      hasFontAwesome: false
     };
   },
 
@@ -465,6 +491,9 @@ export default {
   },
 
   methods: {
+    // ===== DATA LOADING METHODS =====
+
+    // Load data from backend
     async loadSavedData() {
       this.isLoading = true;
       try {
@@ -480,7 +509,7 @@ export default {
 
         console.log("Backend response:", dayData);
 
-        // Store the dayId for future updates - making sure we're using the right property name
+        // Store the dayId for future updates
         this.dayId = dayData.dayId;
 
         // Set the data from backend, ensuring we don't use any date-related content
@@ -497,27 +526,29 @@ export default {
           this.otherThoughts = dayData.thoughts || "";
         }
 
+        // Load activities for this day
+        this.loadActivities();
+
         // We'll implement backend calls for these later
-        // For now just initialize them as empty
-        this.activities = [];
         this.meetings = [];
         this.tasks = [];
         this.personalMood = null;
         this.selectedGlasses = 0;
         this.completedStepsMilestone = 0;
 
-        // Load the user image - still using localStorage for now
+        // Load the user image
         this.loadUserImage();
       } catch (error) {
         console.error("Error loading day data:", error);
-        // Ensure fields are empty if there's an error
         this.dailyFocus = "";
         this.otherThoughts = "";
       } finally {
         this.isLoading = false;
       }
     },
-    // Focus methods
+
+    // ===== FOCUS METHODS =====
+
     startEditing() {
       this.tempFocus = this.dailyFocus; // Store for cancellation
       this.isEditing = true;
@@ -531,12 +562,9 @@ export default {
         event.preventDefault();
         event.stopPropagation();
       }
-
-      // Clear the text but keep editing mode active
       this.dailyFocus = "";
       this.clearButtonClicked = true;
 
-      // Wrap the focus in a delayed timeout to ensure DOM has updated
       setTimeout(() => {
         if (this.$refs.seamlessInput) {
           this.$refs.seamlessInput.focus();
@@ -544,7 +572,6 @@ export default {
       }, 50);
     },
 
-    // Save focus to backend
     async finishEditing() {
       this.isEditing = false;
       this.dailyFocus = this.dailyFocus.trim();
@@ -553,7 +580,7 @@ export default {
         try {
           console.log("Saving focus with dayId:", this.dayId, "content:", this.dailyFocus);
           const updateData = {
-            dayId: this.dayId, // Changed from id to dayId
+            dayId: this.dayId,
             focus: this.dailyFocus
           };
           await DayService.updateDayFocus(updateData);
@@ -564,7 +591,6 @@ export default {
     },
 
     handleBlur(event) {
-      // Slight delay to check if clear button was clicked
       setTimeout(() => {
         if (!this.clearButtonClicked) {
           this.finishEditing();
@@ -573,26 +599,134 @@ export default {
       }, 100);
     },
 
-    // Activity methods - will be updated for backend integration later
-    toggleActivityCompletion(index) {
-      this.activities[index].completed = !this.activities[index].completed;
+    // ===== THOUGHTS METHODS =====
+
+    startEditingThoughts() {
+      this.tempThoughts = this.otherThoughts;
+      this.editingThoughts = true;
+      this.$nextTick(() => {
+        this.$refs.thoughtsTextarea.focus();
+      });
     },
 
-    removeActivity(index) {
-      this.activities.splice(index, 1);
-    },
+    async saveThoughts() {
+      this.editingThoughts = false;
 
-    addActivity() {
-      if (this.newActivity.trim()) {
-        this.activities.push({
-          text: this.newActivity.trim(),
-          completed: false
-        });
-        this.newActivity = "";
+      if (this.dayId) {
+        try {
+          console.log("Saving thoughts with dayId:", this.dayId, "content:", this.otherThoughts);
+          const updateData = {
+            dayId: this.dayId,
+            thoughts: this.otherThoughts
+          };
+          await DayService.updateDayThought(updateData);
+        } catch (error) {
+          console.error("Error updating thoughts:", error);
+        }
+      } else {
+        console.error("Cannot update thoughts: No dayId available");
       }
     },
 
-    // Image methods
+    cancelEditThoughts() {
+      this.otherThoughts = this.tempThoughts;
+      this.editingThoughts = false;
+    },
+
+    clearThoughts() {
+      this.otherThoughts = "";
+      this.$nextTick(() => {
+        if (this.$refs.thoughtsTextarea) {
+          this.$refs.thoughtsTextarea.focus();
+        }
+      });
+    },
+
+    // ===== ACTIVITY METHODS =====
+
+    async loadActivities() {
+      if (!this.dayId) {
+        console.error("Cannot load activities: No dayId available");
+        return;
+      }
+
+      this.isLoadingActivities = true;
+      try {
+        const response = await ActivityService.getActivities(this.dayId);
+        this.activities = response.data;
+        console.log("Loaded activities:", this.activities);
+      } catch (error) {
+        console.error("Error loading activities:", error);
+        this.activities = [];
+        if (error.response?.status === 403) navigationServices.navigateToErrorView();
+      } finally {
+        this.isLoadingActivities = false;
+      }
+    },
+
+    async toggleActivityCompletion(activityId, isDone) {
+      try {
+        await ActivityService.updateActivityStatus(activityId, isDone);
+
+        // Update local state
+        const activityIndex = this.activities.findIndex(a => a.activityId === activityId);
+        if (activityIndex !== -1) {
+          this.activities[activityIndex].isDone = isDone;
+        }
+      } catch (error) {
+        console.error("Error updating activity status:", error);
+        if (error.response?.status === 403) {
+          navigationServices.navigateToErrorView();
+        } else {
+          // Reload activities to ensure UI is in sync with backend
+          this.loadActivities();
+        }
+      }
+    },
+
+    async removeActivity(activityId) {
+      try {
+        await ActivityService.deleteActivity(activityId);
+
+        // Update local state
+        this.activities = this.activities.filter(a => a.activityId !== activityId);
+      } catch (error) {
+        console.error("Error deleting activity:", error);
+        if (error.response?.status === 403) {
+          navigationServices.navigateToErrorView();
+        } else {
+          // Reload activities to ensure UI is in sync with backend
+          this.loadActivities();
+        }
+      }
+    },
+
+    async addActivity() {
+      if (!this.newActivity.trim() || !this.dayId) {
+        return;
+      }
+
+      try {
+        const newActivityData = {
+          topic: this.newActivity.trim(),
+          dayId: this.dayId
+        };
+
+        await ActivityService.addActivity(newActivityData);
+
+        // Clear input
+        this.newActivity = "";
+
+        // Reload activities to get the new one with its ID
+        this.loadActivities();
+      } catch (error) {
+        console.error("Error adding activity:", error);
+        if (error.response?.status === 403) navigationServices.navigateToErrorView();
+      }
+    },
+
+    // ===== IMAGE METHODS =====
+
     triggerImageUpload() {
       this.$refs.imageInput.click();
     },
@@ -604,7 +738,6 @@ export default {
 
         reader.onload = (e) => {
           this.userImageUrl = e.target.result;
-          // Still using localStorage for images until we implement backend storage
           localStorage.setItem('personalProfileImage', this.userImageUrl);
         };
 
@@ -624,7 +757,8 @@ export default {
       }
     },
 
-    // Meeting methods - will be updated for backend integration later
+    // ===== MEETING METHODS =====
+
     addMeeting() {
       if (this.newMeetingTime.trim() && this.newMeetingTitle.trim()) {
         this.meetings.push({
@@ -641,67 +775,22 @@ export default {
       this.meetings.splice(index, 1);
     },
 
-    // Thoughts methods
-    startEditingThoughts() {
-      this.tempThoughts = this.otherThoughts; // Save current value in case user cancels
-      this.editingThoughts = true;
-      // Use nextTick to ensure the textarea exists in the DOM before focusing
-      this.$nextTick(() => {
-        this.$refs.thoughtsTextarea.focus();
-      });
-    },
+    // ===== TRACKER METHODS =====
 
-    // Save thoughts to backend
-    async saveThoughts() {
-      this.editingThoughts = false;
-
-      if (this.dayId) {
-        try {
-          console.log("Saving thoughts with dayId:", this.dayId, "content:", this.otherThoughts);
-          const updateData = {
-            dayId: this.dayId, // Changed from id to dayId
-            thoughts: this.otherThoughts
-          };
-          await DayService.updateDayThought(updateData);
-        } catch (error) {
-          console.error("Error updating thoughts:", error);
-        }
-      } else {
-        console.error("Cannot update thoughts: No dayId available");
-      }
-    },
-
-    cancelEditThoughts() {
-      this.otherThoughts = this.tempThoughts; // Restore previous value
-      this.editingThoughts = false;
-    },
-
-    clearThoughts() {
-      // Clear the text but keep editing mode active
-      this.otherThoughts = "";
-      this.$nextTick(() => {
-        if (this.$refs.thoughtsTextarea) {
-          this.$refs.thoughtsTextarea.focus();
-        }
-      });
-    },
-
-    // Mood tracker - will be updated for backend integration later
     setMood(mood) {
       this.personalMood = mood;
     },
 
-    // Water tracker - will be updated for backend integration later
     setGlasses(count) {
       this.selectedGlasses = count;
     },
 
-    // Steps tracker - will be updated for backend integration later
     setStepsMilestone(milestone) {
       this.completedStepsMilestone = milestone;
     },
 
-    // Task/goals methods - will be updated for backend integration later
+    // ===== TASK METHODS =====
+
     startEditingTask(index) {
       // First, make sure all tasks have the isEditing property
       this.tasks.forEach((task, i) => {
