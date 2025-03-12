@@ -94,28 +94,32 @@
         <div class="card semi-transparent-card mb-4 activities-card">
           <div class="card-header bg-transparent"><strong>Activities</strong></div>
           <div class="content-container">
-            <ul class="list-group list-group-flush">
-              <li v-for="(activity, index) in activities" :key="index"
-                  class="list-group-item d-flex align-items-center justify-content-between">
-                <span :class="{ 'completed-activity': activity.completed }">{{ activity.text }}</span>
+            <ul class="list-group list-group-flush" v-if="activities.length > 0">
+              <li v-for="activity in activities" :key="activity.activityId"
+                  class="list-group-item py-2 d-flex justify-content-between align-items-center">
+                <span :class="{ 'completed-activity': activity.isDone }">{{ activity.topic }}</span>
                 <div class="activity-actions">
                   <input
                       type="checkbox"
-                      class="form-check-input me-2"
-                      :checked="activity.completed"
-                      @change="toggleActivityCompletion(index)"
+                      class="form-check-input ms-2"
+                      :checked="activity.isDone"
+                      @change="toggleActivityCompletion(activity.activityId, !activity.isDone)"
                   >
                   <button
                       class="btn btn-sm btn-link text-danger p-0"
-                      @click="removeActivity(index)"
-                      title="Remove activity"
-                  >
-                    <i class="fas fa-eraser"></i>
-                    <span v-if="!hasFontAwesome">🗑️</span>
-                  </button>
+                      @click="removeActivity(activity.activityId)"
+                      title="Remove activity">🗑️</button>
                 </div>
               </li>
             </ul>
+            <div v-else-if="isLoadingActivities" class="text-center py-3">
+              <div class="spinner-border spinner-border-sm" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+            </div>
+            <div v-else class="card-body text-center py-2">
+              <p class="text-muted my-1">No activities yet</p>
+            </div>
           </div>
           <div class="card-footer bg-transparent">
             <div class="input-group">
@@ -330,6 +334,8 @@
 
 <script>
 import DayService from '@/services/DayService';
+import ActivityService from "@/services/ActivityService";
+import navigationServices from "@/services/NavigationServices";
 
 export default {
   name: 'WorkDayView',
@@ -399,6 +405,7 @@ export default {
       // Activities section
       activities: [],
       newActivity: "",
+      isLoadingActivities: false,
 
       // Meetings section
       meetings: [],
@@ -485,8 +492,10 @@ export default {
           this.otherThoughts = dayData.thoughts || "";
         }
 
+
+        this.loadActivities();
+
         // We'll implement backend calls for these later
-        this.activities = [];
         this.meetings = [];
         this.workMood = null;
         this.selectedGlasses = 0;
@@ -599,22 +608,84 @@ export default {
     },
 
     // ===== ACTIVITY METHODS =====
+    async loadActivities() {
+      if (!this.dayId) {
+        console.error("Cannot load activities: No dayId available");
+        return;
+      }
 
-    toggleActivityCompletion(index) {
-      this.activities[index].completed = !this.activities[index].completed;
+      this.isLoadingActivities = true;
+      try {
+        const response = await ActivityService.getActivities(this.dayId);
+        this.activities = response.data;
+        console.log("Loaded activities:", this.activities);
+      } catch (error) {
+        console.error("Error loading activities:", error);
+        this.activities = [];
+        if (error.response?.status === 403) navigationServices.navigateToErrorView();
+      } finally {
+        this.isLoadingActivities = false;
+      }
     },
 
-    removeActivity(index) {
-      this.activities.splice(index, 1);
+    async toggleActivityCompletion(activityId, isDone) {
+      try {
+        await ActivityService.updateActivityStatus(activityId, isDone);
+
+        // Update local state
+        const activityIndex = this.activities.findIndex(a => a.activityId === activityId);
+        if (activityIndex !== -1) {
+          this.activities[activityIndex].isDone = isDone;
+        }
+      } catch (error) {
+        console.error("Error updating activity status:", error);
+        if (error.response?.status === 403) {
+          navigationServices.navigateToErrorView();
+        } else {
+          // Reload activities to ensure UI is in sync with backend
+          this.loadActivities();
+        }
+      }
     },
 
-    addActivity() {
-      if (this.newActivity.trim()) {
-        this.activities.push({
-          text: this.newActivity.trim(),
-          completed: false
-        });
+    async removeActivity(activityId) {
+      try {
+        await ActivityService.deleteActivity(activityId);
+
+        // Update local state
+        this.activities = this.activities.filter(a => a.activityId !== activityId);
+      } catch (error) {
+        console.error("Error deleting activity:", error);
+        if (error.response?.status === 403) {
+          navigationServices.navigateToErrorView();
+        } else {
+          // Reload activities to ensure UI is in sync with backend
+          this.loadActivities();
+        }
+      }
+    },
+
+    async addActivity() {
+      if (!this.newActivity.trim() || !this.dayId) {
+        return;
+      }
+
+      try {
+        const newActivityData = {
+          topic: this.newActivity.trim(),
+          dayId: this.dayId
+        };
+
+        await ActivityService.addActivity(newActivityData);
+
+        // Clear input
         this.newActivity = "";
+
+        // Reload activities to get the new one with its ID
+        this.loadActivities();
+      } catch (error) {
+        console.error("Error adding activity:", error);
+        if (error.response?.status === 403) navigationServices.navigateToErrorView();
       }
     },
 
