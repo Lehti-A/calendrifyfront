@@ -329,12 +329,12 @@
 </template>
 
 <script>
+import DayService from '@/services/DayService';
+
 export default {
   name: 'WorkDayView',
   created() {
-    // Load saved data from localStorage
-    this.loadSavedData();
-
+    // Determine if we came from calendar or directly
     const selectedCalendarDate = sessionStorage.getItem('selectedCalendarDate');
     if (selectedCalendarDate) {
       // Parse the date string back to a Date object
@@ -343,13 +343,26 @@ export default {
 
       // Clear the stored date once it's been used
       sessionStorage.removeItem('selectedCalendarDate');
+    } else {
+      // Default to today if no date was passed
+      this.selectedDate = new Date();
     }
+
+    this.userId = Number(sessionStorage.getItem('userId') || '1'); // Fallback to user 1 if not set
+
+    // Load saved data from backend
+    this.loadSavedData();
   },
 
   data() {
     return {
+      // Add new properties for backend integration
+      userId: null,
+      dayId: null,
       selectedDate: null,
-      // Focus section
+      isLoading: false,
+
+      // Keep all your existing data properties
       dailyFocus: "",
       isEditing: false,
       tempFocus: "",
@@ -369,9 +382,7 @@ export default {
       newActivity: "",
 
       // Meetings section
-      meetings: [
-
-      ],
+      meetings: [],
       newMeetingTime: '',
       newMeetingTitle: '',
 
@@ -388,15 +399,14 @@ export default {
         {steps: 10000, label: "10,000+"}
       ],
 
-      hasFontAwesome: false // Set to true if you have Font Awesome included
+      hasFontAwesome: false
     };
   },
   computed: {
+    // Keep your existing computed properties
     currentDay() {
       return this.selectedDate ? this.selectedDate.getDate() : new Date().getDate();
     },
-
-// Modify the currentMonth computed property:
     currentMonth() {
       const months = [
         'January', 'February', 'March', 'April', 'May', 'June',
@@ -405,8 +415,6 @@ export default {
       const date = this.selectedDate || new Date();
       return months[date.getMonth()];
     },
-
-// Modify the currentWeekday computed property:
     currentWeekday() {
       const days = [
         'Sunday', 'Monday', 'Tuesday', 'Wednesday',
@@ -414,22 +422,47 @@ export default {
       ];
       const date = this.selectedDate || new Date();
       return days[date.getDay()];
+    },
+    // Format date for API calls in YYYY-MM-DD format
+    formattedDate() {
+      const date = this.selectedDate || new Date();
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
     }
   },
   methods: {
-    // Load data from localStorage (including shared data between views)
-    loadSavedData() {
-      // Load work-specific data
-      const savedFocus = localStorage.getItem('workDailyFocus');
-      if (savedFocus) {
-        this.dailyFocus = savedFocus;
-      }
+    // Load data from backend
+    async loadSavedData() {
+      this.isLoading = true;
+      try {
+        // First, check if we need to create/get a day record for this date
+        const newDay = {
+          userId: this.userId,
+          date: this.formattedDate,
+          type: "W" // W for Work day
+        };
 
-      const savedThoughts = localStorage.getItem('workThoughts');
-      if (savedThoughts) {
-        this.otherThoughts = savedThoughts;
-      }
+        const response = await DayService.addNewDay(newDay);
+        const dayData = response.data;
 
+        // Store the dayId for future updates
+        this.dayId = dayData.id;
+
+        // Set the data from backend
+        this.dailyFocus = dayData.focus || "";
+        this.otherThoughts = dayData.thoughts || "";
+
+        // Then load the rest of the data from localStorage for now
+        // (You'll want to move this to backend APIs as well)
+        this.loadLocalStorageData();
+      } catch (error) {
+        console.error("Error loading day data:", error);
+      } finally {
+        this.isLoading = false;
+      }
+    },
+
+    // Temporary method to load data from localStorage until all API endpoints are implemented
+    loadLocalStorageData() {
       const savedActivities = localStorage.getItem('workActivities');
       if (savedActivities) {
         this.activities = JSON.parse(savedActivities);
@@ -462,11 +495,46 @@ export default {
         this.completedStepsMilestone = parseInt(savedSteps);
       }
     },
+
+    // Update the finishEditing method to save focus to backend
+    async finishEditing() {
+      this.isEditing = false;
+      this.dailyFocus = this.dailyFocus.trim();
+
+      if (this.dayId) {
+        try {
+          const updateData = {
+            id: this.dayId,
+            focus: this.dailyFocus
+          };
+          await DayService.updateDayFocus(updateData);
+        } catch (error) {
+          console.error("Error updating focus:", error);
+        }
+      }
+    },
+
+    // Update the saveThoughts method to save to backend
+    async saveThoughts() {
+      this.editingThoughts = false;
+
+      if (this.dayId) {
+        try {
+          const updateData = {
+            id: this.dayId,
+            thoughts: this.otherThoughts
+          };
+          await DayService.updateDayThought(updateData);
+        } catch (error) {
+          console.error("Error updating thoughts:", error);
+        }
+      }
+    },
+
+    // Keep all your other existing methods
     triggerImageUpload() {
       this.$refs.imageInput.click();
     },
-
-    // Handle the image file selection
     handleImageUpload(event) {
       const file = event.target.files[0];
       if (file && file.type.match('image.*')) {
@@ -481,23 +549,16 @@ export default {
         reader.readAsDataURL(file);
       }
     },
-
-    // Delete the user image and revert to default
     deleteUserImage() {
-        this.userImageUrl = null;
-        localStorage.removeItem('workProfileImage');
+      this.userImageUrl = null;
+      localStorage.removeItem('workProfileImage');
     },
-
-    // Load the user image from localStorage if available
     loadUserImage() {
       const savedImage = localStorage.getItem('workProfileImage');
       if (savedImage) {
         this.userImageUrl = savedImage;
       }
     },
-
-
-// Focus section methods
     startEditing() {
       this.tempFocus = this.dailyFocus; // Store for cancellation
       this.isEditing = true;
@@ -521,16 +582,6 @@ export default {
         }
       }, 50);
     },
-    finishEditing() {
-      this.isEditing = false;
-      this.dailyFocus = this.dailyFocus.trim();
-
-      if (this.dailyFocus) {
-        localStorage.setItem('workDailyFocus', this.dailyFocus);
-      } else {
-        localStorage.removeItem('workDailyFocus');
-      }
-    },
     handleBlur(event) {
       // Slight delay to check if clear button was clicked
       setTimeout(() => {
@@ -540,17 +591,12 @@ export default {
         this.clearButtonClicked = false;
       }, 100);
     },
-    // Other thoughts methods
     startEditingThoughts() {
       this.tempThoughts = this.otherThoughts;
       this.editingThoughts = true;
       this.$nextTick(() => {
         this.$refs.thoughtsTextarea.focus();
       });
-    },
-    saveThoughts() {
-      this.editingThoughts = false;
-      localStorage.setItem('workThoughts', this.otherThoughts);
     },
     cancelEditThoughts() {
       this.otherThoughts = this.tempThoughts;
@@ -565,8 +611,6 @@ export default {
         }
       });
     },
-
-    // Activity methods (formerly task methods)
     toggleActivityCompletion(index) {
       this.activities[index].completed = !this.activities[index].completed;
       this.saveActivities();
@@ -588,8 +632,6 @@ export default {
     saveActivities() {
       localStorage.setItem('workActivities', JSON.stringify(this.activities));
     },
-
-    // Meeting methods
     addMeeting() {
       if (this.newMeetingTime.trim() && this.newMeetingTitle.trim()) {
         this.meetings.push({
@@ -609,13 +651,10 @@ export default {
     saveMeetings() {
       localStorage.setItem('workMeetings', JSON.stringify(this.meetings));
     },
-    // Work mood method (specific to work day)
     setWorkMood(mood) {
       this.workMood = mood;
       localStorage.setItem('workMood', mood);
     },
-
-    // Shared tracker methods (will sync with PersonalDayView)
     setGlasses(count) {
       this.selectedGlasses = count;
       localStorage.setItem('sharedGlasses', count);
@@ -627,5 +666,7 @@ export default {
   }
 };
 </script>
+
+
 
 <style src="@/assets/css/workdayview.css" scoped></style>
