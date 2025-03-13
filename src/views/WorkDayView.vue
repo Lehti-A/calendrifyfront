@@ -175,9 +175,16 @@
             </div>
           </div>
           <div class="card-footer bg-transparent">
+            <div v-if="meetingTimeAlert.show" class="meeting-time-alert">
+              <div class="alert-content">
+                <span class="alert-icon">⚠️</span>
+                <span class="alert-message">{{ meetingTimeAlert.message }}</span>
+              </div>
+              <button type="button" class="alert-close" @click="meetingTimeAlert.show = false">×</button>
+            </div>
             <div class="mb-2">
               <input type="text" class="form-control form-control-sm"
-                     placeholder="Time (e.g. 14:00, 14.30, 2:30pm)" v-model="newMeetingTime">
+                     placeholder="Time (e.g. 14.30, 1430, or 2.30pm)" v-model="newMeetingTime">
             </div>
             <div class="mb-2">
               <input type="text" class="form-control form-control-sm"
@@ -258,6 +265,10 @@ export default {
     activities: [], newActivity: "", isLoadingActivities: false,
     // Meetings section
     meetings: [], newMeetingTime: '', newMeetingTitle: '', isLoadingMeetings: false,
+    meetingTimeAlert: {
+      show: false,
+      message: ""
+    },
     // Work mood tracker
     workMood: null,
     stepId: null,
@@ -507,11 +518,20 @@ export default {
 
     async addMeeting() {
       if (!this.newMeetingTime.trim() || !this.newMeetingTitle.trim() || !this.dayId) return;
+
       const formattedTime = this.formatTimeInput(this.newMeetingTime.trim());
       if (!formattedTime) {
-        alert("Please enter a valid time (e.g., 14:30, 14.30, 1430, or 2.30pm)");
+        // Show custom alert instead of the default browser alert
+        this.meetingTimeAlert.message = "Please enter a valid time (e.g. 14.30, 1430, or 2.30pm)";
+        this.meetingTimeAlert.show = true;
+
+        // Automatically hide after 5 seconds
+        setTimeout(() => {
+          this.meetingTimeAlert.show = false;
+        }, 5000);
         return;
       }
+
       try {
         await MeetingService.addMeeting({
           time: formattedTime,

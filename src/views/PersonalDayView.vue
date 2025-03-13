@@ -173,7 +173,15 @@
               <div v-else class="card-body text-center py-2"><p class="text-muted my-1">No meetings yet</p></div>
             </div>
             <div class="card-footer bg-transparent">
-              <div class="mb-2"><input type="text" class="form-control form-control-sm" placeholder="Time (e.g. 14:00)"
+              <div v-if="meetingTimeAlert.show" class="meeting-time-alert">
+                <div class="alert-content">
+                  <span class="alert-icon">⚠️</span>
+                  <span class="alert-message">{{ meetingTimeAlert.message }}</span>
+                </div>
+                <button class="alert-close" @click="meetingTimeAlert.show = false">×</button>
+              </div>
+
+              <div class="mb-2"><input type="text" class="form-control form-control-sm" placeholder="Time (e.g. 14.30, 1430, or 2.30pm)"
                                        v-model="newMeetingTime"></div>
               <div class="mb-2"><input type="text" class="form-control form-control-sm" placeholder="Meeting title"
                                        v-model="newMeetingTitle" @keyup.enter="addMeeting"></div>
@@ -289,6 +297,10 @@ export default {
     otherThoughts: "", editingThoughts: false, tempThoughts: "",
     activities: [], newActivity: "",
     meetings: [], newMeetingTime: '', newMeetingTitle: '',
+    meetingTimeAlert: {
+      show: false,
+      message: ""
+    },
     personalMood: null, selectedGlasses: 0, completedStepsMilestone: 0,
     tasks: [], newTask: "",
     personalGoals: [],
@@ -553,7 +565,14 @@ export default {
 
       const formattedTime = this.formatTimeInput(this.newMeetingTime.trim());
       if (!formattedTime) {
-        alert("Please enter a valid time (e.g., 14.30, 1430, or 2.30pm)");
+        this.meetingTimeAlert.message = "Please enter a valid time (e.g., 14.30, 1430, or 2.30pm)";
+        this.meetingTimeAlert.show = true;
+
+        // Automatically hide after 4 seconds
+        setTimeout(() => {
+          this.meetingTimeAlert.show = false;
+        }, 4000);
+
         return;
       }
 
