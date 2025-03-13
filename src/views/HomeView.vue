@@ -132,19 +132,31 @@ export default {
 </script>
 
 <style scoped>
-/* Account deleted alert styling */
-.account-deleted-alert {
-  position: fixed;
-  top: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 1100;
-  width: 90%;
-  max-width: 500px;
+/* ... (Your existing alert styles) ... */
+
+/* Updated Content Positioning */
+.content {
+  position: absolute;
+  top: 10%; /* Reduced top value to move the content higher */
+  left: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: 20px;
 }
 
-.account-deleted-alert .alert {
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+.content > div {
+  margin-bottom: 20px;
+}
+
+/* Adjustments for buttons (optional) */
+.btn-light {
+  /* You can add styles to your buttons if needed */
+}
+
+.btn-link {
+  /* You can add styles to your link buttons if needed */
 }
 </style>
