@@ -72,8 +72,8 @@
 
 /* Primary button styling - to match calendar purple */
 .btn-primary {
-    background-color: #8e44ad; /* Same purple as calendar */
-    border-color: #8e44ad;
+    background-color: #8e44ad !important; /* Same purple as calendar */
+    border-color: #8e44ad !important;
 }
 
 .btn-primary:hover {
