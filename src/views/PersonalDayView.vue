@@ -209,7 +209,7 @@
             <h5 class="mb-4 text-center">Steps</h5>
             <div class="steps-milestones">
               <div v-for="(milestone, index) in milestones" :key="index" class="milestone-item"
-                   @click="setStepsMilestone(index + 1)" :title="`${milestone.steps} Steps`">
+                   @click="updateStep(index + 1)" :title="`${milestone.steps} Steps`">
                 <div class="checkbox-container" :class="{ 'checked': index < completedStepsMilestone }">
                   <svg v-if="index < completedStepsMilestone" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
                        fill="white" class="checkmark-icon">
@@ -287,6 +287,8 @@ export default {
 
     //todo Lehti lisatud
     moodId: null,
+    date: '',
+    stepId: null,
 
 
     // Constants
@@ -339,6 +341,7 @@ export default {
         this.loadMeetings();
         this.loadUserImage();
         this.findMood();
+        this.findStep();
 
 
         // Reset trackers
@@ -680,6 +683,82 @@ export default {
         navigationServices.navigateToErrorView();
       }
     },
+
+
+    async findStep() {
+      try {
+        // Make sure we have the day setup first
+        if (!this.dayId) {
+          const response = await DayService.addNewDay({
+            userId: this.userId, date: this.formattedDate, type: "P"
+          });
+          this.dayId = response.data.dayId;
+        }
+
+        // Get step data using userId and date
+        const stepResponse = await axios.get('/step', {
+          params: {
+            userId: this.userId,
+            date: this.formattedDate
+          }
+        });
+
+        if (stepResponse.data && stepResponse.data.stepId) {
+          this.stepId = stepResponse.data.stepId;
+          // Convert step count to milestone index (1-4)
+          if (stepResponse.data.count) {
+            const count = parseInt(stepResponse.data.count);
+            this.completedStepsMilestone = count;
+          } else {
+            this.completedStepsMilestone = 0;
+          }
+        } else {
+          // Reset if no data found
+          this.stepId = null;
+          this.completedStepsMilestone = 0;
+        }
+      } catch (error) {
+        console.error("Error fetching step data:", error);
+        this.stepId = null;
+        this.completedStepsMilestone = 0;
+        if (error.response?.status === 403) {
+          navigationServices.navigateToErrorView();
+        }
+      }
+    },
+
+    async updateStep(newStep) {
+      // Update UI immediately for better user experience
+      this.completedStepsMilestone = newStep;
+
+      try {
+        if (!this.stepId) {
+          console.error("Step ID is missing!");
+          await this.findStep(); // Try to get the stepId first
+          if (!this.stepId) return; // Exit if still no stepId
+        }
+
+        // Looking at the service code, your backend expects stepId and count as parameters
+        // This likely means they're expected as query parameters, not in the body
+        await axios.patch('/step', null, {
+          params: {
+            stepId: this.stepId,
+            count: newStep
+          }
+        });
+
+        // Optionally refresh data to ensure consistency
+        // await this.findStep();
+      } catch (error) {
+        console.error("Error updating step count:", error);
+        // Reset UI state on error by fetching current data
+        await this.findStep();
+        navigationServices.navigateToErrorView();
+      }
+    },
+
+
+
 
 
     }
