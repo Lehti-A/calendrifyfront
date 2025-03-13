@@ -415,6 +415,7 @@ export default {
         await ActivityService.updateActivityStatus(activityId, isDone);
         const activityIndex = this.activities.findIndex(a => a.activityId === activityId);
         if (activityIndex !== -1) this.activities[activityIndex].isDone = isDone;
+        this.loadActivities();
       } catch (error) {
         console.error("Error updating activity:", error);
         if (error.response?.status === 403) navigationServices.navigateToErrorView();

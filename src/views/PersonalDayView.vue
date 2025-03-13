@@ -392,6 +392,7 @@ export default {
         await ActivityService.updateActivityStatus(activityId, isDone);
         const idx = this.activities.findIndex(a => a.activityId === activityId);
         if (idx !== -1) this.activities[idx].isDone = isDone;
+        this.loadActivities();
       } catch (error) {
         console.error("Error updating activity status:", error);
         error.response?.status === 403 ?
