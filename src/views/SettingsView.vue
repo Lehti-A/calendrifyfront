@@ -18,6 +18,14 @@
       </div>
     </div>
 
+    <div v-if="showProfileErrorAlert" class="mt-3 mx-auto profile-update-alert">
+      <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        {{ profileErrorMessage }}
+        <button type="button" class="btn-close" @click="dismissProfileErrorAlert" aria-label="Close"></button>
+      </div>
+    </div>
+
+
     <!-- Password Change Modal - Using new component -->
     <ChangePasswordModal
         :modal-is-open="passwordModalOpen"
@@ -145,6 +153,12 @@ export default {
         address: '',
         phone: ''
       },
+      originalUserProfile: {
+        email: '',
+        address: '',
+        phone: ''
+      },
+
       userId: Number(sessionStorage.getItem('userId')),
       personalGoals: [
         {
@@ -161,8 +175,9 @@ export default {
       deleteAccountModalOpen:
           false,
       // Alert controls
-      showProfileUpdateAlert:
-          false,
+      showProfileUpdateAlert: false,
+      profileErrorMessage: '',
+      showProfileErrorAlert: false,
       // UI helpers
       hasFontAwesome:
           false
@@ -180,23 +195,60 @@ export default {
           }
       )
           .then(response => {
-                this.userProfile = response.data
-              }
-          )
-          .catch(() => NavigationServices.navigateToErrorView())
+            this.userProfile = response.data;
+            // Store a deep copy of the original data
+            this.originalUserProfile = JSON.parse(JSON.stringify(response.data));
+          })
+          .catch(() => NavigationServices.navigateToErrorView());
     },
 
     updateProfile() {
-      axios.patch('/settings-user', this.userProfile, {
-            params: {
-              userId: this.userId
-            }
-          }
-      )
-          .then(() => NavigationServices.navigateToSettingsView())
-          .catch(() => NavigationServices.navigateToErrorView())
-    },
+      // Validate that all fields are filled
+      if (!this.userProfile.email.trim() || !this.userProfile.address.trim() || !this.userProfile.phone.trim()) {
+        // Show validation error as an error message
+        this.profileErrorMessage = "ERROR: All fields are required. Please complete all profile information before saving.";
+        this.showProfileErrorAlert = true;
 
+        // Restore original values
+        this.userProfile = JSON.parse(JSON.stringify(this.originalUserProfile));
+
+        // Hide error after 5 seconds
+        setTimeout(() => {
+          this.dismissProfileErrorAlert();
+        }, 5000);
+        return; // Stop execution - don't submit to API
+      }
+
+      // If validation passes, proceed with the update
+      axios.patch('/settings-user', this.userProfile, {
+        params: {
+          userId: this.userId
+        }
+      })
+          .then(response => {
+            console.log("Profile updated successfully:", response);
+            // Update original profile with new values
+            this.originalUserProfile = JSON.parse(JSON.stringify(this.userProfile));
+            // Show success message
+            this.showProfileUpdateAlert = true;
+            // Hide after 5 seconds
+            setTimeout(() => {
+              this.dismissProfileUpdateAlert();
+            }, 5000);
+          })
+          .catch(error => {
+            console.error("Profile update failed:", error);
+            // Restore original values on API error too
+            this.userProfile = JSON.parse(JSON.stringify(this.originalUserProfile));
+            // Show error message
+            this.profileErrorMessage = "ERROR: Failed to update profile. Please try again later.";
+            this.showProfileErrorAlert = true;
+            // Hide after 5 seconds
+            setTimeout(() => {
+              this.dismissProfileErrorAlert();
+            }, 5000);
+          });
+    },
     loadPersonalGoals() {
       axios.get('/settings-personal-goal', {
             params: {
@@ -244,6 +296,9 @@ export default {
     // Dismiss profile update alert
     dismissProfileUpdateAlert() {
       this.showProfileUpdateAlert = false;
+    },
+    dismissProfileErrorAlert() {
+      this.showProfileErrorAlert = false;
     },
 
     // Password modal methods

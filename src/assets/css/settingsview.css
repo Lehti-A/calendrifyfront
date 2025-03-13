@@ -72,8 +72,8 @@
 
 /* Primary button styling - to match calendar purple */
 .btn-primary {
-    background-color: #8e44ad; /* Same purple as calendar */
-    border-color: #8e44ad;
+    background-color: #8e44ad !important; /* Same purple as calendar */
+    border-color: #8e44ad !important;
 }
 
 .btn-primary:hover {
@@ -124,8 +124,15 @@
     max-width: 500px;
 }
 
-.profile-update-alert .alert {
+.profile-update-alert .alert-success {
     background-color: rgba(25, 135, 84, 0.9);
+    color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border: none;
+}
+.profile-update-alert .alert-danger {
+    background-color: rgba(220, 53, 69, 0.9); /* Red color for danger */
     color: white;
     border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
