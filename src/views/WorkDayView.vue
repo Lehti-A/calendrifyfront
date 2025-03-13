@@ -260,6 +260,9 @@ export default {
     meetings: [], newMeetingTime: '', newMeetingTitle: '', isLoadingMeetings: false,
     // Work mood tracker
     workMood: null,
+    stepId: null,
+    waterId: null,
+
     // Trackers
     selectedGlasses: 0, completedStepsMilestone: 0,
     milestones: [
@@ -313,6 +316,8 @@ export default {
         this.loadMeetings();
         this.loadUserImage();
         this.findMood();
+        this.findStep();
+        this.findWater();
 
         this.workMood = null;
         this.selectedGlasses = 0;
@@ -585,9 +590,69 @@ export default {
     },
 
     // ===== TRACKER METHODS =====
-    setWorkMood(mood) { this.workMood = mood; },
-    setGlasses(count) { this.selectedGlasses = count; },
-    setStepsMilestone(milestone) { this.completedStepsMilestone = milestone; },
+    async findWater() {
+      try {
+        // Make sure we have the day setup first
+        if (!this.dayId) {
+          const response = await DayService.addNewDay({
+            userId: this.userId, date: this.formattedDate, type: "W"
+          });
+          this.dayId = response.data.dayId;
+        }
+
+        // Get water data using userId and date
+        const waterResponse = await axios.get('/water', {
+          params: {
+            userId: this.userId,
+            date: this.formattedDate
+          }
+        });
+
+        if (waterResponse.data && waterResponse.data.waterId) {
+          this.waterId = waterResponse.data.waterId;
+          if (waterResponse.data.count) {
+            this.selectedGlasses = parseInt(waterResponse.data.count);
+          } else {
+            this.selectedGlasses = 0;
+          }
+        } else {
+          this.waterId = null;
+          this.selectedGlasses = 0;
+        }
+      } catch (error) {
+        console.error("Error fetching water data:", error);
+        this.waterId = null;
+        this.selectedGlasses = 0;
+        if (error.response?.status === 403) {
+          navigationServices.navigateToErrorView();
+        }
+      }
+    },
+    async updateWater(glassCount) {
+      this.selectedGlasses = glassCount;
+
+      try {
+        if (!this.waterId) {
+          console.error("Water ID is missing!");
+          await this.findWater();
+          if (!this.waterId) return;
+        }
+
+        await axios.patch('/water', null, {
+          params: {
+            waterId: this.waterId,
+            count: glassCount
+          }
+        });
+      } catch (error) {
+        console.error("Error updating water count:", error);
+        await this.findWater();
+        navigationServices.navigateToErrorView();
+      }
+    },
+    async setGlasses(count) {
+      await this.updateWater(count);
+    },
 
     async findMood() {
       try {
@@ -625,6 +690,72 @@ export default {
         navigationServices.navigateToErrorView();
       }
     },
+    async findStep() {
+      try {
+        // Make sure we have the day setup first
+        if (!this.dayId) {
+          const response = await DayService.addNewDay({
+            userId: this.userId, date: this.formattedDate, type: "W"
+          });
+          this.dayId = response.data.dayId;
+        }
+
+        // Get step data using userId and date
+        const stepResponse = await axios.get('/step', {
+          params: {
+            userId: this.userId,
+            date: this.formattedDate
+          }
+        });
+
+        if (stepResponse.data && stepResponse.data.stepId) {
+          this.stepId = stepResponse.data.stepId;
+          if (stepResponse.data.count) {
+            this.completedStepsMilestone = parseInt(stepResponse.data.count);
+          } else {
+            this.completedStepsMilestone = 0;
+          }
+        } else {
+          this.stepId = null;
+          this.completedStepsMilestone = 0;
+        }
+      } catch (error) {
+        console.error("Error fetching step data:", error);
+        this.stepId = null;
+        this.completedStepsMilestone = 0;
+        if (error.response?.status === 403) {
+          navigationServices.navigateToErrorView();
+        }
+      }
+    },
+    async updateStep(newStep) {
+      this.completedStepsMilestone = newStep;
+
+      try {
+        if (!this.stepId) {
+          console.error("Step ID is missing!");
+          await this.findStep();
+          if (!this.stepId) return;
+        }
+
+        await axios.patch('/step', null, {
+          params: {
+            stepId: this.stepId,
+            count: newStep
+          }
+        });
+      } catch (error) {
+        console.error("Error updating step count:", error);
+        await this.findStep();
+        navigationServices.navigateToErrorView();
+      }
+    },
+    async setStepsMilestone(milestone) {
+      await this.updateStep(milestone);
+    }
+
+
+
 
 
 

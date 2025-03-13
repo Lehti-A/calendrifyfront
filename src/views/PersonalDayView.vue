@@ -289,6 +289,7 @@ export default {
     moodId: null,
     date: '',
     stepId: null,
+    waterId: null,
 
 
     // Constants
@@ -342,7 +343,7 @@ export default {
         this.loadUserImage();
         this.findMood();
         this.findStep();
-
+        this.findWater();
 
         // Reset trackers
         this.tasks = [];
@@ -356,7 +357,6 @@ export default {
         this.isLoading = false;
       }
     },
-
     // === CONTENT EDITING METHODS ===
     // Generic editing helpers
     startEdit(ref, prop, temp) {
@@ -638,14 +638,75 @@ export default {
     },
 
     // === TRACKER METHODS ===
+    async findWater() {
+      try {
+        // Make sure we have the day setup first
+        if (!this.dayId) {
+          const response = await DayService.addNewDay({
+            userId: this.userId, date: this.formattedDate, type: "P"
+          });
+          this.dayId = response.data.dayId;
+        }
 
-    setGlasses(count) {
-      this.selectedGlasses = count;
-    },
-    setStepsMilestone(milestone) {
-      this.completedStepsMilestone = milestone;
-    },
+        // Get water data using userId and date
+        const waterResponse = await axios.get('/water', {
+          params: {
+            userId: this.userId,
+            date: this.formattedDate
+          }
+        });
 
+        if (waterResponse.data && waterResponse.data.waterId) {
+          this.waterId = waterResponse.data.waterId;
+          if (waterResponse.data.count) {
+            this.selectedGlasses = parseInt(waterResponse.data.count);
+          } else {
+            this.selectedGlasses = 0;
+          }
+        } else {
+          // Reset if no data found
+          this.waterId = null;
+          this.selectedGlasses = 0;
+        }
+      } catch (error) {
+        console.error("Error fetching water data:", error);
+        this.waterId = null;
+        this.selectedGlasses = 0;
+        if (error.response?.status === 403) {
+          navigationServices.navigateToErrorView();
+        }
+      }
+    },
+    async updateWater(glassCount) {
+      // Update UI immediately
+      this.selectedGlasses = glassCount;
+
+      try {
+        if (!this.waterId) {
+          console.error("Water ID is missing!");
+          await this.findWater(); // Try to get the waterId first
+          if (!this.waterId) return; // Exit if still no waterId
+        }
+
+        await axios.patch('/water', null, {
+          params: {
+            waterId: this.waterId,
+            count: glassCount
+          }
+        });
+
+        // Optionally refresh data to ensure consistency
+        // await this.findWater();
+      } catch (error) {
+        console.error("Error updating water count:", error);
+        // Reset UI state on error by fetching current data
+        await this.findWater();
+        navigationServices.navigateToErrorView();
+      }
+    },
+    async setGlasses(count) {
+      await this.updateWater(count);
+    },
 
     async findMood() {
       try {
@@ -726,7 +787,6 @@ export default {
         }
       }
     },
-
     async updateStep(newStep) {
       // Update UI immediately for better user experience
       this.completedStepsMilestone = newStep;
@@ -756,6 +816,9 @@ export default {
         navigationServices.navigateToErrorView();
       }
     },
+    async setStepsMilestone(milestone) {
+      await this.updateStep(milestone);
+    }
 
 
 
