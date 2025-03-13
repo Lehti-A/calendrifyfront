@@ -45,14 +45,6 @@
                 <input type="email" class="form-control" id="email" v-model="userProfile.email"/>
               </div>
               <div class="mb-3">
-                <label for="firstName" class="form-label">First Name</label>
-                <input type="text" class="form-control" id="firstName" v-model="userProfile.firstName"/>
-              </div>
-              <div class="mb-3">
-                <label for="lastName" class="form-label">Last Name</label>
-                <input type="text" class="form-control" id="lastName" v-model="userProfile.lastName"/>
-              </div>
-              <div class="mb-3">
                 <label for="address" class="form-label">Address</label>
                 <input type="text" class="form-control" id="address" v-model="userProfile.address"/>
               </div>

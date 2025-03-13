@@ -60,7 +60,7 @@
 
 /* Goals card with height to match combined profile + account actions */
 .goals-card {
-    min-height: 591px; /* 597px - 2% */
+    min-height: 655px; /* 597px - 2% */
 }
 
 /* Left and right column spacing to match other views */
@@ -108,7 +108,7 @@
 .content-container {
     width: 100%;
     flex-grow: 1;
-    max-height: 508px; /* 518px - 2% */
+    max-height: 655px; /* 518px - 2% */
     overflow-y: auto;
 }
 
