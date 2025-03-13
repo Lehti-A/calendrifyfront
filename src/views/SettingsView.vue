@@ -1,4 +1,5 @@
 /* Custom column width - between col-md-4 and col-md-5 */
+/* Custom column width - between col-md-4 and col-md-5 */
 <template>
   <div class="container-fluid px-4 pb-4 settings-container">
     <div class="row mb-5 align-items-center header-row">
@@ -43,14 +44,6 @@
               <div class="mb-3">
                 <label for="email" class="form-label">Email</label>
                 <input type="email" class="form-control" id="email" v-model="userProfile.email"/>
-              </div>
-              <div class="mb-3">
-                <label for="firstName" class="form-label">First Name</label>
-                <input type="text" class="form-control" id="firstName" v-model="userProfile.firstName"/>
-              </div>
-              <div class="mb-3">
-                <label for="lastName" class="form-label">Last Name</label>
-                <input type="text" class="form-control" id="lastName" v-model="userProfile.lastName"/>
               </div>
               <div class="mb-3">
                 <label for="address" class="form-label">Address</label>
@@ -100,15 +93,13 @@
           </div>
           <div class="content-container">
             <ul class="list-group list-group-flush">
-              <li v-for="(goal, index) in goals" :key="index"
+              <li v-for="(goal, index) in personalGoals" :key="index"
                   class="list-group-item d-flex align-items-center justify-content-between">
-                <span>{{ goal.text }}</span>
+                <span>{{ goal.topic }}</span>
                 <div class="goal-actions">
-                  <button
-                      class="btn btn-sm btn-link text-danger p-0"
-                      @click="removeGoal(index)"
-                      title="Remove goal"
-                  >
+                  <button class="btn btn-sm btn-link text-danger p-0"
+                          @click="deletePersonalGoal(goal.personalGoalTemplateId, index)"
+                          title="Remove goal">
                     <i class="fas fa-eraser"></i>
                     <span v-if="!hasFontAwesome">🗑️</span>
                   </button>
@@ -122,10 +113,10 @@
                   type="text"
                   class="form-control form-control-sm"
                   placeholder="Add new goal..."
-                  v-model="newGoal"
-                  @keyup.enter="addGoal"
-              >
-              <button class="btn btn-outline-secondary btn-sm" type="button" @click="addGoal">Add</button>
+                  v-model="newTopic"
+                  @keyup.enter="addPersonalGoal"
+              />
+              <button class="btn btn-outline-secondary btn-sm" type="button" @click="addPersonalGoal">Add</button>
             </div>
           </div>
         </div>
@@ -137,6 +128,8 @@
 <script>
 import ChangePasswordModal from "@/components/modal/ChangePasswordModal.vue";
 import DeleteAccountModal from "@/components/modal/DeleteAccountModal.vue";
+import axios from "axios";
+import NavigationServices from "@/services/NavigationServices";
 
 export default {
   name: 'SettingsView',
@@ -149,113 +142,108 @@ export default {
       // User profile settings
       userProfile: {
         email: '',
-        firstName: '',
-        lastName: '',
         address: '',
         phone: ''
       },
-
-      // Personal goals
-      goals: [
-        {text: "Play tennis", completed: false},
-        {text: "Uurida, et kuidas me linnukeste asjaga süsteemi update-ime", completed: false}
+      userId: Number(sessionStorage.getItem('userId')),
+      personalGoals: [
+        {
+          topic: ''
+        }
       ],
-      newGoal: "",
+      newTopic: '',
+      personalGoalTemplateId: '',
+      newGoal: '',
 
       // Modal controls
-      passwordModalOpen: false,
-      deleteAccountModalOpen: false,
-
+      passwordModalOpen:
+          false,
+      deleteAccountModalOpen:
+          false,
       // Alert controls
-      showProfileUpdateAlert: false,
-
+      showProfileUpdateAlert:
+          false,
       // UI helpers
-      hasFontAwesome: false
-    };
-  },
-  computed: {
-    currentDay() {
-      return new Date().getDate();
-    },
-    currentMonth() {
-      const months = [
-        'January', 'February', 'March', 'April', 'May', 'June',
-        'July', 'August', 'September', 'October', 'November', 'December'
-      ];
-      return months[new Date().getMonth()];
-    },
-    currentWeekday() {
-      const days = [
-        'Sunday', 'Monday', 'Tuesday', 'Wednesday',
-        'Thursday', 'Friday', 'Saturday'
-      ];
-      return days[new Date().getDay()];
+      hasFontAwesome:
+          false
     }
+        ;
   },
-  created() {
-    // Load user data from localStorage or backend
-    this.loadUserData();
-  },
+
   methods: {
-    // Load user data
+
     loadUserData() {
-      // In a real app, you would fetch this from an API
-      // For now, we'll use hardcoded data
-      this.userProfile = {
-        email: 'user@example.com',
-        firstName: 'John',
-        lastName: 'Doe',
-        address: '123 Main Street',
-        phone: '+1234567890'
-      };
-
-      // Load goals from localStorage
-      const savedGoals = localStorage.getItem('goals');
-      if (savedGoals) {
-        this.goals = JSON.parse(savedGoals);
-      }
+      axios.get('/settings-user', {
+            params: {
+              userId: this.userId
+            }
+          }
+      )
+          .then(response => {
+                this.userProfile = response.data
+              }
+          )
+          .catch(() => NavigationServices.navigateToErrorView())
     },
 
-    // Update profile
     updateProfile() {
-      // In a real app, you would send this to an API
-      console.log('Updating profile:', this.userProfile);
-
-      // Save to localStorage for demo purposes
-      localStorage.setItem('userProfile', JSON.stringify(this.userProfile));
-
-      // Show success message
-      this.showProfileUpdateAlert = true;
-
-      // Auto-dismiss the alert after 4 seconds
-      setTimeout(() => {
-        this.dismissProfileUpdateAlert();
-      }, 4000);
+      axios.patch('/settings-user', this.userProfile, {
+            params: {
+              userId: this.userId
+            }
+          }
+      )
+          .then(() => NavigationServices.navigateToSettingsView())
+          .catch(() => NavigationServices.navigateToErrorView())
     },
 
+    loadPersonalGoals() {
+      axios.get('/settings-personal-goal', {
+            params: {
+              userId: this.userId
+            }
+          }
+      )
+          .then(response => {
+                this.personalGoals = response.data.personalGoals || response.data;
+              }
+          )
+          .catch(() => NavigationServices.navigateToErrorView())
+    },
+    addPersonalGoal() {
+      if (!this.newTopic.trim()) {
+        return; // Prevent empty goals from being added
+      }
+
+      axios.post('/settings-personal-goal', { topic: this.newTopic }, {
+        params: { userId: this.userId }
+      })
+          .then(response => {
+            this.personalGoals.push(response.data); // Add new goal to the list
+            this.newTopic = ''; // Clear input field
+            this.loadPersonalGoals();
+          })
+          .catch(() => NavigationServices.navigateToErrorView());
+    },
+
+    deletePersonalGoal(personalGoalTemplateId, index) {
+      axios({
+        method: 'delete',
+        url: '/settings-personal-goal',
+        params: { personalGoalTemplateId }
+      })
+          .then(response => {
+            this.personalGoals.splice(index, 1);
+            console.log("Goal deleted successfully");
+          })
+          .catch(error => {
+            console.error("Delete error:", error);
+            alert("Failed to delete goal");
+          });
+    },
     // Dismiss profile update alert
     dismissProfileUpdateAlert() {
       this.showProfileUpdateAlert = false;
-    },
-
-    // Goal management
-    addGoal() {
-      if (this.newGoal.trim()) {
-        this.goals.push({
-          text: this.newGoal.trim(),
-          completed: false
-        });
-        this.newGoal = "";
-
-        // Save to localStorage
-        localStorage.setItem('goals', JSON.stringify(this.goals));
-      }
-    },
-    removeGoal(index) {
-      this.goals.splice(index, 1);
-
-      // Save to localStorage
-      localStorage.setItem('goals', JSON.stringify(this.goals));
     },
 
     // Password modal methods
@@ -273,8 +261,12 @@ export default {
     closeDeleteAccountModal() {
       this.deleteAccountModalOpen = false;
     }
-  }
-};
+  },
+  beforeMount() {
+    this.loadUserData()
+    this.loadPersonalGoals()
+  },
+}
 </script>
 
 <style src="@/assets/css/settingsview.css" scoped></style>

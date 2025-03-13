@@ -48,9 +48,8 @@
 import Modal from "@/components/modal/Modal.vue";
 import AlertDanger from "@/components/alert/AlertDanger.vue";
 import AlertSuccess from "@/components/alert/AlertSuccess.vue";
-// Use the appropriate service for password updates
-// In a real application, you might have something like:
-// import UserService from "@/services/UserService";
+import axios from "axios";
+import NavigationServices from "@/services/NavigationServices";
 
 export default {
   name: 'ChangePasswordModal',
@@ -71,7 +70,8 @@ export default {
       confirmPassword: '',
       errorMessage: '',
       successMessage: 'Password changed successfully!',
-      showSuccessMessage: false
+      showSuccessMessage: false,
+      userId: Number(sessionStorage.getItem('userId'))
     }
   },
 
@@ -86,28 +86,44 @@ export default {
       // Check if all fields are filled
       if (!this.currentPassword || !this.newPassword || !this.confirmPassword) {
         this.showError('Please fill in all fields');
+        this.resetForm();
         return false;
       }
 
       // Check if new password and confirmation match
       if (this.newPassword !== this.confirmPassword) {
         this.showError('New passwords do not match');
+        this.resetForm();
         return false;
       }
+
       return true;
     },
 
     sendPasswordChangeRequest() {
-      // In a real application, you would call your API here
-      // Example:
-      // PasswordService.changePassword(this.currentPassword, this.newPassword)
-      //   .then(response => this.handleSuccess())
-      //   .catch(error => this.handleError(error));
+      // Create the request payload
+      const passwordData = {
+        newPassword: this.newPassword
+      };
 
-      // For now, we'll simulate a successful password change
-      this.handleSuccess();
+      // Send the password change request
+      axios.patch('/settings-password', passwordData, {
+        params: {
+          userId: this.userId
+        },
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+          .then(response => {
+            console.log("Password update successful:", response);
+            this.handleSuccess();
+          })
+          .catch(error => {
+            console.error("Password update failed:", error);
+            this.handleError(error);
+          });
     },
-
     handleSuccess() {
       this.showSuccessMessage = true;
       this.errorMessage = '';
@@ -123,11 +139,40 @@ export default {
     },
 
     handleError(error) {
-      // Handle API errors here
-      this.showError('Failed to change password. Please try again.');
+      // Handle different types of API errors
+      if (error.response) {
+        // The request was made and the server responded with a status code
+        // that falls out of the range of 2xx
+        if (error.response.status === 401) {
+          this.showError('Current password is incorrect');
+          // Clear only the current password field for retry
+          this.currentPassword = '';
+        } else if (error.response.status === 400) {
+          this.showError('Invalid password format');
+          // Clear all fields
+          this.resetForm();
+        } else if (error.response.status === 404) {
+          this.showError('User not found');
+          this.resetForm();
+        } else if (error.response.data && error.response.data.message) {
+          // Display server-provided error message if available
+          this.showError(error.response.data.message);
+          this.resetForm();
+        } else {
+          this.showError('Failed to change password. Please try again.');
+          this.resetForm();
+        }
+      } else if (error.request) {
+        // The request was made but no response was received
+        this.showError('Server not responding. Please try again later.');
+        this.resetForm();
+      } else {
+        // Something happened in setting up the request that triggered an Error
+        this.showError('An error occurred. Please try again.');
+        this.resetForm();
+      }
       console.error(error);
     },
-
     showError(message) {
       this.errorMessage = message;
       setTimeout(this.resetErrorMessage, 4000);
