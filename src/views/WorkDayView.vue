@@ -124,12 +124,9 @@
             <div class="tracker-section">
               <h5 class="mb-3 text-center">Work Mood today?</h5>
               <div id="mood-icons" class="text-center">
-                <span class="mood-icon" :class="{ 'active-sad': workMood === 'stressed' }"
-                      @click="setWorkMood('stressed')" title="Stressed">😓</span>
-                <span class="mood-icon" :class="{ 'active-neutral': workMood === 'neutral' }"
-                      @click="setWorkMood('neutral')" title="Neutral">😐</span>
-                <span class="mood-icon" :class="{ 'active-happy': workMood === 'productive' }"
-                      @click="setWorkMood('productive')" title="Productive">😊</span>
+                <span class="mood-icon" :class="{ 'active-sad': workMood === 'S' }" @click="updateMood('S')" title="Sad">😢</span>
+                <span class="mood-icon" :class="{ 'active-neutral': workMood === 'N' }" @click="updateMood('N')" title="Neutral">😐</span>
+                <span class="mood-icon" :class="{ 'active-happy': workMood === 'H' }" @click="updateMood('H')" title="Happy">😊</span>
               </div>
             </div>
           </div>
@@ -228,6 +225,7 @@ import DayService from '@/services/DayService';
 import ActivityService from "@/services/ActivityService";
 import navigationServices from "@/services/NavigationServices";
 import MeetingService from "@/services/MeetingService";
+import axios from "axios";
 
 export default {
   name: 'WorkDayView',
@@ -268,7 +266,12 @@ export default {
       {steps: 2500, label: "2,500"}, {steps: 5000, label: "5,000"},
       {steps: 7500, label: "7,500"}, {steps: 10000, label: "10,000+"}
     ],
-    hasFontAwesome: false
+    hasFontAwesome: false,
+
+    //todo Lehti lisatud
+    moodId: null,
+
+
   }),
 
   computed: {
@@ -308,6 +311,8 @@ export default {
 
         this.loadActivities();
         this.loadMeetings();
+        this.loadUserImage();
+        this.findMood();
 
         this.workMood = null;
         this.selectedGlasses = 0;
@@ -415,6 +420,7 @@ export default {
         await ActivityService.updateActivityStatus(activityId, isDone);
         const activityIndex = this.activities.findIndex(a => a.activityId === activityId);
         if (activityIndex !== -1) this.activities[activityIndex].isDone = isDone;
+        this.loadActivities();
       } catch (error) {
         console.error("Error updating activity:", error);
         if (error.response?.status === 403) navigationServices.navigateToErrorView();
@@ -581,7 +587,47 @@ export default {
     // ===== TRACKER METHODS =====
     setWorkMood(mood) { this.workMood = mood; },
     setGlasses(count) { this.selectedGlasses = count; },
-    setStepsMilestone(milestone) { this.completedStepsMilestone = milestone; }
+    setStepsMilestone(milestone) { this.completedStepsMilestone = milestone; },
+
+    async findMood() {
+      try {
+        const response = await DayService.addNewDay({
+          userId: this.userId, date: this.formattedDate, type: "W"
+        });
+        this.dayId = response.data.dayId;
+
+        const moodResponse = await axios.get('/mood', { params: { dayId: this.dayId } });
+        if (moodResponse.data) {
+          this.workMood = moodResponse.data.state;
+          this.moodId = moodResponse.data.moodId;  // Ensure moodId is set correctly
+        }
+      } catch (error) {
+        navigationServices.navigateToErrorView();
+      }
+    },
+
+
+    async updateMood(newMood) {
+      this.workMood = newMood; // Update state before making the request
+
+      if (!this.moodId) {
+        console.error("Mood ID is missing!");
+        return;
+      }
+
+      try {
+        await axios.patch('/mood', null, {
+          params: { moodId: this.moodId, state: this.workMood }
+        });
+        await this.loadSavedData();
+      } catch (error) {
+        console.error("Error updating mood:", error);
+        navigationServices.navigateToErrorView();
+      }
+    },
+
+
+
   }
 };
 </script>

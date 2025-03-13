@@ -25,13 +25,21 @@
               <div class="card-header bg-transparent"><strong>Focus for Today</strong></div>
               <div class="card-body focus-body">
                 <div class="seamless-input-container">
-                  <div v-if="!isEditing && !dailyFocus" class="placeholder-text" @click="startEditing">{{ placeholder }}</div>
+                  <div v-if="!isEditing && !dailyFocus" class="placeholder-text" @click="startEditing">{{
+                      placeholder
+                    }}
+                  </div>
                   <div v-if="!isEditing && dailyFocus" class="content-text" @click="startEditing">{{ dailyFocus }}</div>
                   <div v-if="isEditing" class="editing-wrapper">
-                    <input ref="seamlessInput" type="text" class="seamless-input" v-model="dailyFocus" @blur="handleBlur" @keydown.enter="finishEditing">
+                    <input ref="seamlessInput" type="text" class="seamless-input" v-model="dailyFocus"
+                           @blur="handleBlur" @keydown.enter="finishEditing">
                     <div class="focus-button-row">
-                      <button class="btn btn-sm btn-primary focus-save-btn" @click.stop="finishEditing" title="Save">Save</button>
-                      <button v-if="dailyFocus" class="btn btn-sm btn-outline-danger focus-clear-btn" @click.stop="clearFocus" title="Clear text">Clear</button>
+                      <button class="btn btn-sm btn-primary focus-save-btn" @click.stop="finishEditing" title="Save">
+                        Save
+                      </button>
+                      <button v-if="dailyFocus" class="btn btn-sm btn-outline-danger focus-clear-btn"
+                              @click.stop="clearFocus" title="Clear text">Clear
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -45,22 +53,28 @@
           <div class="card-header bg-transparent"><strong>Activities</strong></div>
           <div class="content-container">
             <ul class="list-group list-group-flush" v-if="activities.length > 0">
-              <li v-for="activity in activities" :key="activity.activityId" class="list-group-item py-2 d-flex justify-content-between align-items-center">
+              <li v-for="activity in activities" :key="activity.activityId"
+                  class="list-group-item py-2 d-flex justify-content-between align-items-center">
                 <span :class="{ 'completed-activity': activity.isDone }">{{ activity.topic }}</span>
                 <div class="activity-actions">
-                  <input type="checkbox" class="form-check-input ms-2" :checked="activity.isDone" @change="toggleActivityCompletion(activity.activityId, !activity.isDone)">
-                  <button class="btn btn-sm btn-link text-danger p-0" @click="removeActivity(activity.activityId)" title="Remove activity">🗑️</button>
+                  <input type="checkbox" class="form-check-input ms-2" :checked="activity.isDone"
+                         @change="toggleActivityCompletion(activity.activityId, !activity.isDone)">
+                  <button class="btn btn-sm btn-link text-danger p-0" @click="removeActivity(activity.activityId)"
+                          title="Remove activity">🗑️
+                  </button>
                 </div>
               </li>
             </ul>
             <div v-else-if="isLoadingActivities" class="text-center py-3">
-              <div class="spinner-border spinner-border-sm" role="status"><span class="visually-hidden">Loading...</span></div>
+              <div class="spinner-border spinner-border-sm" role="status"><span
+                  class="visually-hidden">Loading...</span></div>
             </div>
             <div v-else class="card-body text-center py-2"><p class="text-muted my-1">No activities yet</p></div>
           </div>
           <div class="card-footer bg-transparent">
             <div class="input-group">
-              <input type="text" class="form-control form-control-sm" placeholder="Add new activity..." v-model="newActivity" @keyup.enter="addActivity">
+              <input type="text" class="form-control form-control-sm" placeholder="Add new activity..."
+                     v-model="newActivity" @keyup.enter="addActivity">
               <button class="btn btn-outline-secondary btn-sm" type="button" @click="addActivity">Add</button>
             </div>
           </div>
@@ -76,11 +90,14 @@
                 <p v-else class="text-muted thoughts-placeholder">Click here to add your thoughts...</p>
               </div>
               <div v-else>
-                <textarea class="form-control thoughts-textarea" v-model="otherThoughts" placeholder="Enter your thoughts here..." ref="thoughtsTextarea"></textarea>
+                <textarea class="form-control thoughts-textarea" v-model="otherThoughts"
+                          placeholder="Enter your thoughts here..." ref="thoughtsTextarea"></textarea>
                 <div class="mt-2">
                   <button class="btn btn-sm btn-primary" @click="saveThoughts">Save</button>
                   <button class="btn btn-sm btn-outline-secondary ms-2" @click="cancelEditThoughts">Cancel</button>
-                  <button v-if="otherThoughts" class="btn btn-sm btn-outline-danger float-end" @click="clearThoughts">Clear</button>
+                  <button v-if="otherThoughts" class="btn btn-sm btn-outline-danger float-end" @click="clearThoughts">
+                    Clear
+                  </button>
                 </div>
               </div>
             </div>
@@ -92,13 +109,20 @@
           <div class="card-header bg-transparent"><strong>Personal Goals</strong></div>
           <div class="content-container">
             <ul class="list-group list-group-flush">
-              <li v-for="(task, index) in tasks" :key="index" class="list-group-item d-flex align-items-center justify-content-between">
+              <li v-for="(task, index) in tasks" :key="index"
+                  class="list-group-item d-flex align-items-center justify-content-between">
                 <div class="task-text-container" style="flex-grow: 1; margin-right: 10px;">
-                  <span v-if="!task.isEditing" :class="{ 'completed-task': task.completed }" @click="startEditingTask(index)" style="cursor: text; display: block; width: 100%;">{{ task.text }}</span>
-                  <input v-if="task.isEditing" type="text" class="form-control form-control-sm" v-model="task.text" @blur="finishEditingTask(index)" @keyup.enter="finishEditingTask(index)" ref="taskInput" style="width: 100%;">
+                  <span v-if="!task.isEditing" :class="{ 'completed-task': task.completed }"
+                        @click="startEditingTask(index)" style="cursor: text; display: block; width: 100%;">{{
+                      task.text
+                    }}</span>
+                  <input v-if="task.isEditing" type="text" class="form-control form-control-sm" v-model="task.text"
+                         @blur="finishEditingTask(index)" @keyup.enter="finishEditingTask(index)" ref="taskInput"
+                         style="width: 100%;">
                 </div>
                 <div class="task-actions">
-                  <input type="checkbox" class="form-check-input" :checked="task.completed" @change="toggleTaskCompletion(index)">
+                  <input type="checkbox" class="form-check-input" :checked="task.completed"
+                         @change="toggleTaskCompletion(index)">
                 </div>
               </li>
             </ul>
@@ -109,12 +133,15 @@
       <!-- Right Sidebar Column -->
       <div class="col-md-4 right-column">
         <!-- Image Card -->
-        <div class="card mb-4 image-card" style="width: 80%; aspect-ratio: 1/1; margin: 0 auto; padding: 0; overflow: hidden; position: relative;">
-          <img v-if="!userImageUrl" src="../assets/images/diary.png" class="card-img" alt="Default diary image" />
-          <img v-else :src="userImageUrl" class="card-img" alt="User profile image" />
-          <div v-if="!userImageUrl" class="image-action-button add-button" @click="triggerImageUpload" title="Add your picture">+</div>
+        <div class="card mb-4 image-card"
+             style="width: 80%; aspect-ratio: 1/1; margin: 0 auto; padding: 0; overflow: hidden; position: relative;">
+          <img v-if="!userImageUrl" src="../assets/images/diary.png" class="card-img" alt="Default diary image"/>
+          <img v-else :src="userImageUrl" class="card-img" alt="User profile image"/>
+          <div v-if="!userImageUrl" class="image-action-button add-button" @click="triggerImageUpload"
+               title="Add your picture">+
+          </div>
           <div v-else class="image-action-button delete-button" @click="deleteUserImage" title="Remove picture">×</div>
-          <input type="file" ref="imageInput" @change="handleImageUpload" accept="image/*" style="display: none;" />
+          <input type="file" ref="imageInput" @change="handleImageUpload" accept="image/*" style="display: none;"/>
         </div>
 
         <!-- Meetings -->
@@ -122,22 +149,33 @@
           <div class="card-header bg-transparent"><strong>Personal Meetings</strong></div>
           <div class="content-container">
             <ul class="list-group list-group-flush" v-if="meetings.length > 0">
-              <li v-for="(meeting, index) in meetings" :key="meeting.meetingId || index" class="list-group-item meeting-item" @mouseenter="meeting.showDelete = true" @mouseleave="meeting.showDelete = false">
+              <li v-for="(meeting, index) in meetings" :key="meeting.meetingId || index"
+                  class="list-group-item meeting-item" @mouseenter="meeting.showDelete = true"
+                  @mouseleave="meeting.showDelete = false">
                 <div class="meeting-content">
-                  <span class="meeting-info" style="width: calc(100% - 40px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ meeting.time }} - {{ meeting.title }}</span>
-                  <span v-if="meeting.showDelete" @click="removeMeeting(index)" title="Remove meeting" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); font-size: 18px; color: #dc3545; width: 25px; height: 25px; background: rgba(255,255,255,0.8); border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer;">×</span>
+                  <span class="meeting-info"
+                        style="width: calc(100% - 40px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{
+                      meeting.time
+                    }} - {{ meeting.title }}</span>
+                  <span v-if="meeting.showDelete" @click="removeMeeting(index)" title="Remove meeting"
+                        style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); font-size: 18px; color: #dc3545; width: 25px; height: 25px; background: rgba(255,255,255,0.8); border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer;">×</span>
                 </div>
               </li>
             </ul>
             <div v-else-if="isLoadingMeetings" class="text-center py-3">
-              <div class="spinner-border spinner-border-sm" role="status"><span class="visually-hidden">Loading...</span></div>
+              <div class="spinner-border spinner-border-sm" role="status"><span
+                  class="visually-hidden">Loading...</span></div>
             </div>
             <div v-else class="card-body text-center py-2"><p class="text-muted my-1">No meetings yet</p></div>
           </div>
           <div class="card-footer bg-transparent">
-            <div class="mb-2"><input type="text" class="form-control form-control-sm" placeholder="Time (e.g. 14:00)" v-model="newMeetingTime"></div>
-            <div class="mb-2"><input type="text" class="form-control form-control-sm" placeholder="Meeting title" v-model="newMeetingTitle" @keyup.enter="addMeeting"></div>
-            <button class="btn btn-sm btn-primary w-100" @click="addMeeting" :disabled="!newMeetingTime || !newMeetingTitle">Add Meeting</button>
+            <div class="mb-2"><input type="text" class="form-control form-control-sm" placeholder="Time (e.g. 14:00)"
+                                     v-model="newMeetingTime"></div>
+            <div class="mb-2"><input type="text" class="form-control form-control-sm" placeholder="Meeting title"
+                                     v-model="newMeetingTitle" @keyup.enter="addMeeting"></div>
+            <button class="btn btn-sm btn-primary w-100" @click="addMeeting"
+                    :disabled="!newMeetingTime || !newMeetingTitle">Add Meeting
+            </button>
           </div>
         </div>
 
@@ -147,7 +185,8 @@
           <div class="mb-4 tracker-section">
             <h5 class="mb-3 text-center">Glasses of Water</h5>
             <div class="water-icons">
-              <div v-for="(glass, index) in 8" :key="index" class="water-glass" @click="setGlasses(index + 1)" title="Glass of Water">
+              <div v-for="(glass, index) in 8" :key="index" class="water-glass" @click="setGlasses(index + 1)"
+                   title="Glass of Water">
                 <div class="glass-container">
                   <div class="water-fill" :style="{ height: index < selectedGlasses ? '90%' : '0%' }"></div>
                 </div>
@@ -159,9 +198,9 @@
           <div class="mb-4 tracker-section">
             <h5 class="mb-3 text-center">Mood today?</h5>
             <div id="mood-icons" class="text-center">
-              <span class="mood-icon" :class="{ 'active-sad': personalMood === 'sad' }" @click="setMood('sad')" title="Sad">😢</span>
-              <span class="mood-icon" :class="{ 'active-neutral': personalMood === 'neutral' }" @click="setMood('neutral')" title="Neutral">😐</span>
-              <span class="mood-icon" :class="{ 'active-happy': personalMood === 'happy' }" @click="setMood('happy')" title="Happy">😊</span>
+              <span class="mood-icon" :class="{ 'active-sad': personalMood === 'S' }" @click="updateMood('S')" title="Sad">😢</span>
+              <span class="mood-icon" :class="{ 'active-neutral': personalMood === 'N' }" @click="updateMood('N')" title="Neutral">😐</span>
+              <span class="mood-icon" :class="{ 'active-happy': personalMood === 'H' }" @click="updateMood('H')" title="Happy">😊</span>
             </div>
           </div>
 
@@ -169,10 +208,14 @@
           <div class="tracker-section">
             <h5 class="mb-4 text-center">Steps</h5>
             <div class="steps-milestones">
-              <div v-for="(milestone, index) in milestones" :key="index" class="milestone-item" @click="setStepsMilestone(index + 1)" :title="`${milestone.steps} Steps`">
+              <div v-for="(milestone, index) in milestones" :key="index" class="milestone-item"
+                   @click="setStepsMilestone(index + 1)" :title="`${milestone.steps} Steps`">
                 <div class="checkbox-container" :class="{ 'checked': index < completedStepsMilestone }">
-                  <svg v-if="index < completedStepsMilestone" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" class="checkmark-icon">
-                    <path fill-rule="evenodd" d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 011.04-.208z" clip-rule="evenodd"/>
+                  <svg v-if="index < completedStepsMilestone" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                       fill="white" class="checkmark-icon">
+                    <path fill-rule="evenodd"
+                          d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 011.04-.208z"
+                          clip-rule="evenodd"/>
                   </svg>
                 </div>
                 <div class="milestone-label">{{ milestone.label }}</div>
@@ -197,25 +240,33 @@ import DayService from '@/services/DayService';
 import ActivityService from '@/services/ActivityService';
 import navigationServices from '@/services/NavigationServices';
 import MeetingService from "@/services/MeetingService";
+import axios from "axios";
 
 export default {
   name: 'PersonalDayView',
 
-  beforeMount() { this.dailyFocus = this.otherThoughts = ""; },
+  beforeMount() {
+    this.dailyFocus = this.otherThoughts = "";
+  },
 
   created() {
     const selectedDate = sessionStorage.getItem('selectedCalendarDate');
     this.selectedDate = selectedDate ?
-        new Date(...selectedDate.split('-').map(Number).map((v,i) => i === 1 ? v-1 : v)) :
+        new Date(...selectedDate.split('-').map(Number).map((v, i) => i === 1 ? v - 1 : v)) :
         new Date();
 
     if (selectedDate) sessionStorage.removeItem('selectedCalendarDate');
     this.userId = Number(sessionStorage.getItem('userId') || '1');
   },
 
-  mounted() { this.$nextTick(this.loadSavedData); },
+  mounted() {
+    this.$nextTick(this.loadSavedData);
+  },
 
-  beforeDestroy() { this.dailyFocus = this.otherThoughts = ""; this.dayId = null; },
+  beforeDestroy() {
+    this.dailyFocus = this.otherThoughts = "";
+    this.dayId = null;
+  },
 
   data: () => ({
     // Core data
@@ -234,6 +285,10 @@ export default {
     personalMood: null, selectedGlasses: 0, completedStepsMilestone: 0,
     tasks: [], newTask: "",
 
+    //todo Lehti lisatud
+    moodId: null,
+
+
     // Constants
     milestones: [
       {steps: 2500, label: "2,500"}, {steps: 5000, label: "5,000"},
@@ -243,7 +298,9 @@ export default {
   }),
 
   computed: {
-    currentDay() { return (this.selectedDate || new Date()).getDate(); },
+    currentDay() {
+      return (this.selectedDate || new Date()).getDate();
+    },
 
     currentMonth() {
       const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -281,6 +338,8 @@ export default {
         this.loadActivities();
         this.loadMeetings();
         this.loadUserImage();
+        this.findMood();
+
 
         // Reset trackers
         this.tasks = [];
@@ -309,7 +368,7 @@ export default {
 
       const content = typeof this[contentProp] === 'string' ? this[contentProp].trim() : this[contentProp];
       if (this.dayId) {
-        const updateData = { dayId: this.dayId };
+        const updateData = {dayId: this.dayId};
         updateData[contentProp] = content;
         DayService[updateMethod](updateData).catch(error => console.error(`Error updating ${contentProp}:`, error));
       }
@@ -323,7 +382,10 @@ export default {
     },
 
     clearFocus(event) {
-      if (event) { event.preventDefault(); event.stopPropagation(); }
+      if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
       this.dailyFocus = "";
       this.clearButtonClicked = true;
       setTimeout(() => this.$refs.seamlessInput?.focus(), 50);
@@ -333,7 +395,7 @@ export default {
       this.isEditing = false;
       this.dailyFocus = this.dailyFocus.trim();
       if (this.dayId) {
-        DayService.updateDayFocus({ dayId: this.dayId, focus: this.dailyFocus })
+        DayService.updateDayFocus({dayId: this.dayId, focus: this.dailyFocus})
             .catch(error => console.error("Error updating focus:", error));
       }
     },
@@ -355,7 +417,7 @@ export default {
     saveThoughts() {
       this.editingThoughts = false;
       if (this.dayId) {
-        DayService.updateDayThought({ dayId: this.dayId, thoughts: this.otherThoughts })
+        DayService.updateDayThought({dayId: this.dayId, thoughts: this.otherThoughts})
             .catch(error => console.error("Error updating thoughts:", error));
       }
     },
@@ -392,6 +454,7 @@ export default {
         await ActivityService.updateActivityStatus(activityId, isDone);
         const idx = this.activities.findIndex(a => a.activityId === activityId);
         if (idx !== -1) this.activities[idx].isDone = isDone;
+        this.loadActivities();
       } catch (error) {
         console.error("Error updating activity status:", error);
         error.response?.status === 403 ?
@@ -414,7 +477,7 @@ export default {
       if (!this.newActivity.trim() || !this.dayId) return;
 
       try {
-        await ActivityService.addActivity({ topic: this.newActivity.trim(), dayId: this.dayId });
+        await ActivityService.addActivity({topic: this.newActivity.trim(), dayId: this.dayId});
         this.newActivity = "";
         this.loadActivities();
       } catch (error) {
@@ -424,7 +487,9 @@ export default {
     },
 
     // === IMAGE METHODS ===
-    triggerImageUpload() { this.$refs.imageInput.click(); },
+    triggerImageUpload() {
+      this.$refs.imageInput.click();
+    },
 
     handleImageUpload(event) {
       const file = event.target.files[0];
@@ -570,12 +635,55 @@ export default {
     },
 
     // === TRACKER METHODS ===
-    setMood(mood) { this.personalMood = mood; },
-    setGlasses(count) { this.selectedGlasses = count; },
-    setStepsMilestone(milestone) { this.completedStepsMilestone = milestone; },
 
-  }
-};
+    setGlasses(count) {
+      this.selectedGlasses = count;
+    },
+    setStepsMilestone(milestone) {
+      this.completedStepsMilestone = milestone;
+    },
+
+
+    async findMood() {
+      try {
+        const response = await DayService.addNewDay({
+          userId: this.userId, date: this.formattedDate, type: "P"
+        });
+        this.dayId = response.data.dayId;
+
+        const moodResponse = await axios.get('/mood', { params: { dayId: this.dayId } });
+        if (moodResponse.data) {
+          this.personalMood = moodResponse.data.state;
+          this.moodId = moodResponse.data.moodId;  // Ensure moodId is set correctly
+        }
+      } catch (error) {
+        navigationServices.navigateToErrorView();
+      }
+    },
+
+
+    async updateMood(newMood) {
+      this.personalMood = newMood; // Update state before making the request
+
+      if (!this.moodId) {
+        console.error("Mood ID is missing!");
+        return;
+      }
+
+      try {
+        await axios.patch('/mood', null, {
+          params: { moodId: this.moodId, state: this.personalMood }
+        });
+        await this.loadSavedData();
+      } catch (error) {
+        console.error("Error updating mood:", error);
+        navigationServices.navigateToErrorView();
+      }
+    },
+
+
+    }
+  };
 </script>
 
 <style src="@/assets/css/personaldayview.css" scoped></style>
