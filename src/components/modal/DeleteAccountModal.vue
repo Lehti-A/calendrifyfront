@@ -8,16 +8,7 @@
 
     <template #body>
       <div class="d-flex flex-column align-items-center justify-content-center mt-4">
-        <div class="col mb-4">
-          <AlertDanger :message="errorMessage"/>
-        </div>
-
         <p class="text-center mb-4">Are you sure you want to delete your account? This action cannot be undone.</p>
-
-        <div class="mb-3 w-100">
-          <label for="confirmPassword" class="form-label">Enter your password to confirm</label>
-          <input v-model="password" type="password" class="form-control" id="confirmPassword" placeholder="Enter your password" required/>
-        </div>
       </div>
     </template>
 
@@ -34,16 +25,13 @@
 
 <script>
 import Modal from "@/components/modal/Modal.vue";
-import AlertDanger from "@/components/alert/AlertDanger.vue";
-// You'll need to create or import a service for account deletion
-// import UserService from "@/services/UserService";
+import axios from "axios";
 import NavigationServices from "@/services/NavigationServices";
 
 export default {
   name: 'DeleteAccountModal',
   components: {
-    Modal,
-    AlertDanger
+    Modal
   },
 
   props: {
@@ -52,51 +40,30 @@ export default {
 
   data() {
     return {
-      password: '',
-      errorMessage: ''
+      userId: Number(sessionStorage.getItem('userId'))
     }
   },
 
   methods: {
     deleteAccount() {
-      if (this.validatePassword()) {
-        this.sendDeleteAccountRequest();
-      }
-    },
-
-    validatePassword() {
-      if (!this.password) {
-        this.showError('Please enter your password to confirm account deletion');
-        return false;
-      }
-      return true;
+      this.sendDeleteAccountRequest();
     },
 
     sendDeleteAccountRequest() {
-      // In a real application, you would call your API here
-      // Example:
-      // UserService.deleteAccount(this.password)
-      //   .then(response => this.handleSuccess())
-      //   .catch(error => this.handleError(error));
-
-      // For demo purposes, we'll simulate a password check
-      // In a real application, this would be done on the server
-      const correctPassword = "password123"; // This would come from your authentication system
-
-      if (this.password === correctPassword) {
-        this.handleSuccess();
-      } else {
-        // Simulate wrong password error
-        const error = {
-          response: {
-            status: 403,
-            data: {
-              message: "Incorrect password. Please try again."
-            }
-          }
-        };
-        this.handleError(error);
-      }
+      // Send the delete request to the backend
+      axios({
+        method: 'delete',
+        url: '/settings-user',
+        params: { userId: this.userId }
+      })
+          .then(response => {
+            console.log("Account deletion successful:", response);
+            this.handleSuccess();
+          })
+          .catch(error => {
+            console.error("Account deletion failed:", error);
+            // Just log the error but don't show it to the user
+          });
     },
 
     handleSuccess() {
@@ -108,32 +75,6 @@ export default {
 
       // Navigate to home view
       NavigationServices.navigateToHomeView();
-    },
-
-    handleError(error) {
-      // Handle API errors here
-      if (error.response && error.response.status === 403) {
-        this.showError('Incorrect password. Please try again.');
-      } else if (error.response && error.response.data && error.response.data.message) {
-        this.showError(error.response.data.message);
-      } else {
-        this.showError('Failed to delete account. Please try again later.');
-      }
-      console.error(error);
-      this.resetForm();
-    },
-
-    showError(message) {
-      this.errorMessage = message;
-      setTimeout(this.resetErrorMessage, 4000);
-    },
-
-    resetErrorMessage() {
-      this.errorMessage = '';
-    },
-
-    resetForm() {
-      this.password = '';
     }
   }
 }
