@@ -382,27 +382,7 @@ export default {
         this.isLoading = false;
       }
     },
-    // === CONTENT EDITING METHODS ===
-    // Generic editing helpers
-    startEdit(ref, prop, temp) {
-      this[temp] = this[prop];
-      this[ref] = true;
-      this.$nextTick(() => this.$refs[prop + 'Input'] && this.$refs[prop + 'Input'].focus());
-    },
-
-    saveContent(editProp, contentProp, updateMethod, clearFlag) {
-      this[editProp] = false;
-      if (clearFlag) return;
-
-      const content = typeof this[contentProp] === 'string' ? this[contentProp].trim() : this[contentProp];
-      if (this.dayId) {
-        const updateData = {dayId: this.dayId};
-        updateData[contentProp] = content;
-        DayService[updateMethod](updateData).catch(error => console.error(`Error updating ${contentProp}:`, error));
-      }
-    },
-
-    // Focus methods
+    // ===== FOCUS METHODS =====
     startEditing() {
       this.tempFocus = this.dailyFocus;
       this.isEditing = true;
@@ -410,13 +390,12 @@ export default {
     },
 
     clearFocus(event) {
-      if (event) {
-        event.preventDefault();
-        event.stopPropagation();
-      }
+      if (event) { event.preventDefault(); event.stopPropagation(); }
       this.dailyFocus = "";
       this.clearButtonClicked = true;
-      setTimeout(() => this.$refs.seamlessInput?.focus(), 50);
+      setTimeout(() => {
+        if (this.$refs.seamlessInput) this.$refs.seamlessInput.focus();
+      }, 50);
     },
 
     finishEditing() {
