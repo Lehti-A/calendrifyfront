@@ -158,120 +158,121 @@
       </div>
 
       <!-- Right Sidebar Column -->
-        <div class="col-md-4 right-column">
-          <!-- Image Card -->
-          <div class="card mb-4 image-card"
-               style="width: 80%; aspect-ratio: 1/1; margin: 0 auto; padding: 0; overflow: hidden; position: relative;">
-            <img v-if="!userImageUrl" src="../assets/images/diary.png" class="card-img" alt="Default diary image"/>
-            <img v-else :src="userImageUrl" class="card-img" alt="User profile image"/>
-            <div v-if="!userImageUrl" class="image-action-button add-button" @click="triggerImageUpload"
-                 title="Add your picture">+
-            </div>
-            <div v-else class="image-action-button delete-button" @click="deleteUserImage" title="Remove picture">×
-            </div>
-            <input type="file" ref="imageInput" @change="handleImageUpload" accept="image/*" style="display: none;"/>
+      <div class="col-md-4 right-column">
+        <!-- Image Card -->
+        <div class="card mb-4 image-card"
+             style="width: 80%; aspect-ratio: 1/1; margin: 0 auto; padding: 0; overflow: hidden; position: relative;">
+          <img v-if="!userImageUrl" src="../assets/images/diary.png" class="card-img" alt="Default diary image"/>
+          <img v-else :src="userImageUrl" class="card-img" alt="User profile image"/>
+          <div v-if="!userImageUrl" class="image-action-button add-button" @click="triggerImageUpload"
+               title="Add your picture">+
           </div>
+          <div v-else class="image-action-button delete-button" @click="deleteUserImage" title="Remove picture">×
+          </div>
+          <input type="file" ref="imageInput" @change="handleImageUpload" accept="image/*" style="display: none;"/>
+        </div>
 
-          <!-- Meetings -->
-          <div class="card semi-transparent-card mb-4 meetings-card">
-            <div class="card-header bg-transparent"><strong>Personal Meetings</strong></div>
-            <div class="content-container">
-              <ul class="list-group list-group-flush" v-if="meetings.length > 0">
-                <li v-for="(meeting, index) in meetings" :key="meeting.meetingId || index"
-                    class="list-group-item meeting-item" @mouseenter="meeting.showDelete = true"
-                    @mouseleave="meeting.showDelete = false">
-                  <div class="meeting-content">
+        <!-- Meetings -->
+        <div class="card semi-transparent-card mb-4 meetings-card">
+          <div class="card-header bg-transparent"><strong>Personal Meetings</strong></div>
+          <div class="content-container">
+            <ul class="list-group list-group-flush" v-if="meetings.length > 0">
+              <li v-for="(meeting, index) in meetings" :key="meeting.meetingId || index"
+                  class="list-group-item meeting-item" @mouseenter="meeting.showDelete = true"
+                  @mouseleave="meeting.showDelete = false">
+                <div class="meeting-content">
                   <span class="meeting-info"
                         style="width: calc(100% - 40px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{
                       meeting.time
                     }} - {{ meeting.title }}</span>
-                    <span v-if="meeting.showDelete" @click="removeMeeting(index)" title="Remove meeting"
-                          style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); font-size: 18px; color: #dc3545; width: 25px; height: 25px; background: rgba(255,255,255,0.8); border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer;">×</span>
-                  </div>
-                </li>
-              </ul>
-              <div v-else-if="isLoadingMeetings" class="text-center py-3">
-                <div class="spinner-border spinner-border-sm" role="status"><span
-                    class="visually-hidden">Loading...</span></div>
-              </div>
-              <div v-else class="card-body text-center py-2"><p class="text-muted my-1">No meetings yet</p></div>
-            </div>
-            <div class="card-footer bg-transparent">
-              <div v-if="meetingTimeAlert.show" class="meeting-time-alert">
-                <div class="alert-content">
-                  <span class="alert-icon">⚠️</span>
-                  <span class="alert-message">{{ meetingTimeAlert.message }}</span>
+                  <span v-if="meeting.showDelete" @click="removeMeeting(index)" title="Remove meeting"
+                        style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); font-size: 18px; color: #dc3545; width: 25px; height: 25px; background: rgba(255,255,255,0.8); border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer;">×</span>
                 </div>
-                <button class="alert-close" @click="meetingTimeAlert.show = false">×</button>
+              </li>
+            </ul>
+            <div v-else-if="isLoadingMeetings" class="text-center py-3">
+              <div class="spinner-border spinner-border-sm" role="status"><span
+                  class="visually-hidden">Loading...</span></div>
+            </div>
+            <div v-else class="card-body text-center py-2"><p class="text-muted my-1">No meetings yet</p></div>
+          </div>
+          <div class="card-footer bg-transparent">
+            <div v-if="meetingTimeAlert.show" class="meeting-time-alert">
+              <div class="alert-content">
+                <span class="alert-icon">⚠️</span>
+                <span class="alert-message">{{ meetingTimeAlert.message }}</span>
               </div>
+              <button class="alert-close" @click="meetingTimeAlert.show = false">×</button>
+            </div>
 
-              <div class="mb-2"><input type="text" class="form-control form-control-sm" placeholder="Time (e.g. 14.30, 1430, or 2.30pm)"
-                                       v-model="newMeetingTime"></div>
-              <div class="mb-2"><input type="text" class="form-control form-control-sm" placeholder="Meeting title"
-                                       v-model="newMeetingTitle" @keyup.enter="addMeeting"></div>
-              <button class="btn btn-sm btn-primary w-100" @click="addMeeting"
-                      :disabled="!newMeetingTime || !newMeetingTitle">Add Meeting
-              </button>
+            <div class="mb-2"><input type="text" class="form-control form-control-sm"
+                                     placeholder="Time (e.g. 14.30, 1430, or 2.30pm)"
+                                     v-model="newMeetingTime"></div>
+            <div class="mb-2"><input type="text" class="form-control form-control-sm" placeholder="Meeting title"
+                                     v-model="newMeetingTitle" @keyup.enter="addMeeting"></div>
+            <button class="btn btn-sm btn-primary w-100" @click="addMeeting"
+                    :disabled="!newMeetingTime || !newMeetingTitle">Add Meeting
+            </button>
+          </div>
+        </div>
+
+        <!-- Trackers Container -->
+        <div class="trackers-container">
+          <!-- Water Tracker -->
+          <div class="mb-4 tracker-section">
+            <h5 class="mb-3 text-center">Glasses of Water</h5>
+            <div class="water-icons">
+              <div v-for="(glass, index) in 8" :key="index" class="water-glass" @click="setGlasses(index + 1)"
+                   title="Glass of Water">
+                <div class="glass-container">
+                  <div class="water-fill" :style="{ height: index < selectedGlasses ? '90%' : '0%' }"></div>
+                </div>
+              </div>
             </div>
           </div>
 
-          <!-- Trackers Container -->
-          <div class="trackers-container">
-            <!-- Water Tracker -->
-            <div class="mb-4 tracker-section">
-              <h5 class="mb-3 text-center">Glasses of Water</h5>
-              <div class="water-icons">
-                <div v-for="(glass, index) in 8" :key="index" class="water-glass" @click="setGlasses(index + 1)"
-                     title="Glass of Water">
-                  <div class="glass-container">
-                    <div class="water-fill" :style="{ height: index < selectedGlasses ? '90%' : '0%' }"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Mood Tracker -->
-            <div class="mb-4 tracker-section">
-              <h5 class="mb-3 text-center">Mood today?</h5>
-              <div id="mood-icons" class="text-center">
+          <!-- Mood Tracker -->
+          <div class="mb-4 tracker-section">
+            <h5 class="mb-3 text-center">Mood today?</h5>
+            <div id="mood-icons" class="text-center">
                 <span class="mood-icon" :class="{ 'active-sad': personalMood === 'S' }" @click="updateMood('S')"
                       title="Sad">😢</span>
-                <span class="mood-icon" :class="{ 'active-neutral': personalMood === 'N' }" @click="updateMood('N')"
-                      title="Neutral">😐</span>
-                <span class="mood-icon" :class="{ 'active-happy': personalMood === 'H' }" @click="updateMood('H')"
-                      title="Happy">😊</span>
+              <span class="mood-icon" :class="{ 'active-neutral': personalMood === 'N' }" @click="updateMood('N')"
+                    title="Neutral">😐</span>
+              <span class="mood-icon" :class="{ 'active-happy': personalMood === 'H' }" @click="updateMood('H')"
+                    title="Happy">😊</span>
+            </div>
+          </div>
+
+          <!-- Steps Tracker -->
+          <div class="tracker-section">
+            <h5 class="mb-4 text-center">Steps</h5>
+            <div class="steps-milestones">
+              <div v-for="(milestone, index) in milestones" :key="index" class="milestone-item"
+                   @click="updateStep(index + 1)" :title="`${milestone.steps} Steps`">
+                <div class="checkbox-container" :class="{ 'checked': index < completedStepsMilestone }">
+                  <svg v-if="index < completedStepsMilestone" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                       fill="white" class="checkmark-icon">
+                    <path fill-rule="evenodd"
+                          d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 011.04-.208z"
+                          clip-rule="evenodd"/>
+                  </svg>
+                </div>
+                <div class="milestone-label">{{ milestone.label }}</div>
               </div>
             </div>
-
-            <!-- Steps Tracker -->
-            <div class="tracker-section">
-              <h5 class="mb-4 text-center">Steps</h5>
-              <div class="steps-milestones">
-                <div v-for="(milestone, index) in milestones" :key="index" class="milestone-item"
-                     @click="updateStep(index + 1)" :title="`${milestone.steps} Steps`">
-                  <div class="checkbox-container" :class="{ 'checked': index < completedStepsMilestone }">
-                    <svg v-if="index < completedStepsMilestone" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-                         fill="white" class="checkmark-icon">
-                      <path fill-rule="evenodd"
-                            d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 011.04-.208z"
-                            clip-rule="evenodd"/>
-                    </svg>
-                  </div>
-                  <div class="milestone-label">{{ milestone.label }}</div>
-                </div>
-              </div>
-              <div class="milestone-status">
+            <div class="milestone-status">
               <span v-if="completedStepsMilestone > 0">
                 <span v-if="completedStepsMilestone === 4">Over 10,000 steps</span>
                 <span v-else>At least {{ milestones[completedStepsMilestone - 1].steps }} steps</span>
               </span>
-                <span v-else>No steps recorded</span>
-              </div>
+              <span v-else>No steps recorded</span>
             </div>
           </div>
         </div>
       </div>
     </div>
+  </div>
 </template>
 
 <script>
@@ -410,7 +411,7 @@ export default {
         this.isLoading = false;
       }
     },
-    // ===== FOCUS METHODS =====
+
     startEditing() {
       this.tempFocus = this.dailyFocus;
       this.isEditing = true;
@@ -418,7 +419,10 @@ export default {
     },
 
     clearFocus(event) {
-      if (event) { event.preventDefault(); event.stopPropagation(); }
+      if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
       this.dailyFocus = "";
       this.clearButtonClicked = true;
       setTimeout(() => {
@@ -442,7 +446,6 @@ export default {
       }, 100);
     },
 
-    // Thoughts methods
     startEditingThoughts() {
       this.tempThoughts = this.otherThoughts;
       this.editingThoughts = true;
@@ -467,7 +470,6 @@ export default {
       this.$nextTick(() => this.$refs.thoughtsTextarea?.focus());
     },
 
-    // === DATA MANAGEMENT METHODS ===
     async loadActivities() {
       if (!this.dayId) return;
       this.isLoadingActivities = true;
@@ -520,7 +522,6 @@ export default {
       }
     },
 
-    // === IMAGE METHODS ===
     async loadUserImage() {
       if (!this.dayId) {
         return;
@@ -594,7 +595,6 @@ export default {
       }
     },
 
-    // === MEETING METHODS ===
     async loadMeetings() {
       if (!this.dayId) return;
       this.isLoadingMeetings = true;
@@ -660,7 +660,6 @@ export default {
       }
     },
 
-    // Time formatting helpers
     formatTimeFromBackend(time) {
       // Handle different time formats
       if (typeof time === 'string') {
@@ -906,7 +905,6 @@ export default {
       await this.updateStep(milestone);
     },
 
-    //todo: Lehti kood
     loadPersonalGoals() {
       if (!this.dayId) return;
 
@@ -934,7 +932,6 @@ export default {
           });
     },
 
-    // Offer to create goals from templates
     offerTemplateGoals() {
       // Only show this if we have a userId
       if (!this.userId) return;
@@ -956,7 +953,6 @@ export default {
           });
     },
 
-// Add these new methods
     acceptTemplateGoals() {
       this.showTemplateAlert = false;
       if (this.templateGoalsData && this.templateGoalsData.length > 0) {
@@ -969,7 +965,6 @@ export default {
       this.templateGoalsData = null;
     },
 
-    // Create goals from templates
     createGoalsFromTemplates(templates) {
       if (!this.dayId) return;
 
@@ -986,7 +981,6 @@ export default {
           });
     },
 
-    // Toggle goal completion status
     toggleGoalCompletion(personalGoalId, isDone) {
       // Find the goal in our array
       const goalIndex = this.personalGoals.findIndex(goal => goal.id === personalGoalId);
@@ -1009,7 +1003,6 @@ export default {
           });
     },
 
-    // Add a new personal goal
     addPersonalGoal() {
       if (!this.newPersonalGoal.trim() || !this.dayId) return;
 
@@ -1031,7 +1024,6 @@ export default {
           });
     },
 
-    // Delete a personal goal
     deleteGoal(personalGoalId) {
       // Find the goal in our array
       const goalIndex = this.personalGoals.findIndex(goal =>

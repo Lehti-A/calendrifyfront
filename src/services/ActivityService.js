@@ -9,7 +9,7 @@ export default {
      */
     getActivities(dayId) {
         return axios.get('/activity', {
-            params: { dayId }
+            params: {dayId}
         });
     },
 
@@ -30,7 +30,7 @@ export default {
      */
     updateActivityStatus(activityId, isDone) {
         return axios.patch('/activity', null, {
-            params: { activityId, isDone }
+            params: {activityId, isDone}
         });
     },
 
@@ -41,7 +41,7 @@ export default {
      */
     deleteActivity(activityId) {
         return axios.delete('/activity', {
-            params: { activityId }
+            params: {activityId}
         });
     }
 }

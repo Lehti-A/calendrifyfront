@@ -36,7 +36,7 @@ const routes = [
         path: '/day-work',
         name: 'workDayRoute',
         component: WorkDayView
-    },{
+    }, {
         path: '/terms',
         name: 'termsRoute',
         component: TermsView

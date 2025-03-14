@@ -25,7 +25,7 @@
 <script>
 export default {
   name: "Modal",
-  props:{
+  props: {
     modalIsOpen: Boolean
   }
 };

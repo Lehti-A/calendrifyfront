@@ -17,7 +17,7 @@ export default {
      */
     getDayInfo(dayId) {
         return axios.get('/day', {
-            params: { dayId: dayId }
+            params: {dayId: dayId}
         });
     },
 

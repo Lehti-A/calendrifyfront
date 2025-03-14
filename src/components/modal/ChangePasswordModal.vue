@@ -49,7 +49,6 @@ import Modal from "@/components/modal/Modal.vue";
 import AlertDanger from "@/components/alert/AlertDanger.vue";
 import AlertSuccess from "@/components/alert/AlertSuccess.vue";
 import axios from "axios";
-import NavigationServices from "@/services/NavigationServices";
 import HttpStatusCodes from "@/errors/HttpStatusCodes";
 import BusinessErrors from "@/errors/BusinessErrors";
 
@@ -63,6 +62,13 @@ export default {
 
   props: {
     modalIsOpen: Boolean,
+  },
+
+  beforeDestroy() {
+    // Clear any existing timeout when component is destroyed
+    if (this.errorTimeout) {
+      clearTimeout(this.errorTimeout);
+    }
   },
 
   data() {
@@ -80,6 +86,7 @@ export default {
   },
 
   methods: {
+
     changePassword() {
       if (this.validateFields()) {
         this.verifyCurrentPassword();
@@ -233,13 +240,6 @@ export default {
       this.currentPassword = '';
       this.newPassword = '';
       this.confirmPassword = '';
-    }
-  },
-
-  beforeDestroy() {
-    // Clear any existing timeout when component is destroyed
-    if (this.errorTimeout) {
-      clearTimeout(this.errorTimeout);
     }
   }
 }

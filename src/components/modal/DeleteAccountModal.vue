@@ -8,10 +8,11 @@
 
     <template #body>
       <div class="d-flex flex-column align-items-center justify-content-center mt-4">
-        <p class="text-center mb-4 text-danger warning-text" >Are you sure you want to delete your account? This action cannot be undone.</p>
+        <p class="text-center mb-4 text-danger warning-text">Are you sure you want to delete your account? This action
+          cannot be undone.</p>
       </div>
       <div class="gif-container mb-3">
-        <img :src="warningGif" alt="Warning Animation" class="warning-gif" />
+        <img :src="warningGif" alt="Warning Animation" class="warning-gif"/>
       </div>
     </template>
 
@@ -25,7 +26,6 @@
   </Modal>
 </template>
 
-
 <script>
 import Modal from "@/components/modal/Modal.vue";
 import axios from "axios";
@@ -33,6 +33,7 @@ import NavigationServices from "@/services/NavigationServices";
 
 export default {
   name: 'DeleteAccountModal',
+
   components: {
     Modal
   },
@@ -58,7 +59,7 @@ export default {
       axios({
         method: 'delete',
         url: '/settings-user',
-        params: { userId: this.userId }
+        params: {userId: this.userId}
       })
           .then(response => {
             console.log("Account deletion successful:", response);

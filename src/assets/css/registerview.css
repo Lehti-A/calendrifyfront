@@ -90,3 +90,21 @@ h2 {
     font-size: 2.5rem; /* Larger heading for better prominence */
     margin-bottom: 30px; /* More spacing below the heading */
 }
+.btn-primary {
+    background-color: #8e44ad !important;
+    border-color: #8e44ad !important;
+    color: white !important;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+.btn-primary:hover {
+    background-color: #7d3c98 !important;
+    border-color: #7d3c98 !important;
+}
+
+.btn-primary:active,
+.btn-primary:focus {
+    background-color: #6c3483 !important;
+    border-color: #6c3483 !important;
+    box-shadow: 0 0 0 0.25rem rgba(142, 68, 173, 0.4) !important;
+}

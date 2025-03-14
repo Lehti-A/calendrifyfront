@@ -8,7 +8,7 @@ export default {
      */
     getMeetings(dayId) {
         return axios.get('/meeting', {
-            params: { dayId }
+            params: {dayId}
         });
     },
 
@@ -35,7 +35,7 @@ export default {
      */
     deleteMeeting(meetingId) {
         return axios.delete('/meeting', {
-            params: { meetingId }
+            params: {meetingId}
         });
     }
 }

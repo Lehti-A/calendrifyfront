@@ -1,6 +1,6 @@
 import axios from "axios";
 
-export default  {
+export default {
 
     sendLoginRequest(email, password) {
         return axios.get('/login', {

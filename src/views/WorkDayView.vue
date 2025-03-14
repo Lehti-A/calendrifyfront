@@ -27,16 +27,21 @@
               <div class="card-header bg-transparent"><strong>Focus for Today</strong></div>
               <div class="card-body focus-body">
                 <div class="seamless-input-container">
-                  <div v-if="!isEditing && !dailyFocus" class="placeholder-text" @click="startEditing">{{ placeholder }}</div>
+                  <div v-if="!isEditing && !dailyFocus" class="placeholder-text" @click="startEditing">{{
+                      placeholder
+                    }}
+                  </div>
                   <div v-if="!isEditing && dailyFocus" class="content-text" @click="startEditing">{{ dailyFocus }}</div>
                   <div v-if="isEditing" class="editing-wrapper">
                     <input ref="seamlessInput" type="text" class="seamless-input" v-model="dailyFocus"
                            @blur="handleBlur" @keydown.enter="finishEditing">
                     <div class="focus-button-row">
                       <button class="btn btn-sm btn-primary focus-save-btn" @click.stop="finishEditing"
-                              title="Save" type="button">Save</button>
+                              title="Save" type="button">Save
+                      </button>
                       <button v-if="dailyFocus" class="btn btn-sm btn-outline-danger focus-clear-btn"
-                              @click.stop="clearFocus" title="Clear text" type="button">Clear</button>
+                              @click.stop="clearFocus" title="Clear text" type="button">Clear
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -57,7 +62,8 @@
                   <input type="checkbox" class="form-check-input ms-2" :checked="activity.isDone"
                          @change="toggleActivityCompletion(activity.activityId, !activity.isDone)">
                   <button class="btn btn-sm btn-link text-danger p-0"
-                          @click="removeActivity(activity.activityId)" title="Remove activity">🗑️</button>
+                          @click="removeActivity(activity.activityId)" title="Remove activity">🗑️
+                  </button>
                 </div>
               </li>
             </ul>
@@ -95,7 +101,8 @@
                   <button class="btn btn-sm btn-primary" @click="saveThoughts">Save</button>
                   <button class="btn btn-sm btn-outline-secondary ms-2" @click="cancelEditThoughts">Cancel</button>
                   <button v-if="otherThoughts" class="btn btn-sm btn-outline-danger float-end"
-                          @click="clearThoughts">Clear</button>
+                          @click="clearThoughts">Clear
+                  </button>
                 </div>
               </div>
             </div>
@@ -124,9 +131,12 @@
             <div class="tracker-section">
               <h5 class="mb-3 text-center">Work Mood today?</h5>
               <div id="mood-icons" class="text-center">
-                <span class="mood-icon" :class="{ 'active-sad': workMood === 'S' }" @click="updateMood('S')" title="Sad">😢</span>
-                <span class="mood-icon" :class="{ 'active-neutral': workMood === 'N' }" @click="updateMood('N')" title="Neutral">😐</span>
-                <span class="mood-icon" :class="{ 'active-happy': workMood === 'H' }" @click="updateMood('H')" title="Happy">😊</span>
+                <span class="mood-icon" :class="{ 'active-sad': workMood === 'S' }" @click="updateMood('S')"
+                      title="Sad">😢</span>
+                <span class="mood-icon" :class="{ 'active-neutral': workMood === 'N' }" @click="updateMood('N')"
+                      title="Neutral">😐</span>
+                <span class="mood-icon" :class="{ 'active-happy': workMood === 'H' }" @click="updateMood('H')"
+                      title="Happy">😊</span>
               </div>
             </div>
           </div>
@@ -136,13 +146,16 @@
       <!-- Right Sidebar Column -->
       <div class="col-md-4 right-column">
         <!-- Image Card -->
-        <div class="card mb-4 image-card" style="width: 80%; aspect-ratio: 1/1; margin: 0 auto; padding: 0; overflow: hidden; position: relative;">
+        <div class="card mb-4 image-card"
+             style="width: 80%; aspect-ratio: 1/1; margin: 0 auto; padding: 0; overflow: hidden; position: relative;">
           <img v-if="!userImageUrl" src="../assets/images/diary.png" class="card-img" alt="Default diary image"/>
           <img v-else :src="userImageUrl" class="card-img" alt="User profile image"/>
           <div v-if="!userImageUrl" class="image-action-button add-button" @click="triggerImageUpload"
-               title="Add your picture">+</div>
+               title="Add your picture">+
+          </div>
           <div v-else class="image-action-button delete-button" @click="deleteUserImage"
-               title="Remove picture">×</div>
+               title="Remove picture">×
+          </div>
           <input type="file" ref="imageInput" @change="handleImageUpload"
                  accept="image/*" style="display: none;"/>
         </div>
@@ -157,7 +170,8 @@
                   @mouseenter="meeting.showDelete = true"
                   @mouseleave="meeting.showDelete = false">
                 <div class="meeting-content">
-                  <span class="meeting-info" style="width: calc(100% - 40px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                  <span class="meeting-info"
+                        style="width: calc(100% - 40px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                     {{ meeting.time }} - {{ meeting.title }}
                   </span>
                   <span v-if="meeting.showDelete" @click="removeMeeting(index)" title="Remove meeting"
@@ -191,7 +205,8 @@
                      placeholder="Meeting title" v-model="newMeetingTitle" @keyup.enter="addMeeting">
             </div>
             <button class="btn btn-sm btn-primary w-100" @click="addMeeting"
-                    :disabled="!newMeetingTime || !newMeetingTitle">Add Meeting</button>
+                    :disabled="!newMeetingTime || !newMeetingTitle">Add Meeting
+            </button>
           </div>
         </div>
 
@@ -206,7 +221,8 @@
                 <div class="checkbox-container" :class="{ 'checked': index < completedStepsMilestone }">
                   <svg v-if="index < completedStepsMilestone" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
                        fill="white" class="checkmark-icon">
-                    <path fill-rule="evenodd" d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 011.04-.208z"
+                    <path fill-rule="evenodd"
+                          d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 011.04-.208z"
                           clip-rule="evenodd"/>
                   </svg>
                 </div>
@@ -237,7 +253,12 @@ import axios from "axios";
 
 export default {
   name: 'WorkDayView',
-  beforeMount() { this.dailyFocus = ""; this.otherThoughts = ""; },
+
+  beforeMount() {
+    this.dailyFocus = "";
+    this.otherThoughts = "";
+  },
+
   created() {
     const selectedCalendarDate = sessionStorage.getItem('selectedCalendarDate');
     if (selectedCalendarDate) {
@@ -249,9 +270,16 @@ export default {
     }
     this.userId = Number(sessionStorage.getItem('userId') || '1');
   },
-  mounted() { this.$nextTick(() => this.loadSavedData()); },
 
-  beforeDestroy() { this.dailyFocus = ""; this.otherThoughts = ""; this.dayId = null; },
+  mounted() {
+    this.$nextTick(() => this.loadSavedData());
+  },
+
+  beforeDestroy() {
+    this.dailyFocus = "";
+    this.otherThoughts = "";
+    this.dayId = null;
+  },
 
   data: () => ({
     // Backend properties
@@ -292,7 +320,9 @@ export default {
   }),
 
   computed: {
-    currentDay() { return this.selectedDate ? this.selectedDate.getDate() : new Date().getDate(); },
+    currentDay() {
+      return this.selectedDate ? this.selectedDate.getDate() : new Date().getDate();
+    },
     currentMonth() {
       const months = ['January', 'February', 'March', 'April', 'May', 'June',
         'July', 'August', 'September', 'October', 'November', 'December'];
@@ -309,7 +339,6 @@ export default {
   },
 
   methods: {
-    // ===== DATA LOADING =====
     async loadSavedData() {
       this.isLoading = true;
       try {
@@ -348,7 +377,6 @@ export default {
       }
     },
 
-    // ===== FOCUS METHODS =====
     startEditing() {
       this.tempFocus = this.dailyFocus;
       this.isEditing = true;
@@ -356,7 +384,10 @@ export default {
     },
 
     clearFocus(event) {
-      if (event) { event.preventDefault(); event.stopPropagation(); }
+      if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
       this.dailyFocus = "";
       this.clearButtonClicked = true;
       setTimeout(() => {
@@ -386,7 +417,6 @@ export default {
       }, 100);
     },
 
-    // ===== THOUGHTS METHODS =====
     startEditingThoughts() {
       this.tempThoughts = this.otherThoughts;
       this.editingThoughts = true;
@@ -419,7 +449,6 @@ export default {
       });
     },
 
-    // ===== ACTIVITY METHODS =====
     async loadActivities() {
       if (!this.dayId) return;
       this.isLoadingActivities = true;
@@ -474,7 +503,6 @@ export default {
       }
     },
 
-    // ===== IMAGE METHODS =====
     async loadUserImage() {
       if (!this.dayId) {
         return;
@@ -547,7 +575,7 @@ export default {
         alert("Failed to delete image. Please try again.");
       }
     },
-    // ===== MEETING METHODS =====
+
     async loadMeetings() {
       if (!this.dayId) return;
       this.isLoadingMeetings = true;
@@ -612,7 +640,173 @@ export default {
       }
     },
 
-    // ===== TIME FORMATTING =====
+    async findWater() {
+      try {
+        // Make sure we have the day setup first
+        if (!this.dayId) {
+          const response = await DayService.addNewDay({
+            userId: this.userId, date: this.formattedDate, type: "W"
+          });
+          this.dayId = response.data.dayId;
+        }
+
+        // Get water data using userId and date
+        const waterResponse = await axios.get('/water', {
+          params: {
+            userId: this.userId,
+            date: this.formattedDate
+          }
+        });
+
+        if (waterResponse.data && waterResponse.data.waterId) {
+          this.waterId = waterResponse.data.waterId;
+          if (waterResponse.data.count) {
+            this.selectedGlasses = parseInt(waterResponse.data.count);
+          } else {
+            this.selectedGlasses = 0;
+          }
+        } else {
+          this.waterId = null;
+          this.selectedGlasses = 0;
+        }
+      } catch (error) {
+        console.error("Error fetching water data:", error);
+        this.waterId = null;
+        this.selectedGlasses = 0;
+        if (error.response?.status === 403) {
+          navigationServices.navigateToErrorView();
+        }
+      }
+    },
+
+    async updateWater(glassCount) {
+      this.selectedGlasses = glassCount;
+
+      try {
+        if (!this.waterId) {
+          console.error("Water ID is missing!");
+          await this.findWater();
+          if (!this.waterId) return;
+        }
+
+        await axios.patch('/water', null, {
+          params: {
+            waterId: this.waterId,
+            count: glassCount
+          }
+        });
+      } catch (error) {
+        console.error("Error updating water count:", error);
+        await this.findWater();
+        navigationServices.navigateToErrorView();
+      }
+    },
+
+    async setGlasses(count) {
+      await this.updateWater(count);
+    },
+
+    async findMood() {
+      try {
+        const response = await DayService.addNewDay({
+          userId: this.userId, date: this.formattedDate, type: "W"
+        });
+        this.dayId = response.data.dayId;
+
+        const moodResponse = await axios.get('/mood', {params: {dayId: this.dayId}});
+        if (moodResponse.data) {
+          this.workMood = moodResponse.data.state;
+          this.moodId = moodResponse.data.moodId;  // Ensure moodId is set correctly
+        }
+      } catch (error) {
+        navigationServices.navigateToErrorView();
+      }
+    },
+
+    async updateMood(newMood) {
+      this.workMood = newMood; // Update state before making the request
+
+      if (!this.moodId) {
+        console.error("Mood ID is missing!");
+        return;
+      }
+
+      try {
+        await axios.patch('/mood', null, {
+          params: {moodId: this.moodId, state: this.workMood}
+        });
+      } catch (error) {
+        console.error("Error updating mood:", error);
+        navigationServices.navigateToErrorView();
+      }
+    },
+
+    async findStep() {
+      try {
+        // Make sure we have the day setup first
+        if (!this.dayId) {
+          const response = await DayService.addNewDay({
+            userId: this.userId, date: this.formattedDate, type: "W"
+          });
+          this.dayId = response.data.dayId;
+        }
+
+        // Get step data using userId and date
+        const stepResponse = await axios.get('/step', {
+          params: {
+            userId: this.userId,
+            date: this.formattedDate
+          }
+        });
+
+        if (stepResponse.data && stepResponse.data.stepId) {
+          this.stepId = stepResponse.data.stepId;
+          if (stepResponse.data.count) {
+            this.completedStepsMilestone = parseInt(stepResponse.data.count);
+          } else {
+            this.completedStepsMilestone = 0;
+          }
+        } else {
+          this.stepId = null;
+          this.completedStepsMilestone = 0;
+        }
+      } catch (error) {
+        console.error("Error fetching step data:", error);
+        this.stepId = null;
+        this.completedStepsMilestone = 0;
+        if (error.response?.status === 403) {
+          navigationServices.navigateToErrorView();
+        }
+      }
+    },
+
+    async updateStep(newStep) {
+      this.completedStepsMilestone = newStep;
+
+      try {
+        if (!this.stepId) {
+          console.error("Step ID is missing!");
+          await this.findStep();
+          if (!this.stepId) return;
+        }
+
+        await axios.patch('/step', null, {
+          params: {
+            stepId: this.stepId,
+            count: newStep
+          }
+        });
+      } catch (error) {
+        console.error("Error updating step count:", error);
+        await this.findStep();
+        navigationServices.navigateToErrorView();
+      }
+    },
+
+    async setStepsMilestone(milestone) {
+      await this.updateStep(milestone);
+    },
+
     formatTimeFromBackend(timeValue) {
       if (typeof timeValue === 'string' && /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(timeValue)) return timeValue;
       if (typeof timeValue === 'string' && /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/.test(timeValue))
@@ -659,168 +853,8 @@ export default {
         return `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`;
       }
       return null;
-    },
-
-    // ===== TRACKER METHODS =====
-    async findWater() {
-      try {
-        // Make sure we have the day setup first
-        if (!this.dayId) {
-          const response = await DayService.addNewDay({
-            userId: this.userId, date: this.formattedDate, type: "W"
-          });
-          this.dayId = response.data.dayId;
-        }
-
-        // Get water data using userId and date
-        const waterResponse = await axios.get('/water', {
-          params: {
-            userId: this.userId,
-            date: this.formattedDate
-          }
-        });
-
-        if (waterResponse.data && waterResponse.data.waterId) {
-          this.waterId = waterResponse.data.waterId;
-          if (waterResponse.data.count) {
-            this.selectedGlasses = parseInt(waterResponse.data.count);
-          } else {
-            this.selectedGlasses = 0;
-          }
-        } else {
-          this.waterId = null;
-          this.selectedGlasses = 0;
-        }
-      } catch (error) {
-        console.error("Error fetching water data:", error);
-        this.waterId = null;
-        this.selectedGlasses = 0;
-        if (error.response?.status === 403) {
-          navigationServices.navigateToErrorView();
-        }
-      }
-    },
-    async updateWater(glassCount) {
-      this.selectedGlasses = glassCount;
-
-      try {
-        if (!this.waterId) {
-          console.error("Water ID is missing!");
-          await this.findWater();
-          if (!this.waterId) return;
-        }
-
-        await axios.patch('/water', null, {
-          params: {
-            waterId: this.waterId,
-            count: glassCount
-          }
-        });
-      } catch (error) {
-        console.error("Error updating water count:", error);
-        await this.findWater();
-        navigationServices.navigateToErrorView();
-      }
-    },
-    async setGlasses(count) {
-      await this.updateWater(count);
-    },
-    async findMood() {
-      try {
-        const response = await DayService.addNewDay({
-          userId: this.userId, date: this.formattedDate, type: "W"
-        });
-        this.dayId = response.data.dayId;
-
-        const moodResponse = await axios.get('/mood', { params: { dayId: this.dayId } });
-        if (moodResponse.data) {
-          this.workMood = moodResponse.data.state;
-          this.moodId = moodResponse.data.moodId;  // Ensure moodId is set correctly
-        }
-      } catch (error) {
-        navigationServices.navigateToErrorView();
-      }
-    },
-    async updateMood(newMood) {
-      this.workMood = newMood; // Update state before making the request
-
-      if (!this.moodId) {
-        console.error("Mood ID is missing!");
-        return;
-      }
-
-      try {
-        await axios.patch('/mood', null, {
-          params: { moodId: this.moodId, state: this.workMood }
-        });
-      } catch (error) {
-        console.error("Error updating mood:", error);
-        navigationServices.navigateToErrorView();
-      }
-    },
-    async findStep() {
-      try {
-        // Make sure we have the day setup first
-        if (!this.dayId) {
-          const response = await DayService.addNewDay({
-            userId: this.userId, date: this.formattedDate, type: "W"
-          });
-          this.dayId = response.data.dayId;
-        }
-
-        // Get step data using userId and date
-        const stepResponse = await axios.get('/step', {
-          params: {
-            userId: this.userId,
-            date: this.formattedDate
-          }
-        });
-
-        if (stepResponse.data && stepResponse.data.stepId) {
-          this.stepId = stepResponse.data.stepId;
-          if (stepResponse.data.count) {
-            this.completedStepsMilestone = parseInt(stepResponse.data.count);
-          } else {
-            this.completedStepsMilestone = 0;
-          }
-        } else {
-          this.stepId = null;
-          this.completedStepsMilestone = 0;
-        }
-      } catch (error) {
-        console.error("Error fetching step data:", error);
-        this.stepId = null;
-        this.completedStepsMilestone = 0;
-        if (error.response?.status === 403) {
-          navigationServices.navigateToErrorView();
-        }
-      }
-    },
-    async updateStep(newStep) {
-      this.completedStepsMilestone = newStep;
-
-      try {
-        if (!this.stepId) {
-          console.error("Step ID is missing!");
-          await this.findStep();
-          if (!this.stepId) return;
-        }
-
-        await axios.patch('/step', null, {
-          params: {
-            stepId: this.stepId,
-            count: newStep
-          }
-        });
-      } catch (error) {
-        console.error("Error updating step count:", error);
-        await this.findStep();
-        navigationServices.navigateToErrorView();
-      }
-    },
-    async setStepsMilestone(milestone) {
-      await this.updateStep(milestone);
     }
+
   }
 };
 </script>

@@ -1,0 +1,47 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap');
+
+.main-navigation {
+    position: absolute;
+    width: 100%;
+    top: 80px; /* Adjust this value to position the nav bar lower */
+    z-index: 10; /* Ensure it stays above other content */
+}
+
+/* Base button styles - transparent background */
+.soft-purple-btn {
+    color: #333333; /* Dark text initially */
+    background-color: transparent !important; /* Start with transparent background */
+    border: 1px solid rgba(142, 68, 173, 0.7); /* Purple border */
+    transition: all 0.3s ease;
+}
+
+
+.nav-btn {
+    font-family: 'Quicksand', sans-serif !important; /* Quicksand font */
+    font-size: 1.25rem !important; /* Larger text */
+    font-weight: 700 !important; /* Bold text */
+    padding: 8px 20px; /* More padding for larger buttons */
+    letter-spacing: 0.5px; /* Add a bit more spacing between letters */
+}
+
+
+.soft-purple-btn:hover {
+    color: #ffffff; /* White text on hover */
+    background-color: rgba(142, 68, 173, 0.3) !important; /* Slightly visible on hover */
+    border-color: rgba(142, 68, 173, 0.8);
+}
+
+.soft-purple-btn:active,
+.soft-purple-btn:focus {
+    background-color: rgba(142, 68, 173, 0.5) !important; /* More visible when active */
+    border-color: rgba(142, 68, 173, 0.9);
+    box-shadow: 0 0 0 0.25rem rgba(142, 68, 173, 0.4); /* Purple shadow for focus */
+}
+
+.active-nav-btn {
+    background-color: rgba(142, 68, 173, 0.9) !important; /* Solid purple for active state */
+    border-color: #8e44ad !important;
+    color: #ffffff !important; /* Ensure text stays white */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2) !important; /* Add shadow for depth */
+}

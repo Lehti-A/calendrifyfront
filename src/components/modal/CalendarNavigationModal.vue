@@ -50,16 +50,20 @@ export default {
       default: null
     }
   },
+
   methods: {
+
     closeModal() {
       this.$emit('event-close-modal');
     },
+
     formatDate(date) {
       if (!date) return '';
 
-      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+      const options = {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'};
       return date.toLocaleDateString(undefined, options);
     },
+
     navigateToView(viewType) {
       // Store the selected date in sessionStorage to access it in the target view
       const dateKey = this.formatDateKey(this.selectedDate);
@@ -75,6 +79,7 @@ export default {
       // Close the modal
       this.closeModal();
     },
+
     formatDateKey(date) {
       if (!date) return '';
       return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
@@ -83,34 +88,4 @@ export default {
 };
 </script>
 
-<style scoped>
-/* Modal styling - to match the app's theme */
-.modal-content .btn-primary {
-  background-color: #8e44ad !important;
-  border-color: #8e44ad !important;
-  color: white !important;
-}
-
-.modal-content .btn-primary:hover,
-.modal-content .btn-primary:active,
-.modal-content .btn-primary:focus,
-.modal-content .btn-primary:focus-visible {
-  background-color: #7d3c98 !important;
-  border-color: #7d3c98 !important;
-  color: white !important;
-  box-shadow: 0 0 0 0.25rem rgba(142, 68, 173, 0.4) !important;
-}
-
-.modal-header {
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-}
-
-.modal-footer {
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
-}
-
-.modal-title {
-  font-family: 'Quicksand', sans-serif !important;
-  font-weight: 600 !important;
-}
-</style>
+<style src="@/assets/css/calendarnavigationmodal.css" scoped></style>

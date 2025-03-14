@@ -22,7 +22,7 @@
 
 
     <div class="content">
-      <div v-if="!isLoggedIn" >
+      <div v-if="!isLoggedIn">
         <div class="row justify-content-center">
           <div class="col-auto">
             <button @click="openLoginModal" type="button" class="btn btn-light">Login</button>
@@ -60,6 +60,15 @@ import LoginModal from "../components/modal/LoginModal.vue";
 export default {
   name: "HomeView",
   components: {LoginModal},
+  beforeMount() {
+    this.decideIsLoggedIn()
+  },
+
+  mounted() {
+    this.checkAccountDeletedStatus();
+    this.checkRegistrationStatus();
+  },
+
   data() {
     return {
       isLoggedIn: false,
@@ -70,13 +79,14 @@ export default {
   },
 
   methods: {
-
     openLoginModal() {
       this.modalIsOpen = true
     },
+
     closeLoginModal() {
       this.modalIsOpen = false
     },
+
     navigateToRegisterView() {
       NavigationServices.navigateToRegisterView()
     },
@@ -98,6 +108,7 @@ export default {
         }, 5000);
       }
     },
+
     checkRegistrationStatus() {
       const registrationSuccess = localStorage.getItem('registrationSuccess');
       if (registrationSuccess === 'true') {
@@ -114,49 +125,13 @@ export default {
     dismissAccountDeletedAlert() {
       this.showAccountDeletedAlert = false;
     },
+
     dismissRegistrationAlert() {
       this.showRegistrationAlert = false;
     }
 
-  },
-
-  beforeMount() {
-    this.decideIsLoggedIn()
-  },
-
-  mounted() {
-    this.checkAccountDeletedStatus();
-    this.checkRegistrationStatus();
   }
 }
 </script>
 
-<style scoped>
-/* ... (Your existing alert styles) ... */
-
-/* Updated Content Positioning */
-.content {
-  position: absolute;
-  top: 10%; /* Reduced top value to move the content higher */
-  left: 0;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  padding-top: 20px;
-}
-
-.content > div {
-  margin-bottom: 20px;
-}
-
-/* Adjustments for buttons (optional) */
-.btn-light {
-  /* You can add styles to your buttons if needed */
-}
-
-.btn-link {
-  /* You can add styles to your link buttons if needed */
-}
-</style>
+<style src="@/assets/css/homeview.css" scoped></style>

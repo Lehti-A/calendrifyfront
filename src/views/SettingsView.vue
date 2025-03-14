@@ -146,6 +146,7 @@ export default {
     ChangePasswordModal,
     DeleteAccountModal
   },
+
   data() {
     return {
       // User profile settings
@@ -184,6 +185,11 @@ export default {
           false
     }
         ;
+  },
+
+  beforeMount() {
+    this.loadUserData()
+    this.loadPersonalGoals()
   },
 
   methods: {
@@ -250,6 +256,7 @@ export default {
             }, 5000);
           });
     },
+
     loadPersonalGoals() {
       PersonalGoalService.getPersonalGoalTemplates(this.userId)
           .then(response => {
@@ -288,34 +295,32 @@ export default {
             alert("Failed to delete goal template");
           });
     },
-    // Dismiss profile update alert
+
     dismissProfileUpdateAlert() {
       this.showProfileUpdateAlert = false;
     },
+
     dismissProfileErrorAlert() {
       this.showProfileErrorAlert = false;
     },
 
-    // Password modal methods
     openPasswordModal() {
       this.passwordModalOpen = true;
     },
+
     closePasswordModal() {
       this.passwordModalOpen = false;
     },
 
-    // Delete account modal methods
     openDeleteAccountModal() {
       this.deleteAccountModalOpen = true;
     },
+
     closeDeleteAccountModal() {
       this.deleteAccountModalOpen = false;
     }
   },
-  beforeMount() {
-    this.loadUserData()
-    this.loadPersonalGoals()
-  },
+
 }
 </script>
 

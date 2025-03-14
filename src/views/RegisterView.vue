@@ -89,6 +89,14 @@ import NavigationServices from "@/services/NavigationServices";
 
 export default {
   name: "RegisterView",
+
+  beforeDestroy() {
+    // Clear any existing timeout when component is destroyed
+    if (this.errorTimeout) {
+      clearTimeout(this.errorTimeout);
+    }
+  },
+
   data() {
     return {
       backgroundImage: require('@/assets/images/calendrifynew.gif'),
@@ -104,7 +112,9 @@ export default {
       },
     };
   },
+
   methods: {
+
     showErrorWithTimeout(message, timeout = 5000) {
       this.errorMessage = message;
 
@@ -118,6 +128,7 @@ export default {
         this.errorMessage = '';
       }, timeout);
     },
+
     addNewUser() {
       // Check if passwords match
       if (this.newUser.password !== this.passwordRetype) {
@@ -146,7 +157,7 @@ export default {
             setTimeout(() => {
               if (this.$router) {
                 if (this.$route.name !== 'homeRoute') {
-                  this.$router.push({ name: 'homeRoute' });
+                  this.$router.push({name: 'homeRoute'});
                 }
               }
             }, 100);
@@ -160,20 +171,17 @@ export default {
             if (submitBtn) submitBtn.disabled = false;
           });
     },
+
     passwordNoMatch() {
       return this.passwordRetype !== this.newUser.password;
     },
+
     navigateBack() {
       this.$router.go(-1);
     }
-  },
-  beforeDestroy() {
-    // Clear any existing timeout when component is destroyed
-    if (this.errorTimeout) {
-      clearTimeout(this.errorTimeout);
-    }
+
   }
 };
 </script>
 
-<style src="@/assets/css/register.css"></style>
+<style src="@/assets/css/registerview.css"></style>

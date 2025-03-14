@@ -36,11 +36,15 @@
           </div>
           <div class="content-container personal-focuses" style="max-height: 300px;">
             <ul class="list-group list-group-flush" v-if="selectedDate && getPersonalFocuses().length > 0">
-              <li v-for="focus in getPersonalFocuses()" :key="focus.id" class="list-group-item py-2 d-flex justify-content-between align-items-center">
+              <li v-for="focus in getPersonalFocuses()" :key="focus.id"
+                  class="list-group-item py-2 d-flex justify-content-between align-items-center">
                 <span :class="{ 'completed-focus': focus.isSelected }">{{ focus.topic }}</span>
                 <div class="focus-actions">
-                  <input type="checkbox" class="form-check-input ms-2" :checked="focus.isSelected" @change="toggleFocusCompletion(focus)">
-                  <button class="btn btn-sm btn-link text-danger p-0" @click="removeFocus(focus)" title="Remove focus">🗑️</button>
+                  <input type="checkbox" class="form-check-input ms-2" :checked="focus.isSelected"
+                         @change="toggleFocusCompletion(focus)">
+                  <button class="btn btn-sm btn-link text-danger p-0" @click="removeFocus(focus)" title="Remove focus">
+                    🗑️
+                  </button>
                 </div>
               </li>
             </ul>
@@ -51,7 +55,8 @@
           </div>
           <div class="card-footer bg-transparent" v-if="selectedDate">
             <div class="input-group">
-              <input type="text" class="form-control form-control-sm" placeholder="Add new personal focus..." v-model="newPersonalFocus" @keyup.enter="addPersonalFocus">
+              <input type="text" class="form-control form-control-sm" placeholder="Add new personal focus..."
+                     v-model="newPersonalFocus" @keyup.enter="addPersonalFocus">
               <button class="btn btn-outline-secondary btn-sm" type="button" @click="addPersonalFocus">Add</button>
             </div>
           </div>
@@ -64,11 +69,15 @@
           </div>
           <div class="content-container work-focuses" style="max-height: 210px;">
             <ul class="list-group list-group-flush" v-if="selectedDate && getWorkFocuses().length > 0">
-              <li v-for="focus in getWorkFocuses()" :key="focus.id" class="list-group-item py-2 d-flex justify-content-between align-items-center">
+              <li v-for="focus in getWorkFocuses()" :key="focus.id"
+                  class="list-group-item py-2 d-flex justify-content-between align-items-center">
                 <span :class="{ 'completed-focus': focus.isSelected }">{{ focus.topic }}</span>
                 <div class="focus-actions">
-                  <input type="checkbox" class="form-check-input ms-2" :checked="focus.isSelected" @change="toggleFocusCompletion(focus)">
-                  <button class="btn btn-sm btn-link text-danger p-0" @click="removeFocus(focus)" title="Remove focus">🗑️</button>
+                  <input type="checkbox" class="form-check-input ms-2" :checked="focus.isSelected"
+                         @change="toggleFocusCompletion(focus)">
+                  <button class="btn btn-sm btn-link text-danger p-0" @click="removeFocus(focus)" title="Remove focus">
+                    🗑️
+                  </button>
                 </div>
               </li>
             </ul>
@@ -79,7 +88,8 @@
           </div>
           <div class="card-footer bg-transparent" v-if="selectedDate">
             <div class="input-group">
-              <input type="text" class="form-control form-control-sm" placeholder="Add new work focus..." v-model="newWorkFocus" @keyup.enter="addWorkFocus">
+              <input type="text" class="form-control form-control-sm" placeholder="Add new work focus..."
+                     v-model="newWorkFocus" @keyup.enter="addWorkFocus">
               <button class="btn btn-outline-secondary btn-sm" type="button" @click="addWorkFocus">Add</button>
             </div>
           </div>
@@ -135,7 +145,7 @@ import navigationServices from "@/services/NavigationServices";
 
 export default {
   name: "CalendarView",
-  components: { CalendarNavigationModal },
+  components: {CalendarNavigationModal},
 
   created() {
     this.selectedDate = new Date();
@@ -223,7 +233,6 @@ export default {
       return days;
     }
   },
-
   methods: {
     async loadMonthFocuses(month, year) {
       this.isLoading = true;
@@ -232,12 +241,12 @@ export default {
 
       try {
         const personalResponse = await axios.get(`${this.apiBaseUrl}/focuses`, {
-          params: { userId: this.userId, monthNumber: month, year, type: 'P' }
+          params: {userId: this.userId, monthNumber: month, year, type: 'P'}
         });
         this.personalFocuses = personalResponse.data;
 
         const workResponse = await axios.get(`${this.apiBaseUrl}/focuses`, {
-          params: { userId: this.userId, monthNumber: month, year, type: 'W' }
+          params: {userId: this.userId, monthNumber: month, year, type: 'W'}
         });
         this.workFocuses = workResponse.data;
       } catch (error) {
@@ -270,7 +279,7 @@ export default {
       try {
         focus.isSelected = !focus.isSelected;
         await axios.patch(`${this.apiBaseUrl}/focus`, null, {
-          params: { focusId: focus.id, isSelected: focus.isSelected }
+          params: {focusId: focus.id, isSelected: focus.isSelected}
         });
       } catch (error) {
         console.error("Error updating focus:", error);
@@ -282,7 +291,7 @@ export default {
     async deleteFocus(focus) {
       try {
         await axios.delete(`${this.apiBaseUrl}/focus`, {
-          params: { focusId: focus.id }
+          params: {focusId: focus.id}
         });
         await this.loadMonthFocuses(this.selectedDate.getMonth() + 1, this.selectedDate.getFullYear());
       } catch (error) {
@@ -378,7 +387,7 @@ export default {
       const API_KEY = "LEYV9brNOkL8XXrRckzhbQ==0eV9fA97U9SIpoyC";
       try {
         const response = await axios.get("https://api.api-ninjas.com/v1/quotes", {
-          headers: { "X-Api-Key": API_KEY }
+          headers: {"X-Api-Key": API_KEY}
         });
         if (response.data?.length > 0) {
           this.quote = response.data[0].quote;
@@ -392,7 +401,6 @@ export default {
       }
     }
   },
-
   watch: {
     selectedDate(newDate) {
       if (newDate) {

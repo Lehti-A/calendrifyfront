@@ -36,7 +36,6 @@
   </Modal>
 </template>
 
-
 <script>
 import Modal from "@/components/modal/Modal.vue";
 import LoginService from "@/services/LoginService";
@@ -47,6 +46,7 @@ import AlertDanger from "@/components/alert/AlertDanger.vue";
 
 export default {
   name: 'LoginModal',
+
   components: {
     Modal,
     AlertDanger
@@ -55,6 +55,7 @@ export default {
   props: {
     modalIsOpen: Boolean,
   },
+
   data() {
     return {
       email: '',
@@ -72,6 +73,7 @@ export default {
       }
     }
   },
+
   methods: {
 
     executeLogin() {
@@ -136,18 +138,13 @@ export default {
     resetAlertMessage() {
       this.message = ''
     },
+
     resetForm() {
       this.email = ""; // Clear the email field
       this.password = ""; // Clear the password field
     },
-
   },
-
-  // todo: saada sõnum backendile
-  // todo: kui tuleb edukas vastus, siis salvesta session storageisse maha userId roleName
-  // todo: emit evendid
-
-  // todo: navigeeri calendar lehele
-
 }
 </script>
+
+<style src="@/assets/css/loginmodal.css" scoped></style>
