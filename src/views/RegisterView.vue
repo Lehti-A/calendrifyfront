@@ -4,8 +4,8 @@
       <div class="card p-4 rounded shadow-sm semi-transparent-card" style="min-width: 600px;">
         <h2 class="text-center mb-4">Register</h2>
 
-        <form>
-          <div @submit.prevent="addNewUser">
+        <form @submit.prevent="addNewUser">
+          <div>
             <label for="email" class="form-label">Email</label>
             <input
                 type="email"
@@ -103,8 +103,14 @@ export default {
   methods: {
     addNewUser() {
       if (this.passwordNoMatch()) {
-        this.errorMessage = "Paroolid ei kattu"
-      } else {
+        this.errorMessage = "Paroolid ei kattu";
+        return;
+      }
+        // Check if terms are agreed
+        if (!this.newUser.termsAgreed) {
+          this.errorMessage = "You must agree to the Terms and Conditions";
+          return;
+        }
         // Disable the submit button to prevent multiple submissions
         const submitBtn = document.querySelector('button[type="submit"]');
         if (submitBtn) submitBtn.disabled = true;
@@ -142,7 +148,6 @@ export default {
     navigateBack() {
       this.$router.go(-1)
     }
-  },
 }
 
 </script>
