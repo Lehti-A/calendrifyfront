@@ -142,14 +142,17 @@
 import axios from 'axios';
 import CalendarNavigationModal from "@/components/modal/CalendarNavigationModal.vue";
 import navigationServices from "@/services/NavigationServices";
+import SharedDateService from '@/services/SharedDateService';
 
 export default {
   name: "CalendarView",
 
   components: {CalendarNavigationModal},
 
+
   created() {
     this.selectedDate = new Date();
+    SharedDateService.clearDate();
     this.fetchQuote();
     this.userId = Number(sessionStorage.getItem('userId'));
     this.loadMonthFocuses(this.currentMonth + 1, this.currentYear);

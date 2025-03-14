@@ -249,6 +249,7 @@ import ActivityService from "@/services/ActivityService";
 import navigationServices from "@/services/NavigationServices";
 import MeetingService from "@/services/MeetingService";
 import ImageService from '@/services/ImageService';
+import SharedDateService from '@/services/SharedDateService';
 import axios from "axios";
 
 export default {
@@ -260,17 +261,22 @@ export default {
   },
 
   created() {
+    // First check if we came from calendar with a specific date
     const selectedCalendarDate = sessionStorage.getItem('selectedCalendarDate');
+
     if (selectedCalendarDate) {
+      // New date selected from calendar - update our shared date service
       const [year, month, day] = selectedCalendarDate.split('-').map(Number);
       this.selectedDate = new Date(year, month - 1, day);
+      SharedDateService.saveDate(this.selectedDate);
       sessionStorage.removeItem('selectedCalendarDate');
     } else {
-      this.selectedDate = new Date();
+      // Get date from shared service (could be from Personal Day view or default to today)
+      this.selectedDate = SharedDateService.getDate();
     }
+
     this.userId = Number(sessionStorage.getItem('userId') || '1');
   },
-
   mounted() {
     this.$nextTick(() => this.loadSavedData());
   },

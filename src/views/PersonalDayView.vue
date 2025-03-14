@@ -281,7 +281,8 @@ import ActivityService from '@/services/ActivityService';
 import navigationServices from '@/services/NavigationServices';
 import MeetingService from "@/services/MeetingService";
 import ImageService from '@/services/ImageService';
-import PersonalGoalService from '@/services/PersonalGoalService'; // Add this line
+import PersonalGoalService from '@/services/PersonalGoalService';
+import SharedDateService from '@/services/SharedDateService';
 import axios from "axios";
 
 export default {
@@ -292,12 +293,20 @@ export default {
   },
 
   created() {
-    const selectedDate = sessionStorage.getItem('selectedCalendarDate');
-    this.selectedDate = selectedDate ?
-        new Date(...selectedDate.split('-').map(Number).map((v, i) => i === 1 ? v - 1 : v)) :
-        new Date();
+    // First check if we came from calendar with a specific date
+    const selectedCalendarDate = sessionStorage.getItem('selectedCalendarDate');
 
-    if (selectedDate) sessionStorage.removeItem('selectedCalendarDate');
+    if (selectedCalendarDate) {
+      // New date selected from calendar - update our shared date service
+      this.selectedDate = new Date(...selectedCalendarDate.split('-').map(Number)
+          .map((v, i) => i === 1 ? v - 1 : v));
+      SharedDateService.saveDate(this.selectedDate);
+      sessionStorage.removeItem('selectedCalendarDate');
+    } else {
+      // Get date from shared service (could be from Work Day view or default to today)
+      this.selectedDate = SharedDateService.getDate();
+    }
+
     this.userId = Number(sessionStorage.getItem('userId') || '1');
   },
 

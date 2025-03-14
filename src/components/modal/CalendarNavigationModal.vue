@@ -37,6 +37,7 @@
 
 <script>
 import NavigationServices from "@/services/NavigationServices";
+import SharedDateService from '@/services/SharedDateService';
 
 export default {
   name: 'CalendarNavigationModal',
@@ -68,6 +69,9 @@ export default {
       // Store the selected date in sessionStorage to access it in the target view
       const dateKey = this.formatDateKey(this.selectedDate);
       sessionStorage.setItem('selectedCalendarDate', dateKey);
+
+      // Also clear any previous saved date in the shared service
+      SharedDateService.clearDate();
 
       // Navigate to the appropriate view
       if (viewType === 'personal') {
