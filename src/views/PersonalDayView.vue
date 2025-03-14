@@ -130,8 +130,7 @@
             </div>
           </div>
         </div>
-      </div> <!-- THIS CLOSING DIV WAS MISSING -->
-
+      </div>
 
       <!-- Right Sidebar Column -->
         <div class="col-md-4 right-column">
@@ -312,7 +311,6 @@ export default {
     date: '',
     stepId: null,
     waterId: null,
-
 
     // Constants
     milestones: [
@@ -677,7 +675,6 @@ export default {
           });
           this.dayId = response.data.dayId;
         }
-
         // Get water data using userId and date
         const waterResponse = await axios.get('/water', {
           params: {
@@ -768,7 +765,6 @@ export default {
         await axios.patch('/mood', null, {
           params: {moodId: this.moodId, state: this.personalMood}
         });
-        await this.loadSavedData();
       } catch (error) {
         console.error("Error updating mood:", error);
         navigationServices.navigateToErrorView();

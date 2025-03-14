@@ -249,6 +249,7 @@ export default {
     this.userId = Number(sessionStorage.getItem('userId') || '1');
   },
   mounted() { this.$nextTick(() => this.loadSavedData()); },
+
   beforeDestroy() { this.dailyFocus = ""; this.otherThoughts = ""; this.dayId = null; },
 
   data: () => ({
@@ -284,7 +285,6 @@ export default {
 
     //todo Lehti lisatud
     moodId: null,
-
 
   }),
 
@@ -704,7 +704,6 @@ export default {
         await axios.patch('/mood', null, {
           params: { moodId: this.moodId, state: this.workMood }
         });
-        await this.loadSavedData();
       } catch (error) {
         console.error("Error updating mood:", error);
         navigationServices.navigateToErrorView();
@@ -773,12 +772,6 @@ export default {
     async setStepsMilestone(milestone) {
       await this.updateStep(milestone);
     }
-
-
-
-
-
-
   }
 };
 </script>
