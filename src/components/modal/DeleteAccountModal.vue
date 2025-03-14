@@ -8,7 +8,10 @@
 
     <template #body>
       <div class="d-flex flex-column align-items-center justify-content-center mt-4">
-        <p class="text-center mb-4">Are you sure you want to delete your account? This action cannot be undone.</p>
+        <p class="text-center mb-4 text-danger warning-text" >Are you sure you want to delete your account? This action cannot be undone.</p>
+      </div>
+      <div class="gif-container mb-3">
+        <img :src="warningGif" alt="Warning Animation" class="warning-gif" />
       </div>
     </template>
 
@@ -40,7 +43,8 @@ export default {
 
   data() {
     return {
-      userId: Number(sessionStorage.getItem('userId'))
+      userId: Number(sessionStorage.getItem('userId')),
+      warningGif: require('@/assets/images/beggingcat.gif') // Path to your GIF file
     }
   },
 
@@ -79,3 +83,9 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+.warning-text {
+  font-weight: bold;
+}
+</style>
