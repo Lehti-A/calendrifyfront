@@ -1,6 +1,6 @@
 <template>
   <Modal :modal-is-open="modalIsOpen"
-         @event-close-modal="$emit('event-close-modal')"
+         @event-close-modal="closeModal"
   >
     <template #title>
       Change Password
@@ -35,7 +35,7 @@
 
     <template #footer>
       <div class="d-flex justify-content-center w-75 gap-3">
-        <button @click="$emit('event-close-modal')" class="btn btn-secondary flex-grow-1">Cancel</button>
+        <button @click="closeModal" class="btn btn-secondary flex-grow-1">Cancel</button>
         <button @click="changePassword" class="btn btn-primary flex-grow-1">Update</button>
       </div>
     </template>
@@ -80,16 +80,19 @@ export default {
       successMessage: 'Password changed successfully!',
       showSuccessMessage: false,
       userId: Number(sessionStorage.getItem('userId')),
-      email: sessionStorage.getItem('email') || '',
       errorTimeout: null
     }
   },
 
   methods: {
+    closeModal() {
+      this.resetForm();
+      this.$emit('event-close-modal');
+    },
 
     changePassword() {
       if (this.validateFields()) {
-        this.verifyCurrentPassword();
+        this.sendPasswordChangeRequest();
       }
     },
 
@@ -110,44 +113,10 @@ export default {
       return true;
     },
 
-    verifyCurrentPassword() {
-      // First verify the current password is correct using the login endpoint
-      axios.post('/login', {
-        email: this.email,
-        password: this.currentPassword
-      })
-          .then(response => {
-            // If login is successful, proceed with password change
-            this.sendPasswordChangeRequest();
-          })
-          .catch(error => {
-            // Handle login verification error
-            this.handleLoginVerificationError(error);
-          });
-    },
-
-    handleLoginVerificationError(error) {
-      if (error.response) {
-        let httpStatusCode = error.response.status;
-        const errorData = error.response.data;
-
-        if (HttpStatusCodes.STATUS_FORBIDDEN === httpStatusCode
-            && BusinessErrors.CODE_INCORRECT_CREDENTIALS === errorData.errorCode) {
-          this.showError('Current password is incorrect');
-          this.currentPassword = '';
-        } else {
-          this.showError('Current password is incorrect. Please try again.');
-          this.resetForm();
-        }
-      } else {
-        this.showError('Server not responding. Please try again later.');
-        this.resetForm();
-      }
-    },
-
     sendPasswordChangeRequest() {
-      // Create the request payload
+      // Create the request payload with both current and new password
       const passwordData = {
+        currentPassword: this.currentPassword,
         newPassword: this.newPassword
       };
 
@@ -193,11 +162,20 @@ export default {
           this.showError('Unauthorized access');
           this.resetForm();
         } else if (error.response.status === 400) {
-          this.showError('Invalid password format');
-          this.resetPasswordFields();
+          if (error.response.data && error.response.data.message === "Current password is incorrect") {
+            this.showError('Current password is incorrect');
+            this.currentPassword = '';
+          } else {
+            this.showError('Invalid password format');
+            this.resetPasswordFields();
+          }
         } else if (error.response.status === 404) {
           this.showError('User not found');
           this.resetForm();
+        } else if (HttpStatusCodes.STATUS_FORBIDDEN === error.response.status
+            && BusinessErrors.CODE_INCORRECT_CREDENTIALS === error.response.data.errorCode) {
+          this.showError('Current password is incorrect');
+          this.currentPassword = '';
         } else if (error.response.data && error.response.data.message) {
           // Display server-provided error message if available
           this.showError(error.response.data.message);
@@ -240,6 +218,7 @@ export default {
       this.currentPassword = '';
       this.newPassword = '';
       this.confirmPassword = '';
+      this.errorMessage = '';
     }
   }
 }
