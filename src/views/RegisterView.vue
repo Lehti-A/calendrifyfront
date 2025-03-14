@@ -70,6 +70,9 @@
               Agree to <a href="/terms" target="_blank">Terms and Conditions</a>
             </label>
           </div>
+          <div v-if="errorMessage" class="alert alert-danger mb-3">
+            {{ errorMessage }}
+          </div>
           <div class="d-flex justify-content-between">
             <button type="button" class="btn btn-secondary flex-grow-1 me-2" @click="navigateBack">Back</button>
             <button type="submit" class="btn btn-primary flex-grow-1" @click="addNewUser">Register</button>
@@ -107,50 +110,49 @@ export default {
         this.errorMessage = "Paroolid ei kattu";
         return;
       }
-        // Check if terms are agreed
-        if (!this.newUser.termsAgreed) {
-          this.errorMessage = "You must agree to the Terms and Conditions";
-          return;
-        }
-        // Disable the submit button to prevent multiple submissions
-        const submitBtn = document.querySelector('button[type="submit"]');
-        if (submitBtn) submitBtn.disabled = true;
-
-        UserService.sendPostNewUserRequest(this.newUser)
-            .then(() => {
-              console.log("Registration successful, navigating to home view...");
-              // Set registration success flag in localStorage
-              localStorage.setItem('registrationSuccess', 'true');
-
-              // Navigate to home view using multiple approaches for redundancy
-              NavigationServices.navigateToHomeView();
-
-              // Fallback navigation if NavigationServices fails
-              setTimeout(() => {
-                if (this.$router) {
-                  if (this.$route.name !== 'homeRoute') {
-                    this.$router.push({ name: 'homeRoute' });
-                  }
-                }
-              }, 100);
-            })
-            .catch((error) => {
-              console.error("Registration error:", error);
-              NavigationServices.navigateToErrorView();
-
-              // Re-enable the submit button if there's an error
-              if (submitBtn) submitBtn.disabled = false;
-            });
+      // Check if terms are agreed
+      if (!this.newUser.termsAgreed) {
+        this.errorMessage = "You must agree to the Terms and Conditions";
+        return;
       }
+      // Disable the submit button to prevent multiple submissions
+      const submitBtn = document.querySelector('button[type="submit"]');
+      if (submitBtn) submitBtn.disabled = true;
+
+      UserService.sendPostNewUserRequest(this.newUser)
+          .then(() => {
+            console.log("Registration successful, navigating to home view...");
+            // Set registration success flag in localStorage
+            localStorage.setItem('registrationSuccess', 'true');
+
+            // Navigate to home view using multiple approaches for redundancy
+            NavigationServices.navigateToHomeView();
+
+            // Fallback navigation if NavigationServices fails
+            setTimeout(() => {
+              if (this.$router) {
+                if (this.$route.name !== 'homeRoute') {
+                  this.$router.push({ name: 'homeRoute' });
+                }
+              }
+            }, 100);
+          })
+          .catch((error) => {
+            console.error("Registration error:", error);
+            NavigationServices.navigateToErrorView();
+
+            // Re-enable the submit button if there's an error
+            if (submitBtn) submitBtn.disabled = false;
+          });
     },
     passwordNoMatch() {
-      return this.passwordRetype !== this.newUser.password
+      return this.passwordRetype !== this.newUser.password;
     },
     navigateBack() {
-      this.$router.go(-1)
+      this.$router.go(-1);
     }
-}
-
+  }
+};
 </script>
 
 <style src="@/assets/css/register.css"></style>
