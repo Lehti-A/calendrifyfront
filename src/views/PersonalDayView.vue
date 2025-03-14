@@ -109,130 +109,145 @@
           <div class="card-header bg-transparent"><strong>Personal Goals</strong></div>
           <div class="content-container">
             <ul class="list-group list-group-flush">
-              <li v-for="(task, index) in tasks" :key="index"
+              <li v-for="(goal, index) in personalGoals" :key="index"
                   class="list-group-item d-flex align-items-center justify-content-between">
                 <div class="task-text-container" style="flex-grow: 1; margin-right: 10px;">
-                  <span v-if="!task.isEditing" :class="{ 'completed-task': task.completed }"
-                        @click="startEditingTask(index)" style="cursor: text; display: block; width: 100%;">{{
-                      task.text
-                    }}</span>
-                  <input v-if="task.isEditing" type="text" class="form-control form-control-sm" v-model="task.text"
-                         @blur="finishEditingTask(index)" @keyup.enter="finishEditingTask(index)" ref="taskInput"
-                         style="width: 100%;">
+                  <span :class="{ 'completed-task': goalCompletionStatus[index] }">{{ goal.topic }}</span>
                 </div>
                 <div class="task-actions">
-                  <input type="checkbox" class="form-check-input" :checked="task.completed"
-                         @change="toggleTaskCompletion(index)">
+                  <input type="checkbox" class="form-check-input" :checked="goalCompletionStatus[index]"
+                         @change="toggleGoalCompletion(index)">
                 </div>
               </li>
             </ul>
+            <div v-if="personalGoals.length === 0 && !isLoadingPersonalGoals" class="card-body text-center py-2">
+              <p class="text-muted my-1">No personal goals yet. Add them in Settings.</p>
+            </div>
+            <div v-if="isLoadingPersonalGoals" class="text-center py-3">
+              <div class="spinner-border spinner-border-sm" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      </div> <!-- THIS CLOSING DIV WAS MISSING -->
+
 
       <!-- Right Sidebar Column -->
-      <div class="col-md-4 right-column">
-        <!-- Image Card -->
-        <div class="card mb-4 image-card"
-             style="width: 80%; aspect-ratio: 1/1; margin: 0 auto; padding: 0; overflow: hidden; position: relative;">
-          <img v-if="!userImageUrl" src="../assets/images/diary.png" class="card-img" alt="Default diary image"/>
-          <img v-else :src="userImageUrl" class="card-img" alt="User profile image"/>
-          <div v-if="!userImageUrl" class="image-action-button add-button" @click="triggerImageUpload"
-               title="Add your picture">+
+        <div class="col-md-4 right-column">
+          <!-- Image Card -->
+          <div class="card mb-4 image-card"
+               style="width: 80%; aspect-ratio: 1/1; margin: 0 auto; padding: 0; overflow: hidden; position: relative;">
+            <img v-if="!userImageUrl" src="../assets/images/diary.png" class="card-img" alt="Default diary image"/>
+            <img v-else :src="userImageUrl" class="card-img" alt="User profile image"/>
+            <div v-if="!userImageUrl" class="image-action-button add-button" @click="triggerImageUpload"
+                 title="Add your picture">+
+            </div>
+            <div v-else class="image-action-button delete-button" @click="deleteUserImage" title="Remove picture">×
+            </div>
+            <input type="file" ref="imageInput" @change="handleImageUpload" accept="image/*" style="display: none;"/>
           </div>
-          <div v-else class="image-action-button delete-button" @click="deleteUserImage" title="Remove picture">×</div>
-          <input type="file" ref="imageInput" @change="handleImageUpload" accept="image/*" style="display: none;"/>
-        </div>
 
-        <!-- Meetings -->
-        <div class="card semi-transparent-card mb-4 meetings-card">
-          <div class="card-header bg-transparent"><strong>Personal Meetings</strong></div>
-          <div class="content-container">
-            <ul class="list-group list-group-flush" v-if="meetings.length > 0">
-              <li v-for="(meeting, index) in meetings" :key="meeting.meetingId || index"
-                  class="list-group-item meeting-item" @mouseenter="meeting.showDelete = true"
-                  @mouseleave="meeting.showDelete = false">
-                <div class="meeting-content">
+          <!-- Meetings -->
+          <div class="card semi-transparent-card mb-4 meetings-card">
+            <div class="card-header bg-transparent"><strong>Personal Meetings</strong></div>
+            <div class="content-container">
+              <ul class="list-group list-group-flush" v-if="meetings.length > 0">
+                <li v-for="(meeting, index) in meetings" :key="meeting.meetingId || index"
+                    class="list-group-item meeting-item" @mouseenter="meeting.showDelete = true"
+                    @mouseleave="meeting.showDelete = false">
+                  <div class="meeting-content">
                   <span class="meeting-info"
                         style="width: calc(100% - 40px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{
                       meeting.time
                     }} - {{ meeting.title }}</span>
-                  <span v-if="meeting.showDelete" @click="removeMeeting(index)" title="Remove meeting"
-                        style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); font-size: 18px; color: #dc3545; width: 25px; height: 25px; background: rgba(255,255,255,0.8); border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer;">×</span>
-                </div>
-              </li>
-            </ul>
-            <div v-else-if="isLoadingMeetings" class="text-center py-3">
-              <div class="spinner-border spinner-border-sm" role="status"><span
-                  class="visually-hidden">Loading...</span></div>
+                    <span v-if="meeting.showDelete" @click="removeMeeting(index)" title="Remove meeting"
+                          style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); font-size: 18px; color: #dc3545; width: 25px; height: 25px; background: rgba(255,255,255,0.8); border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer;">×</span>
+                  </div>
+                </li>
+              </ul>
+              <div v-else-if="isLoadingMeetings" class="text-center py-3">
+                <div class="spinner-border spinner-border-sm" role="status"><span
+                    class="visually-hidden">Loading...</span></div>
+              </div>
+              <div v-else class="card-body text-center py-2"><p class="text-muted my-1">No meetings yet</p></div>
             </div>
-            <div v-else class="card-body text-center py-2"><p class="text-muted my-1">No meetings yet</p></div>
-          </div>
-          <div class="card-footer bg-transparent">
-            <div class="mb-2"><input type="text" class="form-control form-control-sm" placeholder="Time (e.g. 14:00)"
-                                     v-model="newMeetingTime"></div>
-            <div class="mb-2"><input type="text" class="form-control form-control-sm" placeholder="Meeting title"
-                                     v-model="newMeetingTitle" @keyup.enter="addMeeting"></div>
-            <button class="btn btn-sm btn-primary w-100" @click="addMeeting"
-                    :disabled="!newMeetingTime || !newMeetingTitle">Add Meeting
-            </button>
-          </div>
-        </div>
+            <div class="card-footer bg-transparent">
+              <div v-if="meetingTimeAlert.show" class="meeting-time-alert">
+                <div class="alert-content">
+                  <span class="alert-icon">⚠️</span>
+                  <span class="alert-message">{{ meetingTimeAlert.message }}</span>
+                </div>
+                <button class="alert-close" @click="meetingTimeAlert.show = false">×</button>
+              </div>
 
-        <!-- Trackers Container -->
-        <div class="trackers-container">
-          <!-- Water Tracker -->
-          <div class="mb-4 tracker-section">
-            <h5 class="mb-3 text-center">Glasses of Water</h5>
-            <div class="water-icons">
-              <div v-for="(glass, index) in 8" :key="index" class="water-glass" @click="setGlasses(index + 1)"
-                   title="Glass of Water">
-                <div class="glass-container">
-                  <div class="water-fill" :style="{ height: index < selectedGlasses ? '90%' : '0%' }"></div>
+              <div class="mb-2"><input type="text" class="form-control form-control-sm" placeholder="Time (e.g. 14.30, 1430, or 2.30pm)"
+                                       v-model="newMeetingTime"></div>
+              <div class="mb-2"><input type="text" class="form-control form-control-sm" placeholder="Meeting title"
+                                       v-model="newMeetingTitle" @keyup.enter="addMeeting"></div>
+              <button class="btn btn-sm btn-primary w-100" @click="addMeeting"
+                      :disabled="!newMeetingTime || !newMeetingTitle">Add Meeting
+              </button>
+            </div>
+          </div>
+
+          <!-- Trackers Container -->
+          <div class="trackers-container">
+            <!-- Water Tracker -->
+            <div class="mb-4 tracker-section">
+              <h5 class="mb-3 text-center">Glasses of Water</h5>
+              <div class="water-icons">
+                <div v-for="(glass, index) in 8" :key="index" class="water-glass" @click="setGlasses(index + 1)"
+                     title="Glass of Water">
+                  <div class="glass-container">
+                    <div class="water-fill" :style="{ height: index < selectedGlasses ? '90%' : '0%' }"></div>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          <!-- Mood Tracker -->
-          <div class="mb-4 tracker-section">
-            <h5 class="mb-3 text-center">Mood today?</h5>
-            <div id="mood-icons" class="text-center">
-              <span class="mood-icon" :class="{ 'active-sad': personalMood === 'S' }" @click="updateMood('S')" title="Sad">😢</span>
-              <span class="mood-icon" :class="{ 'active-neutral': personalMood === 'N' }" @click="updateMood('N')" title="Neutral">😐</span>
-              <span class="mood-icon" :class="{ 'active-happy': personalMood === 'H' }" @click="updateMood('H')" title="Happy">😊</span>
-            </div>
-          </div>
-
-          <!-- Steps Tracker -->
-          <div class="tracker-section">
-            <h5 class="mb-4 text-center">Steps</h5>
-            <div class="steps-milestones">
-              <div v-for="(milestone, index) in milestones" :key="index" class="milestone-item"
-                   @click="updateStep(index + 1)" :title="`${milestone.steps} Steps`">
-                <div class="checkbox-container" :class="{ 'checked': index < completedStepsMilestone }">
-                  <svg v-if="index < completedStepsMilestone" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-                       fill="white" class="checkmark-icon">
-                    <path fill-rule="evenodd"
-                          d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 011.04-.208z"
-                          clip-rule="evenodd"/>
-                  </svg>
-                </div>
-                <div class="milestone-label">{{ milestone.label }}</div>
+            <!-- Mood Tracker -->
+            <div class="mb-4 tracker-section">
+              <h5 class="mb-3 text-center">Mood today?</h5>
+              <div id="mood-icons" class="text-center">
+                <span class="mood-icon" :class="{ 'active-sad': personalMood === 'S' }" @click="updateMood('S')"
+                      title="Sad">😢</span>
+                <span class="mood-icon" :class="{ 'active-neutral': personalMood === 'N' }" @click="updateMood('N')"
+                      title="Neutral">😐</span>
+                <span class="mood-icon" :class="{ 'active-happy': personalMood === 'H' }" @click="updateMood('H')"
+                      title="Happy">😊</span>
               </div>
             </div>
-            <div class="milestone-status">
+
+            <!-- Steps Tracker -->
+            <div class="tracker-section">
+              <h5 class="mb-4 text-center">Steps</h5>
+              <div class="steps-milestones">
+                <div v-for="(milestone, index) in milestones" :key="index" class="milestone-item"
+                     @click="updateStep(index + 1)" :title="`${milestone.steps} Steps`">
+                  <div class="checkbox-container" :class="{ 'checked': index < completedStepsMilestone }">
+                    <svg v-if="index < completedStepsMilestone" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                         fill="white" class="checkmark-icon">
+                      <path fill-rule="evenodd"
+                            d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 011.04-.208z"
+                            clip-rule="evenodd"/>
+                    </svg>
+                  </div>
+                  <div class="milestone-label">{{ milestone.label }}</div>
+                </div>
+              </div>
+              <div class="milestone-status">
               <span v-if="completedStepsMilestone > 0">
                 <span v-if="completedStepsMilestone === 4">Over 10,000 steps</span>
                 <span v-else>At least {{ milestones[completedStepsMilestone - 1].steps }} steps</span>
               </span>
-              <span v-else>No steps recorded</span>
+                <span v-else>No steps recorded</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
 </template>
 
 <script>
@@ -282,13 +297,21 @@ export default {
     otherThoughts: "", editingThoughts: false, tempThoughts: "",
     activities: [], newActivity: "",
     meetings: [], newMeetingTime: '', newMeetingTitle: '',
+    meetingTimeAlert: {
+      show: false,
+      message: ""
+    },
     personalMood: null, selectedGlasses: 0, completedStepsMilestone: 0,
     tasks: [], newTask: "",
+    personalGoals: [],
+    isLoadingPersonalGoals: false,
+    goalCompletionStatus: [],
 
     //todo Lehti lisatud
     moodId: null,
     date: '',
     stepId: null,
+    waterId: null,
 
 
     // Constants
@@ -342,7 +365,8 @@ export default {
         this.loadUserImage();
         this.findMood();
         this.findStep();
-
+        this.findWater();
+        this.loadPersonalGoals();
 
         // Reset trackers
         this.tasks = [];
@@ -356,7 +380,6 @@ export default {
         this.isLoading = false;
       }
     },
-
     // === CONTENT EDITING METHODS ===
     // Generic editing helpers
     startEdit(ref, prop, temp) {
@@ -542,7 +565,14 @@ export default {
 
       const formattedTime = this.formatTimeInput(this.newMeetingTime.trim());
       if (!formattedTime) {
-        alert("Please enter a valid time (e.g., 14.30, 1430, or 2.30pm)");
+        this.meetingTimeAlert.message = "Please enter a valid time (e.g., 14.30, 1430, or 2.30pm)";
+        this.meetingTimeAlert.show = true;
+
+        // Automatically hide after 4 seconds
+        setTimeout(() => {
+          this.meetingTimeAlert.show = false;
+        }, 4000);
+
         return;
       }
 
@@ -638,14 +668,75 @@ export default {
     },
 
     // === TRACKER METHODS ===
+    async findWater() {
+      try {
+        // Make sure we have the day setup first
+        if (!this.dayId) {
+          const response = await DayService.addNewDay({
+            userId: this.userId, date: this.formattedDate, type: "P"
+          });
+          this.dayId = response.data.dayId;
+        }
 
-    setGlasses(count) {
-      this.selectedGlasses = count;
-    },
-    setStepsMilestone(milestone) {
-      this.completedStepsMilestone = milestone;
-    },
+        // Get water data using userId and date
+        const waterResponse = await axios.get('/water', {
+          params: {
+            userId: this.userId,
+            date: this.formattedDate
+          }
+        });
 
+        if (waterResponse.data && waterResponse.data.waterId) {
+          this.waterId = waterResponse.data.waterId;
+          if (waterResponse.data.count) {
+            this.selectedGlasses = parseInt(waterResponse.data.count);
+          } else {
+            this.selectedGlasses = 0;
+          }
+        } else {
+          // Reset if no data found
+          this.waterId = null;
+          this.selectedGlasses = 0;
+        }
+      } catch (error) {
+        console.error("Error fetching water data:", error);
+        this.waterId = null;
+        this.selectedGlasses = 0;
+        if (error.response?.status === 403) {
+          navigationServices.navigateToErrorView();
+        }
+      }
+    },
+    async updateWater(glassCount) {
+      // Update UI immediately
+      this.selectedGlasses = glassCount;
+
+      try {
+        if (!this.waterId) {
+          console.error("Water ID is missing!");
+          await this.findWater(); // Try to get the waterId first
+          if (!this.waterId) return; // Exit if still no waterId
+        }
+
+        await axios.patch('/water', null, {
+          params: {
+            waterId: this.waterId,
+            count: glassCount
+          }
+        });
+
+        // Optionally refresh data to ensure consistency
+        // await this.findWater();
+      } catch (error) {
+        console.error("Error updating water count:", error);
+        // Reset UI state on error by fetching current data
+        await this.findWater();
+        navigationServices.navigateToErrorView();
+      }
+    },
+    async setGlasses(count) {
+      await this.updateWater(count);
+    },
 
     async findMood() {
       try {
@@ -654,7 +745,7 @@ export default {
         });
         this.dayId = response.data.dayId;
 
-        const moodResponse = await axios.get('/mood', { params: { dayId: this.dayId } });
+        const moodResponse = await axios.get('/mood', {params: {dayId: this.dayId}});
         if (moodResponse.data) {
           this.personalMood = moodResponse.data.state;
           this.moodId = moodResponse.data.moodId;  // Ensure moodId is set correctly
@@ -675,7 +766,7 @@ export default {
 
       try {
         await axios.patch('/mood', null, {
-          params: { moodId: this.moodId, state: this.personalMood }
+          params: {moodId: this.moodId, state: this.personalMood}
         });
         await this.loadSavedData();
       } catch (error) {
@@ -726,7 +817,6 @@ export default {
         }
       }
     },
-
     async updateStep(newStep) {
       // Update UI immediately for better user experience
       this.completedStepsMilestone = newStep;
@@ -756,13 +846,111 @@ export default {
         navigationServices.navigateToErrorView();
       }
     },
+    async setStepsMilestone(milestone) {
+      await this.updateStep(milestone);
+    },
+    loadPersonalGoals() {
+      this.isLoadingPersonalGoals = true;
+
+      axios.get('/settings-personal-goal', {
+        params: { userId: this.userId }
+      })
+          .then(response => {
+            console.log("Personal goals API response:", response.data);
+
+            // Get goals from response
+            const goals = response.data.personalGoals || response.data;
+
+            if (!Array.isArray(goals)) {
+              console.error("Expected goals array but got:", goals);
+              this.personalGoals = [];
+              this.goalCompletionStatus = [];
+              return;
+            }
+
+            // Set the goals array
+            this.personalGoals = goals.filter(goal => goal && typeof goal === 'object');
+
+            // Initialize the completion status array
+            this.goalCompletionStatus = new Array(this.personalGoals.length).fill(false);
+
+            // Load saved completion status
+            this.loadCompletionStatus();
+          })
+          .catch(error => {
+            console.error("Error loading personal goals:", error);
+            this.personalGoals = [];
+            this.goalCompletionStatus = [];
+          })
+          .finally(() => {
+            this.isLoadingPersonalGoals = false;
+          });
+    },
 
 
+    toggleGoalCompletion(index) {
+      if (index >= 0 && index < this.goalCompletionStatus.length) {
+        // Toggle the completion status
+        this.goalCompletionStatus[index] = !this.goalCompletionStatus[index];
+        // Save to localStorage
+        this.saveGoalCompletionStatus();
+      } else {
+        console.error("Invalid goal index:", index);
+      }
+    },
 
+// Load saved completion status from localStorage
+    loadCompletionStatus() {
+      try {
+        // Create a unique key for this day and user
+        const statusKey = `goals_${this.userId}_${this.formattedDate}`;
 
+        // Try to get saved status
+        const savedStatus = localStorage.getItem(statusKey);
 
+        if (savedStatus) {
+          try {
+            // Parse saved completion statuses
+            const completionStatus = JSON.parse(savedStatus);
+
+            // If it's an array and the length matches, use it directly
+            if (Array.isArray(completionStatus) && completionStatus.length === this.personalGoals.length) {
+              this.goalCompletionStatus = completionStatus;
+              return;
+            }
+
+            // If it's an object with IDs as keys (old format), convert to array
+            if (typeof completionStatus === 'object' && !Array.isArray(completionStatus)) {
+              this.personalGoals.forEach((goal, index) => {
+                if (goal.personalGoalTemplateId &&
+                    completionStatus[goal.personalGoalTemplateId] !== undefined) {
+                  this.goalCompletionStatus[index] = completionStatus[goal.personalGoalTemplateId];
+                }
+              });
+            }
+          } catch (e) {
+            console.error("Error parsing saved completion status:", e);
+          }
+        }
+      } catch (e) {
+        console.error("Error loading completion status:", e);
+      }
+    },
+
+    saveGoalCompletionStatus() {
+      try {
+        // Create a unique key for this day and user
+        const statusKey = `goals_${this.userId}_${this.formattedDate}`;
+
+        // Save the entire completion status array
+        localStorage.setItem(statusKey, JSON.stringify(this.goalCompletionStatus));
+      } catch (e) {
+        console.error("Error saving completion status:", e);
+      }
     }
-  };
+
+  }
+};
 </script>
 
 <style src="@/assets/css/personaldayview.css" scoped></style>
