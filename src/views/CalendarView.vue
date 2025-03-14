@@ -145,6 +145,7 @@ import navigationServices from "@/services/NavigationServices";
 
 export default {
   name: "CalendarView",
+
   components: {CalendarNavigationModal},
 
   created() {
@@ -233,7 +234,17 @@ export default {
       return days;
     }
   },
+
   methods: {
+    getMonthName(monthIndex) {
+      return ['January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'][monthIndex];
+    },
+
+    getDayName(dayIndex) {
+      return ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][dayIndex];
+    },
+
     async loadMonthFocuses(month, year) {
       this.isLoading = true;
       this.personalFocuses = [];
@@ -243,48 +254,27 @@ export default {
         const personalResponse = await axios.get(`${this.apiBaseUrl}/focuses`, {
           params: {userId: this.userId, monthNumber: month, year, type: 'P'}
         });
-        this.personalFocuses = personalResponse.data;
+
+        // Sort the focuses with uncompleted ones first
+        this.personalFocuses = personalResponse.data.sort((a, b) => {
+          // Sort by completion status (uncompleted first)
+          return a.isSelected === b.isSelected ? 0 : a.isSelected ? 1 : -1;
+        });
 
         const workResponse = await axios.get(`${this.apiBaseUrl}/focuses`, {
           params: {userId: this.userId, monthNumber: month, year, type: 'W'}
         });
-        this.workFocuses = workResponse.data;
+
+        // Sort the work focuses with uncompleted ones first
+        this.workFocuses = workResponse.data.sort((a, b) => {
+          // Sort by completion status (uncompleted first)
+          return a.isSelected === b.isSelected ? 0 : a.isSelected ? 1 : -1;
+        });
       } catch (error) {
         console.error("Error loading month focuses:", error);
         if (error.response?.status === 403) navigationServices.navigateToErrorView();
       } finally {
         this.isLoading = false;
-      }
-    },
-
-    async createFocus(topic, type) {
-      if (!topic.trim()) return;
-
-      try {
-        await axios.post(`${this.apiBaseUrl}/focus`, {
-          userId: this.userId,
-          topic,
-          monthNumber: this.selectedDate.getMonth() + 1,
-          year: this.selectedDate.getFullYear(),
-          type
-        });
-        await this.loadMonthFocuses(this.selectedDate.getMonth() + 1, this.selectedDate.getFullYear());
-      } catch (error) {
-        console.error("Error creating focus:", error);
-        if (error.response?.status === 403) navigationServices.navigateToErrorView();
-      }
-    },
-
-    async updateFocusSelection(focus) {
-      try {
-        focus.isSelected = !focus.isSelected;
-        await axios.patch(`${this.apiBaseUrl}/focus`, null, {
-          params: {focusId: focus.id, isSelected: focus.isSelected}
-        });
-      } catch (error) {
-        console.error("Error updating focus:", error);
-        focus.isSelected = !focus.isSelected;
-        if (error.response?.status === 403) navigationServices.navigateToErrorView();
       }
     },
 
@@ -301,6 +291,95 @@ export default {
         } else {
           await this.loadMonthFocuses(this.selectedDate.getMonth() + 1, this.selectedDate.getFullYear());
         }
+      }
+    },
+
+    async addPersonalFocus() {
+      if (!this.newPersonalFocus.trim()) return;
+      try {
+        await axios.post(`${this.apiBaseUrl}/focus`, {
+          userId: this.userId,
+          topic: this.newPersonalFocus.trim(),
+          monthNumber: this.selectedDate.getMonth() + 1,
+          year: this.selectedDate.getFullYear(),
+          type: 'P'
+        });
+        this.newPersonalFocus = '';
+        await this.loadMonthFocuses(this.selectedDate.getMonth() + 1, this.selectedDate.getFullYear());
+      } catch (error) {
+        console.error("Error creating focus:", error);
+        if (error.response?.status === 403) navigationServices.navigateToErrorView();
+      }
+    },
+
+    async addWorkFocus() {
+      if (!this.newWorkFocus.trim()) return;
+      try {
+        await axios.post(`${this.apiBaseUrl}/focus`, {
+          userId: this.userId,
+          topic: this.newWorkFocus.trim(),
+          monthNumber: this.selectedDate.getMonth() + 1,
+          year: this.selectedDate.getFullYear(),
+          type: 'W'
+        });
+        this.newWorkFocus = '';
+        await this.loadMonthFocuses(this.selectedDate.getMonth() + 1, this.selectedDate.getFullYear());
+      } catch (error) {
+        console.error("Error creating focus:", error);
+        if (error.response?.status === 403) navigationServices.navigateToErrorView();
+      }
+    },
+
+    async toggleFocusCompletion(focus) {
+      try {
+        focus.isSelected = !focus.isSelected;
+        await axios.patch(`${this.apiBaseUrl}/focus`, null, {
+          params: {focusId: focus.id, isSelected: focus.isSelected}
+        });
+
+        if (this.personalFocuses.some(f => f.id === focus.id)) {
+          this.personalFocuses = [...this.personalFocuses].sort((a, b) => {
+            return a.isSelected === b.isSelected ? 0 : a.isSelected ? 1 : -1;
+          });
+        } else {
+          this.workFocuses = [...this.workFocuses].sort((a, b) => {
+            return a.isSelected === b.isSelected ? 0 : a.isSelected ? 1 : -1;
+          });
+        }
+      } catch (error) {
+        console.error("Error updating focus:", error);
+        focus.isSelected = !focus.isSelected;
+        if (error.response?.status === 403) navigationServices.navigateToErrorView();
+      }
+    },
+
+    async removeFocus(focus) {
+      await this.deleteFocus(focus);
+    },
+
+    getPersonalFocuses() {
+      return this.personalFocuses;
+    },
+
+    getWorkFocuses() {
+      return this.workFocuses;
+    },
+
+    async fetchQuote() {
+      const API_KEY = "LEYV9brNOkL8XXrRckzhbQ==0eV9fA97U9SIpoyC";
+      try {
+        const response = await axios.get("https://api.api-ninjas.com/v1/quotes", {
+          headers: {"X-Api-Key": API_KEY}
+        });
+        if (response.data?.length > 0) {
+          this.quote = response.data[0].quote;
+          if (response.data[0].author) this.quote += " - " + response.data[0].author;
+        } else {
+          this.quote = "The best way to predict the future is to create it. - Abraham Lincoln";
+        }
+      } catch (error) {
+        console.error("Error fetching quote:", error);
+        this.quote = "The best way to predict the future is to create it. - Abraham Lincoln";
       }
     },
 
@@ -333,15 +412,6 @@ export default {
       }
     },
 
-    getMonthName(monthIndex) {
-      return ['January', 'February', 'March', 'April', 'May', 'June',
-        'July', 'August', 'September', 'October', 'November', 'December'][monthIndex];
-    },
-
-    getDayName(dayIndex) {
-      return ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][dayIndex];
-    },
-
     openNavigationModal() {
       this.navigationModalIsOpen = true;
     },
@@ -353,54 +423,9 @@ export default {
     handleDayClick(day) {
       this.selectDate(day);
       this.openNavigationModal();
-    },
-
-    async addPersonalFocus() {
-      if (!this.newPersonalFocus.trim()) return;
-      await this.createFocus(this.newPersonalFocus, 'P');
-      this.newPersonalFocus = '';
-    },
-
-    async addWorkFocus() {
-      if (!this.newWorkFocus.trim()) return;
-      await this.createFocus(this.newWorkFocus, 'W');
-      this.newWorkFocus = '';
-    },
-
-    async toggleFocusCompletion(focus) {
-      await this.updateFocusSelection(focus);
-    },
-
-    async removeFocus(focus) {
-      await this.deleteFocus(focus);
-    },
-
-    getPersonalFocuses() {
-      return this.personalFocuses;
-    },
-
-    getWorkFocuses() {
-      return this.workFocuses;
-    },
-
-    async fetchQuote() {
-      const API_KEY = "LEYV9brNOkL8XXrRckzhbQ==0eV9fA97U9SIpoyC";
-      try {
-        const response = await axios.get("https://api.api-ninjas.com/v1/quotes", {
-          headers: {"X-Api-Key": API_KEY}
-        });
-        if (response.data?.length > 0) {
-          this.quote = response.data[0].quote;
-          if (response.data[0].author) this.quote += " - " + response.data[0].author;
-        } else {
-          this.quote = "The best way to predict the future is to create it. - Abraham Lincoln";
-        }
-      } catch (error) {
-        console.error("Error fetching quote:", error);
-        this.quote = "The best way to predict the future is to create it. - Abraham Lincoln";
-      }
     }
   },
+
   watch: {
     selectedDate(newDate) {
       if (newDate) {
