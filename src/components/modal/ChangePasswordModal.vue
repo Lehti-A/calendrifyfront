@@ -129,12 +129,10 @@ export default {
           'Content-Type': 'application/json'
         }
       })
-          .then(response => {
-            console.log("Password update successful:", response);
+          .then(() => {
             this.handleSuccess();
           })
           .catch(error => {
-            console.error("Password update failed:", error);
             this.handleError(error);
           });
     },
@@ -154,45 +152,37 @@ export default {
     },
 
     handleError(error) {
-      // Handle different types of API errors
-      if (error.response) {
-        // The request was made and the server responded with a status code
-        // that falls out of the range of 2xx
-        if (error.response.status === 401) {
-          this.showError('Unauthorized access');
-          this.resetForm();
-        } else if (error.response.status === 400) {
-          if (error.response.data && error.response.data.message === "Current password is incorrect") {
-            this.showError('Current password is incorrect');
-            this.currentPassword = '';
-          } else {
-            this.showError('Invalid password format');
-            this.resetPasswordFields();
-          }
-        } else if (error.response.status === 404) {
-          this.showError('User not found');
-          this.resetForm();
-        } else if (HttpStatusCodes.STATUS_FORBIDDEN === error.response.status
-            && BusinessErrors.CODE_INCORRECT_CREDENTIALS === error.response.data.errorCode) {
-          this.showError('Current password is incorrect');
-          this.currentPassword = '';
-        } else if (error.response.data && error.response.data.message) {
-          // Display server-provided error message if available
-          this.showError(error.response.data.message);
-          this.resetPasswordFields();
-        } else {
-          this.showError('Failed to change password. Please try again.');
-          this.resetForm();
-        }
-      } else if (error.request) {
-        // The request was made but no response was received
-        this.showError('Server not responding. Please try again later.');
+      if (!error.response) {
+        this.showError('Server connection error. Please try again later.');
         this.resetForm();
-      } else {
-        // Something happened in setting up the request that triggered an Error
-        this.showError('An error occurred. Please try again.');
-        this.resetForm();
+        return;
       }
+
+      const { status, data } = error.response;
+
+      // Handle incorrect password cases
+      if (status === 500 ||
+          (status === 400 && data?.message === "Current password is incorrect") ||
+          (status === HttpStatusCodes.STATUS_FORBIDDEN && data?.errorCode === BusinessErrors.CODE_INCORRECT_CREDENTIALS)) {
+        this.showError('Current password is incorrect');
+        this.currentPassword = '';
+        return;
+      }
+
+      // Handle other specific error cases
+      if (status === 401) {
+        this.showError('Unauthorized access');
+      } else if (status === 400) {
+        this.showError('Invalid password format');
+      } else if (status === 404) {
+        this.showError('User not found');
+      } else if (data?.message) {
+        this.showError(data.message);
+      } else {
+        this.showError('Failed to change password. Please try again.');
+      }
+
+      this.resetForm();
     },
 
     showError(message) {
