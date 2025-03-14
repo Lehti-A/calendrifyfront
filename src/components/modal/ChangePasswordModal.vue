@@ -50,6 +50,8 @@ import AlertDanger from "@/components/alert/AlertDanger.vue";
 import AlertSuccess from "@/components/alert/AlertSuccess.vue";
 import axios from "axios";
 import NavigationServices from "@/services/NavigationServices";
+import HttpStatusCodes from "@/errors/HttpStatusCodes";
+import BusinessErrors from "@/errors/BusinessErrors";
 
 export default {
   name: 'ChangePasswordModal',
@@ -71,14 +73,16 @@ export default {
       errorMessage: '',
       successMessage: 'Password changed successfully!',
       showSuccessMessage: false,
-      userId: Number(sessionStorage.getItem('userId'))
+      userId: Number(sessionStorage.getItem('userId')),
+      email: sessionStorage.getItem('email') || '',
+      errorTimeout: null
     }
   },
 
   methods: {
     changePassword() {
       if (this.validateFields()) {
-        this.sendPasswordChangeRequest();
+        this.verifyCurrentPassword();
       }
     },
 
@@ -86,18 +90,52 @@ export default {
       // Check if all fields are filled
       if (!this.currentPassword || !this.newPassword || !this.confirmPassword) {
         this.showError('Please fill in all fields');
-        this.resetForm();
         return false;
       }
 
       // Check if new password and confirmation match
       if (this.newPassword !== this.confirmPassword) {
         this.showError('New passwords do not match');
-        this.resetForm();
+        this.resetPasswordFields();
         return false;
       }
 
       return true;
+    },
+
+    verifyCurrentPassword() {
+      // First verify the current password is correct using the login endpoint
+      axios.post('/login', {
+        email: this.email,
+        password: this.currentPassword
+      })
+          .then(response => {
+            // If login is successful, proceed with password change
+            this.sendPasswordChangeRequest();
+          })
+          .catch(error => {
+            // Handle login verification error
+            this.handleLoginVerificationError(error);
+          });
+    },
+
+    handleLoginVerificationError(error) {
+      if (error.response) {
+        let httpStatusCode = error.response.status;
+        const errorData = error.response.data;
+
+        if (HttpStatusCodes.STATUS_FORBIDDEN === httpStatusCode
+            && BusinessErrors.CODE_INCORRECT_CREDENTIALS === errorData.errorCode) {
+          this.showError('Current password is incorrect');
+          this.currentPassword = '';
+        } else {
+          this.showError('Current password is incorrect. Please try again.');
+          this.resetForm();
+        }
+      } else {
+        this.showError('Server not responding. Please try again later.');
+        this.resetForm();
+      }
     },
 
     sendPasswordChangeRequest() {
@@ -124,6 +162,7 @@ export default {
             this.handleError(error);
           });
     },
+
     handleSuccess() {
       this.showSuccessMessage = true;
       this.errorMessage = '';
@@ -144,20 +183,18 @@ export default {
         // The request was made and the server responded with a status code
         // that falls out of the range of 2xx
         if (error.response.status === 401) {
-          this.showError('Current password is incorrect');
-          // Clear only the current password field for retry
-          this.currentPassword = '';
+          this.showError('Unauthorized access');
+          this.resetForm();
         } else if (error.response.status === 400) {
           this.showError('Invalid password format');
-          // Clear all fields
-          this.resetForm();
+          this.resetPasswordFields();
         } else if (error.response.status === 404) {
           this.showError('User not found');
           this.resetForm();
         } else if (error.response.data && error.response.data.message) {
           // Display server-provided error message if available
           this.showError(error.response.data.message);
-          this.resetForm();
+          this.resetPasswordFields();
         } else {
           this.showError('Failed to change password. Please try again.');
           this.resetForm();
@@ -171,21 +208,38 @@ export default {
         this.showError('An error occurred. Please try again.');
         this.resetForm();
       }
-      console.error(error);
-    },
-    showError(message) {
-      this.errorMessage = message;
-      setTimeout(this.resetErrorMessage, 4000);
     },
 
-    resetErrorMessage() {
-      this.errorMessage = '';
+    showError(message) {
+      this.errorMessage = message;
+
+      // Clear any existing timeout
+      if (this.errorTimeout) {
+        clearTimeout(this.errorTimeout);
+      }
+
+      // Set new timeout to clear the error message
+      this.errorTimeout = setTimeout(() => {
+        this.errorMessage = '';
+      }, 4000);
+    },
+
+    resetPasswordFields() {
+      this.newPassword = '';
+      this.confirmPassword = '';
     },
 
     resetForm() {
       this.currentPassword = '';
       this.newPassword = '';
       this.confirmPassword = '';
+    }
+  },
+
+  beforeDestroy() {
+    // Clear any existing timeout when component is destroyed
+    if (this.errorTimeout) {
+      clearTimeout(this.errorTimeout);
     }
   }
 }
