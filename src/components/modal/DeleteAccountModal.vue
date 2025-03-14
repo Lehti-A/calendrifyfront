@@ -50,6 +50,7 @@ export default {
   },
 
   methods: {
+
     deleteAccount() {
       this.sendDeleteAccountRequest();
     },

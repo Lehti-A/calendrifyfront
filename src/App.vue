@@ -59,16 +59,6 @@ import LogoutModal from "@/components/modal/LogoutModal.vue";
 
 export default {
   components: {LogoutModal},
-  data() {
-    return {
-      backgroundClass: 'background-logged-out',
-      logoutModalIsOpen: false, // Add this line for the logout modal
-      modalIsOpen: false,
-      isLoggedIn: true,
-      isAdmin: false,
-    }
-  },
-
   created() {
     // Check login status when the component is created
     this.updateNavMenuAndBackground();
@@ -83,11 +73,21 @@ export default {
   },
 
   mounted() {
-    // Also check status on mount
     this.updateNavMenuAndBackground();
   },
 
+  data() {
+    return {
+      backgroundClass: 'background-logged-out',
+      logoutModalIsOpen: false, // Add this line for the logout modal
+      modalIsOpen: false,
+      isLoggedIn: true,
+      isAdmin: false,
+    }
+  },
+
   methods: {
+
     navigateToWorkDay() {
       NavigationServices.navigateToWorkDayView();
     },

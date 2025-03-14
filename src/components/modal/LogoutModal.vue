@@ -34,6 +34,7 @@ export default {
     modalIsOpen: Boolean,
   },
   methods: {
+
     executeLogout() {
       // Clear session storage
       sessionStorage.clear()

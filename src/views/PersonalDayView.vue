@@ -375,7 +375,7 @@ export default {
   },
 
   methods: {
-    // === DATA METHODS ===
+
     async loadSavedData() {
       this.isLoading = true;
       try {
@@ -722,7 +722,6 @@ export default {
       return null;
     },
 
-    // === TRACKER METHODS ===
     async findWater() {
       try {
         // Make sure we have the day setup first

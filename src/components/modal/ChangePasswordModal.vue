@@ -65,7 +65,7 @@ export default {
   },
 
   beforeDestroy() {
-    // Clear any existing timeout when component is destroyed
+
     if (this.errorTimeout) {
       clearTimeout(this.errorTimeout);
     }
@@ -85,6 +85,7 @@ export default {
   },
 
   methods: {
+
     closeModal() {
       this.resetForm();
       this.$emit('event-close-modal');
@@ -97,13 +98,11 @@ export default {
     },
 
     validateFields() {
-      // Check if all fields are filled
       if (!this.currentPassword || !this.newPassword || !this.confirmPassword) {
         this.showError('Please fill in all fields');
         return false;
       }
 
-      // Check if new password and confirmation match
       if (this.newPassword !== this.confirmPassword) {
         this.showError('New passwords do not match');
         this.resetPasswordFields();
@@ -114,13 +113,12 @@ export default {
     },
 
     sendPasswordChangeRequest() {
-      // Create the request payload with both current and new password
+
       const passwordData = {
         currentPassword: this.currentPassword,
         newPassword: this.newPassword
       };
 
-      // Send the password change request
       axios.patch('/settings-password', passwordData, {
         params: {
           userId: this.userId
@@ -141,10 +139,8 @@ export default {
       this.showSuccessMessage = true;
       this.errorMessage = '';
 
-      // Reset the form
       this.resetForm();
 
-      // Close the modal after 2 seconds
       setTimeout(() => {
         this.$emit('event-close-modal');
         this.showSuccessMessage = false;
@@ -160,7 +156,6 @@ export default {
 
       const { status, data } = error.response;
 
-      // Handle incorrect password cases
       if (status === 500 ||
           (status === 400 && data?.message === "Current password is incorrect") ||
           (status === HttpStatusCodes.STATUS_FORBIDDEN && data?.errorCode === BusinessErrors.CODE_INCORRECT_CREDENTIALS)) {
@@ -169,7 +164,6 @@ export default {
         return;
       }
 
-      // Handle other specific error cases
       if (status === 401) {
         this.showError('Unauthorized access');
       } else if (status === 400) {
@@ -188,12 +182,10 @@ export default {
     showError(message) {
       this.errorMessage = message;
 
-      // Clear any existing timeout
       if (this.errorTimeout) {
         clearTimeout(this.errorTimeout);
       }
 
-      // Set new timeout to clear the error message
       this.errorTimeout = setTimeout(() => {
         this.errorMessage = '';
       }, 4000);
