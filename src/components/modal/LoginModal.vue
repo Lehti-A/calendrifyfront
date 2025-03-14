@@ -8,22 +8,33 @@
     </template>
 
     <template #body>
-      <form class="d-flex flex-column align-items-center justify-content-center mt-4">
+      <div class="d-flex flex-column align-items-center justify-content-center mt-4">
         <div class="col">
           <AlertDanger :message="message"/>
         </div>
 
         <div class="mb-3 w-100">
           <label for="email" class="form-label">Email</label>
-          <input v-model="email" type="text" class="form-control" id="email" placeholder="Enter your email" required/>
+          <input v-model="email"
+                 type="text"
+                 class="form-control"
+                 id="email"
+                 placeholder="Enter your email"
+                 required
+                 @keyup.enter="executeLogin"/>
         </div>
         <!-- Password Input -->
         <div class="mb-3 w-100">
           <label for="password" class="form-label">Password</label>
-          <input v-model="password" type="password" class="form-control" id="password" placeholder="Enter your password"
-                 required/>
+          <input v-model="password"
+                 type="password"
+                 class="form-control"
+                 id="password"
+                 placeholder="Enter your password"
+                 required
+                 @keyup.enter="executeLogin"/>
         </div>
-      </form>
+      </div>
     </template>
 
     <template #footer>
@@ -73,7 +84,6 @@ export default {
   },
 
   methods: {
-
     executeLogin() {
       if (this.allFieldsAreWithCorrectInput()) {
         this.sendLoginRequest();
