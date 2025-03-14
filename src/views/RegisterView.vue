@@ -102,7 +102,8 @@ export default {
   },
   methods: {
     addNewUser() {
-      if (this.passwordNoMatch()) {
+      // Check if passwords match
+      if (this.newUser.password !== this.passwordRetype) {
         this.errorMessage = "Paroolid ei kattu";
         return;
       }
