@@ -138,6 +138,7 @@ import ChangePasswordModal from "@/components/modal/ChangePasswordModal.vue";
 import DeleteAccountModal from "@/components/modal/DeleteAccountModal.vue";
 import axios from "axios";
 import NavigationServices from "@/services/NavigationServices";
+import PersonalGoalService from '@/services/PersonalGoalService';
 
 export default {
   name: 'SettingsView',
@@ -250,47 +251,41 @@ export default {
           });
     },
     loadPersonalGoals() {
-      axios.get('/settings-personal-goal', {
-            params: {
-              userId: this.userId
-            }
-          }
-      )
+      PersonalGoalService.getPersonalGoalTemplates(this.userId)
           .then(response => {
-                this.personalGoals = response.data.personalGoals || response.data;
-              }
-          )
-          .catch(() => NavigationServices.navigateToErrorView())
+            this.personalGoals = response.data.personalGoals || response.data;
+          })
+          .catch(error => {
+            console.error("Error loading personal goal templates:", error);
+            NavigationServices.navigateToErrorView();
+          });
     },
+
     addPersonalGoal() {
       if (!this.newTopic.trim()) {
         return; // Prevent empty goals from being added
       }
 
-      axios.post('/settings-personal-goal', { topic: this.newTopic }, {
-        params: { userId: this.userId }
-      })
-          .then(response => {
-            this.personalGoals.push(response.data); // Add new goal to the list
+      PersonalGoalService.addPersonalGoalTemplate(this.newTopic, this.userId)
+          .then(() => {
             this.newTopic = ''; // Clear input field
-            this.loadPersonalGoals();
+            this.loadPersonalGoals(); // Reload the goals to get the updated list
           })
-          .catch(() => NavigationServices.navigateToErrorView());
+          .catch(error => {
+            console.error("Error adding personal goal template:", error);
+            NavigationServices.navigateToErrorView();
+          });
     },
 
     deletePersonalGoal(personalGoalTemplateId, index) {
-      axios({
-        method: 'delete',
-        url: '/settings-personal-goal',
-        params: { personalGoalTemplateId }
-      })
-          .then(response => {
+      PersonalGoalService.deletePersonalGoalTemplate(personalGoalTemplateId)
+          .then(() => {
             this.personalGoals.splice(index, 1);
-            console.log("Goal deleted successfully");
+            console.log("Goal template deleted successfully");
           })
           .catch(error => {
             console.error("Delete error:", error);
-            alert("Failed to delete goal");
+            alert("Failed to delete goal template");
           });
     },
     // Dismiss profile update alert

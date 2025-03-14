@@ -108,26 +108,35 @@
         <div class="card semi-transparent-card mb-4 tasks-card">
           <div class="card-header bg-transparent"><strong>Personal Goals</strong></div>
           <div class="content-container">
-            <ul class="list-group list-group-flush">
-              <li v-for="(goal, index) in personalGoals" :key="index"
+            <ul class="list-group list-group-flush" v-if="personalGoals.length > 0">
+              <li v-for="goal in personalGoals" :key="goal.id"
                   class="list-group-item d-flex align-items-center justify-content-between">
                 <div class="task-text-container" style="flex-grow: 1; margin-right: 10px;">
-                  <!-- Apply the completed-activity class when the goal is marked as complete -->
-                  <span :class="{ 'completed-activity': goalCompletionStatus[index] }">{{ goal.topic }}</span>
+                  <span :class="{ 'completed-activity': goal.isDone }">{{ goal.topic }}</span>
                 </div>
                 <div class="task-actions">
-                  <input type="checkbox" class="form-check-input" :checked="goalCompletionStatus[index]"
-                         @change="toggleGoalCompletion(index)">
+                  <input type="checkbox" class="form-check-input" :checked="goal.isDone"
+                         @change="toggleGoalCompletion(goal.id, !goal.isDone)">
+                  <button class="btn btn-sm btn-link text-danger p-0 ms-2" @click="deleteGoal(goal.id)"
+                          title="Remove goal">🗑️
+                  </button>
                 </div>
               </li>
             </ul>
-            <div v-if="personalGoals.length === 0 && !isLoadingPersonalGoals" class="card-body text-center py-2">
-              <p class="text-muted my-1">No personal goals yet. Add them in Settings.</p>
-            </div>
-            <div v-if="isLoadingPersonalGoals" class="text-center py-3">
+            <div v-else-if="isLoadingPersonalGoals" class="text-center py-3">
               <div class="spinner-border spinner-border-sm" role="status">
                 <span class="visually-hidden">Loading...</span>
               </div>
+            </div>
+            <div v-else class="card-body text-center py-2">
+              <p class="text-muted my-1">No personal goals yet</p>
+            </div>
+          </div>
+          <div class="card-footer bg-transparent">
+            <div class="input-group">
+              <input type="text" class="form-control form-control-sm" placeholder="Add new personal goal..."
+                     v-model="newPersonalGoal" @keyup.enter="addPersonalGoal">
+              <button class="btn btn-outline-secondary btn-sm" type="button" @click="addPersonalGoal">Add</button>
             </div>
           </div>
         </div>
@@ -256,6 +265,7 @@ import ActivityService from '@/services/ActivityService';
 import navigationServices from '@/services/NavigationServices';
 import MeetingService from "@/services/MeetingService";
 import ImageService from '@/services/ImageService';
+import PersonalGoalService from '@/services/PersonalGoalService'; // Add this line
 import axios from "axios";
 
 export default {
@@ -309,6 +319,8 @@ export default {
     tasks: [], newTask: "",
     personalGoals: [],
     isLoadingPersonalGoals: false,
+    newPersonalGoal: "",
+    loadedTemplates: false,
     goalCompletionStatus: [],
 
     //todo Lehti lisatud
@@ -881,122 +893,143 @@ export default {
 
     //todo: Lehti kood
     loadPersonalGoals() {
+      if (!this.dayId) return;
+
       this.isLoadingPersonalGoals = true;
-      axios.get('/personal-goal', {
-        params: { dayId: this.dayId }
-      })
+
+      PersonalGoalService.getPersonalGoals(this.dayId)
           .then(response => {
-            console.log("Personal goals API response:", response.data);
+            this.personalGoals = response.data;
 
-            const goals = response.data || response.data;
-
-            if (!Array.isArray(goals)) {
-              console.error("Expected goals array but got:", goals);
-              this.personalGoals = [];
-              this.goalCompletionStatus = [];
-              return;
+            // If we have no goals and haven't loaded templates yet,
+            // offer to create goals from templates
+            if (this.personalGoals.length === 0 && !this.loadedTemplates) {
+              this.offerTemplateGoals();
             }
-
-            this.personalGoals = goals.filter(goal => goal && typeof goal === 'object');
-            this.goalCompletionStatus = new Array(this.personalGoals.length).fill(false);
-
-            // Load saved completion status
-            this.loadCompletionStatus();
           })
           .catch(error => {
             console.error("Error loading personal goals:", error);
             this.personalGoals = [];
-            this.goalCompletionStatus = [];
+            if (error.response?.status === 403) {
+              navigationServices.navigateToErrorView();
+            }
           })
           .finally(() => {
             this.isLoadingPersonalGoals = false;
           });
     },
 
-    toggleGoalCompletion(index) {
-      if (index >= 0 && index < this.goalCompletionStatus.length) {
-        // Optimistic update - update UI immediately
-        this.goalCompletionStatus[index] = !this.goalCompletionStatus[index];
-        const goal = this.personalGoals[index];
+    // Offer to create goals from templates
+    offerTemplateGoals() {
+      // Only show this if we have a userId
+      if (!this.userId) return;
 
-        if (goal && goal.personalGoalId) {
-          // Call API to update backend
-          axios.patch('/personal-goal', null, {
-            params: {
-              personalGoalId: goal.personalGoalId,
-              isDone: this.goalCompletionStatus[index]
+      this.loadedTemplates = true;
+
+      PersonalGoalService.getPersonalGoalTemplates(this.userId)
+          .then(response => {
+            const templates = response.data;
+
+            // If we have templates and no goals yet, ask user if they want to use templates
+            if (templates.length > 0) {
+              if (confirm("Would you like to add your personal goal templates for today?")) {
+                this.createGoalsFromTemplates(templates);
+              }
             }
           })
-              .then(response => {
-                console.log("Goal completion status updated in backend:", response.data);
-                // Save the updated status to localStorage
-                this.saveGoalCompletionStatus();
-              })
-              .catch(error => {
-                console.error("Error updating goal completion status in backend:", error);
-                // Revert the UI change on error
-                this.goalCompletionStatus[index] = !this.goalCompletionStatus[index];
-                this.saveGoalCompletionStatus();
-                // Optionally notify the user
-                alert("Failed to update goal status. Please try again.");
-              });
-        } else {
-          console.error("Goal or personalGoalId is missing.");
-          // Still save to localStorage even if backend update fails
-          this.saveGoalCompletionStatus();
-        }
-      } else {
-        console.error("Invalid goal index:", index);
-      }
-    },
-// Load saved completion status from localStorage
-    loadCompletionStatus() {
-      try {
-        // Create a unique key for this day and user
-        const statusKey = `goals_${this.userId}_${this.formattedDate}`;
-
-        // Try to get saved status
-        const savedStatus = localStorage.getItem(statusKey);
-
-        if (savedStatus) {
-          try {
-            // Parse saved completion statuses
-            const completionStatus = JSON.parse(savedStatus);
-
-            // If it's an array and the length matches, use it directly
-            if (Array.isArray(completionStatus) && completionStatus.length === this.personalGoals.length) {
-              this.goalCompletionStatus = completionStatus;
-              return;
-            }
-
-            // If it's an object with IDs as keys (old format), convert to array
-            if (typeof completionStatus === 'object' && !Array.isArray(completionStatus)) {
-              this.personalGoals.forEach((goal, index) => {
-                if (goal.personalGoalId &&
-                    completionStatus[goal.personalGoalId] !== undefined) {
-                  this.goalCompletionStatus[index] = completionStatus[goal.personalGoalId];
-                }
-              });
-            }
-          } catch (e) {
-            console.error("Error parsing saved completion status:", e);
-          }
-        }
-      } catch (e) {
-        console.error("Error loading completion status:", e);
-      }
+          .catch(error => {
+            console.error("Error loading personal goal templates:", error);
+          });
     },
 
-    saveGoalCompletionStatus() {
-      try {
-        // Create a unique key for this day and user
-        const statusKey = `goals_${this.userId}_${this.formattedDate}`;
+    // Create goals from templates
+    createGoalsFromTemplates(templates) {
+      if (!this.dayId) return;
 
-        // Save the entire completion status array
-        localStorage.setItem(statusKey, JSON.stringify(this.goalCompletionStatus));
-      } catch (e) {
-        console.error("Error saving completion status:", e);
+      this.isLoadingPersonalGoals = true;
+
+      PersonalGoalService.createGoalsFromTemplates(templates, this.dayId)
+          .then(() => {
+            // Reload goals after creating them
+            this.loadPersonalGoals();
+          })
+          .catch(error => {
+            console.error("Error creating goals from templates:", error);
+            this.isLoadingPersonalGoals = false;
+          });
+    },
+
+    // Toggle goal completion status
+    toggleGoalCompletion(personalGoalId, isDone) {
+      // Find the goal in our array
+      const goalIndex = this.personalGoals.findIndex(goal => goal.id === personalGoalId);
+      if (goalIndex === -1) return;
+
+      // Optimistic update - change UI immediately
+      this.personalGoals[goalIndex].isDone = isDone;
+
+      // Send update to backend
+      PersonalGoalService.updatePersonalGoalStatus(personalGoalId, isDone)
+          .catch(error => {
+            console.error("Error updating goal completion status:", error);
+
+            // Revert UI change on error
+            this.personalGoals[goalIndex].isDone = !isDone;
+
+            if (error.response?.status === 403) {
+              navigationServices.navigateToErrorView();
+            }
+          });
+    },
+
+    // Add a new personal goal
+    addPersonalGoal() {
+      if (!this.newPersonalGoal.trim() || !this.dayId) return;
+
+      const newGoal = {
+        topic: this.newPersonalGoal.trim()
+      };
+
+      PersonalGoalService.addPersonalGoal(newGoal, this.dayId)
+          .then(() => {
+            // Clear input and reload goals to get the newly added goal
+            this.newPersonalGoal = "";
+            this.loadPersonalGoals();
+          })
+          .catch(error => {
+            console.error("Error adding personal goal:", error);
+            if (error.response?.status === 403) {
+              navigationServices.navigateToErrorView();
+            }
+          });
+    },
+
+    // Delete a personal goal
+    deleteGoal(personalGoalId) {
+      // Find the goal in our array
+      const goalIndex = this.personalGoals.findIndex(goal =>
+          (goal.id === personalGoalId || goal.personalGoalId === personalGoalId)
+      );
+      if (goalIndex === -1) {
+        console.error("Goal not found with ID:", personalGoalId);
+        return;
       }
+
+      // Delete immediately without confirmation
+      PersonalGoalService.deletePersonalGoal(personalGoalId)
+          .then(() => {
+            // Remove from local array
+            this.personalGoals.splice(goalIndex, 1);
+          })
+          .catch(error => {
+            console.error("Error deleting personal goal:", error);
+            if (error.response?.status === 403) {
+              navigationServices.navigateToErrorView();
+            } else {
+              // Reload goals to ensure UI is in sync with backend
+              this.loadPersonalGoals();
+            }
+          });
     }
 
   }
