@@ -59,16 +59,8 @@ export default {
     AlertDanger,
     AlertSuccess
   },
-
   props: {
     modalIsOpen: Boolean,
-  },
-
-  beforeDestroy() {
-
-    if (this.errorTimeout) {
-      clearTimeout(this.errorTimeout);
-    }
   },
 
   data() {
@@ -81,6 +73,13 @@ export default {
       showSuccessMessage: false,
       userId: Number(sessionStorage.getItem('userId')),
       errorTimeout: null
+    }
+  },
+
+  beforeDestroy() {
+
+    if (this.errorTimeout) {
+      clearTimeout(this.errorTimeout);
     }
   },
 

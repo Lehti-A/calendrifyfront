@@ -288,37 +288,6 @@ import axios from "axios";
 export default {
   name: 'PersonalDayView',
 
-  beforeMount() {
-    this.dailyFocus = this.otherThoughts = "";
-  },
-
-  created() {
-    // First check if we came from calendar with a specific date
-    const selectedCalendarDate = sessionStorage.getItem('selectedCalendarDate');
-
-    if (selectedCalendarDate) {
-      // New date selected from calendar - update our shared date service
-      this.selectedDate = new Date(...selectedCalendarDate.split('-').map(Number)
-          .map((v, i) => i === 1 ? v - 1 : v));
-      SharedDateService.saveDate(this.selectedDate);
-      sessionStorage.removeItem('selectedCalendarDate');
-    } else {
-      // Get date from shared service (could be from Work Day view or default to today)
-      this.selectedDate = SharedDateService.getDate();
-    }
-
-    this.userId = Number(sessionStorage.getItem('userId') || '1');
-  },
-
-  mounted() {
-    this.$nextTick(this.loadSavedData);
-  },
-
-  beforeDestroy() {
-    this.dailyFocus = this.otherThoughts = "";
-    this.dayId = null;
-  },
-
   data: () => ({
     // Core data
     userId: null, dayId: null, selectedDate: null,
@@ -381,6 +350,37 @@ export default {
       const d = this.selectedDate || new Date();
       return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     }
+  },
+
+  created() {
+    // First check if we came from calendar with a specific date
+    const selectedCalendarDate = sessionStorage.getItem('selectedCalendarDate');
+
+    if (selectedCalendarDate) {
+      // New date selected from calendar - update our shared date service
+      this.selectedDate = new Date(...selectedCalendarDate.split('-').map(Number)
+          .map((v, i) => i === 1 ? v - 1 : v));
+      SharedDateService.saveDate(this.selectedDate);
+      sessionStorage.removeItem('selectedCalendarDate');
+    } else {
+      // Get date from shared service (could be from Work Day view or default to today)
+      this.selectedDate = SharedDateService.getDate();
+    }
+
+    this.userId = Number(sessionStorage.getItem('userId') || '1');
+  },
+
+  beforeMount() {
+    this.dailyFocus = this.otherThoughts = "";
+  },
+
+  mounted() {
+    this.$nextTick(this.loadSavedData);
+  },
+
+  beforeDestroy() {
+    this.dailyFocus = this.otherThoughts = "";
+    this.dayId = null;
   },
 
   methods: {

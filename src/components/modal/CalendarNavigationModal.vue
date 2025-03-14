@@ -51,7 +51,6 @@ export default {
       default: null
     }
   },
-
   methods: {
 
     closeModal() {

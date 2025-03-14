@@ -46,12 +46,10 @@ import AlertDanger from "@/components/alert/AlertDanger.vue";
 
 export default {
   name: 'LoginModal',
-
   components: {
     Modal,
     AlertDanger
   },
-
   props: {
     modalIsOpen: Boolean,
   },

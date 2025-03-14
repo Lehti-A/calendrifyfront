@@ -168,15 +168,6 @@ export default {
 
   components: {CalendarNavigationModal},
 
-  created() {
-    this.selectedDate = new Date();
-    SharedDateService.clearDate();
-    this.fetchQuote();
-    this.userId = Number(sessionStorage.getItem('userId'));
-    this.loadMonthFocuses(this.currentMonth + 1, this.currentYear);
-    this.loadCalendarData();
-  },
-
   data() {
     return {
       todayDate: new Date(),
@@ -260,6 +251,29 @@ export default {
 
       return days;
     }
+  },
+
+  watch: {
+    selectedDate(newDate) {
+      if (newDate) {
+        const newMonth = newDate.getMonth() + 1;
+        const newYear = newDate.getFullYear();
+        if (newMonth !== this.currentMonth + 1 || newYear !== this.currentYear) {
+          this.currentMonth = newDate.getMonth();
+          this.currentYear = newDate.getFullYear();
+          this.loadMonthFocuses(newMonth, newYear);
+        }
+      }
+    }
+  },
+
+  created() {
+    this.selectedDate = new Date();
+    SharedDateService.clearDate();
+    this.fetchQuote();
+    this.userId = Number(sessionStorage.getItem('userId'));
+    this.loadMonthFocuses(this.currentMonth + 1, this.currentYear);
+    this.loadCalendarData();
   },
 
   methods: {
@@ -566,20 +580,6 @@ export default {
     handleDayClick(day) {
       this.selectDate(day);
       this.openNavigationModal();
-    }
-  },
-
-  watch: {
-    selectedDate(newDate) {
-      if (newDate) {
-        const newMonth = newDate.getMonth() + 1;
-        const newYear = newDate.getFullYear();
-        if (newMonth !== this.currentMonth + 1 || newYear !== this.currentYear) {
-          this.currentMonth = newDate.getMonth();
-          this.currentYear = newDate.getFullYear();
-          this.loadMonthFocuses(newMonth, newYear);
-        }
-      }
     }
   }
 };

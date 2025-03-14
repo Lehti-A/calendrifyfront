@@ -60,15 +60,6 @@ import LoginModal from "../components/modal/LoginModal.vue";
 export default {
   name: "HomeView",
   components: {LoginModal},
-  beforeMount() {
-    this.decideIsLoggedIn()
-  },
-
-  mounted() {
-    this.checkAccountDeletedStatus();
-    this.checkRegistrationStatus();
-  },
-
   data() {
     return {
       isLoggedIn: false,
@@ -78,7 +69,17 @@ export default {
     }
   },
 
+  beforeMount() {
+    this.decideIsLoggedIn()
+  },
+
+  mounted() {
+    this.checkAccountDeletedStatus();
+    this.checkRegistrationStatus();
+  },
+
   methods: {
+
     openLoginModal() {
       this.modalIsOpen = true
     },
@@ -129,7 +130,6 @@ export default {
     dismissRegistrationAlert() {
       this.showRegistrationAlert = false;
     }
-
   }
 }
 </script>

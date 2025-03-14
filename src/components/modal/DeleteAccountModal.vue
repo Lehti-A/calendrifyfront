@@ -33,11 +33,9 @@ import NavigationServices from "@/services/NavigationServices";
 
 export default {
   name: 'DeleteAccountModal',
-
   components: {
     Modal
   },
-
   props: {
     modalIsOpen: Boolean,
   },

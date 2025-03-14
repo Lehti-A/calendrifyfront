@@ -90,13 +90,6 @@ import NavigationServices from "@/services/NavigationServices";
 export default {
   name: "RegisterView",
 
-  beforeDestroy() {
-    // Clear any existing timeout when component is destroyed
-    if (this.errorTimeout) {
-      clearTimeout(this.errorTimeout);
-    }
-  },
-
   data() {
     return {
       backgroundImage: require('@/assets/images/calendrifynew.gif'),
@@ -111,6 +104,13 @@ export default {
         termsAgreed: false,
       },
     };
+  },
+
+  beforeDestroy() {
+    // Clear any existing timeout when component is destroyed
+    if (this.errorTimeout) {
+      clearTimeout(this.errorTimeout);
+    }
   },
 
   methods: {
@@ -179,7 +179,6 @@ export default {
     navigateBack() {
       this.$router.go(-1);
     }
-
   }
 };
 </script>
