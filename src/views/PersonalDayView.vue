@@ -878,17 +878,16 @@ export default {
       await this.updateStep(milestone);
     },
 
+    //todo: Lehti kood
     loadPersonalGoals() {
       this.isLoadingPersonalGoals = true;
-
-      axios.get('/settings-personal-goal', {
-        params: { userId: this.userId }
+      axios.get('/personal-goal', {
+        params: { dayId: this.dayId }
       })
           .then(response => {
             console.log("Personal goals API response:", response.data);
 
-            // Get goals from response
-            const goals = response.data.personalGoals || response.data;
+            const goals = response.data || response.data;
 
             if (!Array.isArray(goals)) {
               console.error("Expected goals array but got:", goals);
@@ -897,10 +896,7 @@ export default {
               return;
             }
 
-            // Set the goals array
             this.personalGoals = goals.filter(goal => goal && typeof goal === 'object');
-
-            // Initialize the completion status array
             this.goalCompletionStatus = new Array(this.personalGoals.length).fill(false);
 
             // Load saved completion status
@@ -918,14 +914,44 @@ export default {
 
     toggleGoalCompletion(index) {
       if (index >= 0 && index < this.goalCompletionStatus.length) {
-        // Toggle the completion status
+        // Optimistic update
         this.goalCompletionStatus[index] = !this.goalCompletionStatus[index];
-        // Save to localStorage
-        this.saveGoalCompletionStatus();
+        const goal = this.personalGoals[index];
+
+        if (goal && goal.personalGoalId) {
+          axios.patch('/personal-goal', null, {
+            params: {
+              personalGoalId: goal.personalGoalId,
+              isDone: this.goalCompletionStatus[index]
+            }
+          })
+              .then(response => {
+                console.log("Goal completion status updated in backend:", response.data);
+                this.saveGoalCompletionStatus(); // Update localStorage on backend success
+              })
+              .catch(error => {
+                console.error("Error updating goal completion status in backend:", error);
+                // Revert the UI change
+                this.goalCompletionStatus[index] = !this.goalCompletionStatus[index];
+                this.saveGoalCompletionStatus(); // Revert localStorage on backend failure
+                // Optionally notify the user
+                alert("Failed to update goal status. Please try again.");
+              });
+        } else {
+          console.error("Goal or personalGoalId is missing.");
+          // Revert the UI change
+          this.goalCompletionStatus[index] = !this.goalCompletionStatus[index];
+          this.saveGoalCompletionStatus();
+        }
       } else {
         console.error("Invalid goal index:", index);
       }
     },
+
+
+
+
+
 
 // Load saved completion status from localStorage
     loadCompletionStatus() {
