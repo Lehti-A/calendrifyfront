@@ -104,6 +104,21 @@
           </div>
         </div>
 
+        <div v-if="showTemplateAlert" class="card semi-transparent-card mb-4 template-alert">
+          <div class="card-body">
+            <div class="d-flex align-items-center justify-content-between">
+              <div>
+                <h5 class="mb-2">Personal Goal Templates</h5>
+                <p class="mb-3">Would you like to add your personal goal templates for today?</p>
+              </div>
+              <div class="template-alert-actions">
+                <button class="btn btn-primary me-2" @click="acceptTemplateGoals">Yes, add them</button>
+                <button class="btn btn-outline-secondary" @click="declineTemplateGoals">No, thanks</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Personal Goals -->
         <div class="card semi-transparent-card mb-4 tasks-card">
           <div class="card-header bg-transparent"><strong>Personal Goals</strong></div>
@@ -322,8 +337,8 @@ export default {
     newPersonalGoal: "",
     loadedTemplates: false,
     goalCompletionStatus: [],
-
-    //todo Lehti lisatud
+    showTemplateAlert: false,
+    templateGoalsData: null,
     moodId: null,
     date: '',
     stepId: null,
@@ -930,16 +945,28 @@ export default {
           .then(response => {
             const templates = response.data;
 
-            // If we have templates and no goals yet, ask user if they want to use templates
+            // If we have templates and no goals yet, show the custom alert
             if (templates.length > 0) {
-              if (confirm("Would you like to add your personal goal templates for today?")) {
-                this.createGoalsFromTemplates(templates);
-              }
+              this.templateGoalsData = templates;
+              this.showTemplateAlert = true;
             }
           })
           .catch(error => {
             console.error("Error loading personal goal templates:", error);
           });
+    },
+
+// Add these new methods
+    acceptTemplateGoals() {
+      this.showTemplateAlert = false;
+      if (this.templateGoalsData && this.templateGoalsData.length > 0) {
+        this.createGoalsFromTemplates(this.templateGoalsData);
+      }
+    },
+
+    declineTemplateGoals() {
+      this.showTemplateAlert = false;
+      this.templateGoalsData = null;
     },
 
     // Create goals from templates

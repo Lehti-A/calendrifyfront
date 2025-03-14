@@ -553,3 +553,41 @@
     font-size: 1rem;
     color: #4a5568;
 }
+.template-alert {
+    border-left: 4px solid #007bff;
+    background-color: rgba(255, 255, 255, 0.8);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    animation: slideIn 0.3s ease-out;
+}
+
+.template-alert .card-body {
+    padding: 1.25rem;
+}
+
+.template-alert h5 {
+    color: #007bff;
+    font-weight: 600;
+}
+
+.template-alert p {
+    color: #495057;
+    margin-bottom: 0.5rem;
+}
+
+.template-alert-actions {
+    display: flex;
+    align-items: center;
+}
+
+@media (max-width: 768px) {
+    .template-alert-actions {
+        flex-direction: column;
+        align-items: flex-start;
+        margin-top: 1rem;
+    }
+
+    .template-alert-actions .btn {
+        margin-bottom: 0.5rem;
+        width: 100%;
+    }
+}
