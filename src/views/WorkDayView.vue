@@ -232,6 +232,7 @@ import DayService from '@/services/DayService';
 import ActivityService from "@/services/ActivityService";
 import navigationServices from "@/services/NavigationServices";
 import MeetingService from "@/services/MeetingService";
+import ImageService from '@/services/ImageService';
 import axios from "axios";
 
 export default {
@@ -260,6 +261,8 @@ export default {
     placeholder: "Click here to set your focus for today...",
     // Profile image
     userImageUrl: null,
+    imageId: null,
+    isLoadingImage: false,
     // Other thoughts section
     otherThoughts: "", editingThoughts: false, tempThoughts: "",
     // Activities section
@@ -325,7 +328,7 @@ export default {
 
         this.loadActivities();
         this.loadMeetings();
-        this.loadUserImage();
+        this.loadUserImage(); // Load image from backend
         this.findMood();
         this.findStep();
         this.findWater();
@@ -334,7 +337,8 @@ export default {
         this.selectedGlasses = 0;
         this.completedStepsMilestone = 0;
 
-        this.loadUserImage();
+        // Remove this duplicate call
+        // this.loadUserImage();
       } catch (error) {
         console.error("Error loading day data:", error);
         this.dailyFocus = "";
@@ -471,30 +475,78 @@ export default {
     },
 
     // ===== IMAGE METHODS =====
-    triggerImageUpload() { this.$refs.imageInput.click(); },
+    async loadUserImage() {
+      if (!this.dayId) {
+        return;
+      }
 
-    handleImageUpload(event) {
-      const file = event.target.files[0];
-      if (file && file.type.match('image.*')) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          this.userImageUrl = e.target.result;
-          localStorage.setItem('workProfileImage', this.userImageUrl);
-        };
-        reader.readAsDataURL(file);
+      this.isLoadingImage = true;
+
+      try {
+        const response = await ImageService.getImage(this.dayId);
+
+        if (response.data && response.data.data) {
+          this.imageId = response.data.imageId;
+          // Convert the data to a URL
+          this.userImageUrl = ImageService.byteArrayToDataUrl(response.data.data);
+        } else {
+          this.userImageUrl = null;
+          this.imageId = null;
+        }
+      } catch (error) {
+        // Only clear the image if it's a 404 (IMAGE_NOT_FOUND) error
+        if (error.response && error.response.status === 404) {
+          this.userImageUrl = null;
+          this.imageId = null;
+        }
+      } finally {
+        this.isLoadingImage = false;
       }
     },
 
-    deleteUserImage() {
-      this.userImageUrl = null;
-      localStorage.removeItem('workProfileImage');
+    triggerImageUpload() {
+      this.$refs.imageInput.click();
     },
 
-    loadUserImage() {
-      const savedImage = localStorage.getItem('workProfileImage');
-      if (savedImage) this.userImageUrl = savedImage;
+    async handleImageUpload(event) {
+      const file = event.target.files[0];
+      if (!file || !file.type.match('image.*')) return;
+
+      try {
+        // Show upload in progress
+        const tempUrl = URL.createObjectURL(file);
+        this.userImageUrl = tempUrl;
+
+        // Convert file to byte array
+        const byteArray = await ImageService.fileToByteArray(file);
+
+        // Upload to backend
+        await ImageService.uploadImage(this.dayId, Array.from(byteArray));
+
+        // Wait a moment before reloading (helps with timing issues)
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        // Reload image from server to get the correct imageId
+        await this.loadUserImage();
+      } catch (error) {
+        // Revert on error
+        this.userImageUrl = null;
+        alert("Failed to upload image. Please try again.");
+      }
     },
 
+    async deleteUserImage() {
+      if (!this.imageId) return;
+
+      try {
+        await ImageService.deleteImage(this.imageId);
+        this.userImageUrl = null;
+        this.imageId = null;
+      } catch (error) {
+        // Show error message to user
+        alert("Failed to delete image. Please try again.");
+      }
+    },
     // ===== MEETING METHODS =====
     async loadMeetings() {
       if (!this.dayId) return;
@@ -673,7 +725,6 @@ export default {
     async setGlasses(count) {
       await this.updateWater(count);
     },
-
     async findMood() {
       try {
         const response = await DayService.addNewDay({
@@ -690,8 +741,6 @@ export default {
         navigationServices.navigateToErrorView();
       }
     },
-
-
     async updateMood(newMood) {
       this.workMood = newMood; // Update state before making the request
 

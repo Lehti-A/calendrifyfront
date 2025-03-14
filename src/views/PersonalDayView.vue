@@ -254,6 +254,7 @@ import DayService from '@/services/DayService';
 import ActivityService from '@/services/ActivityService';
 import navigationServices from '@/services/NavigationServices';
 import MeetingService from "@/services/MeetingService";
+import ImageService from '@/services/ImageService';
 import axios from "axios";
 
 export default {
@@ -293,6 +294,9 @@ export default {
 
     // Other sections
     userImageUrl: null,
+    imageId: null,
+    isLoadingImage: false,
+
     otherThoughts: "", editingThoughts: false, tempThoughts: "",
     activities: [], newActivity: "",
     meetings: [], newMeetingTime: '', newMeetingTitle: '',
@@ -378,27 +382,7 @@ export default {
         this.isLoading = false;
       }
     },
-    // === CONTENT EDITING METHODS ===
-    // Generic editing helpers
-    startEdit(ref, prop, temp) {
-      this[temp] = this[prop];
-      this[ref] = true;
-      this.$nextTick(() => this.$refs[prop + 'Input'] && this.$refs[prop + 'Input'].focus());
-    },
-
-    saveContent(editProp, contentProp, updateMethod, clearFlag) {
-      this[editProp] = false;
-      if (clearFlag) return;
-
-      const content = typeof this[contentProp] === 'string' ? this[contentProp].trim() : this[contentProp];
-      if (this.dayId) {
-        const updateData = {dayId: this.dayId};
-        updateData[contentProp] = content;
-        DayService[updateMethod](updateData).catch(error => console.error(`Error updating ${contentProp}:`, error));
-      }
-    },
-
-    // Focus methods
+    // ===== FOCUS METHODS =====
     startEditing() {
       this.tempFocus = this.dailyFocus;
       this.isEditing = true;
@@ -406,13 +390,12 @@ export default {
     },
 
     clearFocus(event) {
-      if (event) {
-        event.preventDefault();
-        event.stopPropagation();
-      }
+      if (event) { event.preventDefault(); event.stopPropagation(); }
       this.dailyFocus = "";
       this.clearButtonClicked = true;
-      setTimeout(() => this.$refs.seamlessInput?.focus(), 50);
+      setTimeout(() => {
+        if (this.$refs.seamlessInput) this.$refs.seamlessInput.focus();
+      }, 50);
     },
 
     finishEditing() {
@@ -457,7 +440,6 @@ export default {
     },
 
     // === DATA MANAGEMENT METHODS ===
-    // Activities
     async loadActivities() {
       if (!this.dayId) return;
       this.isLoadingActivities = true;
@@ -511,29 +493,77 @@ export default {
     },
 
     // === IMAGE METHODS ===
+    async loadUserImage() {
+      if (!this.dayId) {
+        return;
+      }
+
+      this.isLoadingImage = true;
+
+      try {
+        const response = await ImageService.getImage(this.dayId);
+
+        if (response.data && response.data.data) {
+          this.imageId = response.data.imageId;
+          // Convert the data to a URL
+          this.userImageUrl = ImageService.byteArrayToDataUrl(response.data.data);
+        } else {
+          this.userImageUrl = null;
+          this.imageId = null;
+        }
+      } catch (error) {
+        // Only clear the image if it's a 404 (IMAGE_NOT_FOUND) error
+        if (error.response && error.response.status === 404) {
+          this.userImageUrl = null;
+          this.imageId = null;
+        }
+      } finally {
+        this.isLoadingImage = false;
+      }
+    },
+
     triggerImageUpload() {
       this.$refs.imageInput.click();
     },
 
-    handleImageUpload(event) {
+    async handleImageUpload(event) {
       const file = event.target.files[0];
-      if (file && file.type.match('image.*')) {
-        const reader = new FileReader();
-        reader.onload = e => {
-          this.userImageUrl = e.target.result;
-          localStorage.setItem('personalProfileImage', this.userImageUrl);
-        };
-        reader.readAsDataURL(file);
+      if (!file || !file.type.match('image.*')) return;
+
+      try {
+        // Show upload in progress
+        const tempUrl = URL.createObjectURL(file);
+        this.userImageUrl = tempUrl;
+
+        // Convert file to byte array
+        const byteArray = await ImageService.fileToByteArray(file);
+
+        // Upload to backend
+        await ImageService.uploadImage(this.dayId, Array.from(byteArray));
+
+        // Wait a moment before reloading (helps with timing issues)
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        // Reload image from server to get the correct imageId
+        await this.loadUserImage();
+      } catch (error) {
+        // Revert on error
+        this.userImageUrl = null;
+        alert("Failed to upload image. Please try again.");
       }
     },
 
-    deleteUserImage() {
-      this.userImageUrl = null;
-      localStorage.removeItem('personalProfileImage');
-    },
+    async deleteUserImage() {
+      if (!this.imageId) return;
 
-    loadUserImage() {
-      this.userImageUrl = localStorage.getItem('personalProfileImage') || null;
+      try {
+        await ImageService.deleteImage(this.imageId);
+        this.userImageUrl = null;
+        this.imageId = null;
+      } catch (error) {
+        // Show error message to user
+        alert("Failed to delete image. Please try again.");
+      }
     },
 
     // === MEETING METHODS ===
@@ -704,6 +734,7 @@ export default {
         }
       }
     },
+
     async updateWater(glassCount) {
       // Update UI immediately
       this.selectedGlasses = glassCount;
@@ -731,6 +762,7 @@ export default {
         navigationServices.navigateToErrorView();
       }
     },
+
     async setGlasses(count) {
       await this.updateWater(count);
     },
@@ -752,7 +784,6 @@ export default {
       }
     },
 
-
     async updateMood(newMood) {
       this.personalMood = newMood; // Update state before making the request
 
@@ -770,7 +801,6 @@ export default {
         navigationServices.navigateToErrorView();
       }
     },
-
 
     async findStep() {
       try {
@@ -813,6 +843,7 @@ export default {
         }
       }
     },
+
     async updateStep(newStep) {
       // Update UI immediately for better user experience
       this.completedStepsMilestone = newStep;
@@ -842,9 +873,11 @@ export default {
         navigationServices.navigateToErrorView();
       }
     },
+
     async setStepsMilestone(milestone) {
       await this.updateStep(milestone);
     },
+
     loadPersonalGoals() {
       this.isLoadingPersonalGoals = true;
 
@@ -882,7 +915,6 @@ export default {
             this.isLoadingPersonalGoals = false;
           });
     },
-
 
     toggleGoalCompletion(index) {
       if (index >= 0 && index < this.goalCompletionStatus.length) {
