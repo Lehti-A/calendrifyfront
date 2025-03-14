@@ -271,8 +271,13 @@
     min-width: 40px !important; /* reduced from 80px */
 }
 
-.completed-activity,
-.completed-task {
+.completed-activity {
+    text-decoration: line-through;
+    color: #6c757d; /* This is a muted gray color for completed items */
+}
+
+/* If you want a specific style just for goals */
+.completed-goal {
     text-decoration: line-through;
     color: #6c757d;
 }

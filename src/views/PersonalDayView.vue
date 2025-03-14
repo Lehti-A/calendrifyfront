@@ -112,7 +112,8 @@
               <li v-for="(goal, index) in personalGoals" :key="index"
                   class="list-group-item d-flex align-items-center justify-content-between">
                 <div class="task-text-container" style="flex-grow: 1; margin-right: 10px;">
-                  <span :class="{ 'completed-task': goalCompletionStatus[index] }">{{ goal.topic }}</span>
+                  <!-- Apply the completed-activity class when the goal is marked as complete -->
+                  <span :class="{ 'completed-activity': goalCompletionStatus[index] }">{{ goal.topic }}</span>
                 </div>
                 <div class="task-actions">
                   <input type="checkbox" class="form-check-input" :checked="goalCompletionStatus[index]"
@@ -914,11 +915,12 @@ export default {
 
     toggleGoalCompletion(index) {
       if (index >= 0 && index < this.goalCompletionStatus.length) {
-        // Optimistic update
+        // Optimistic update - update UI immediately
         this.goalCompletionStatus[index] = !this.goalCompletionStatus[index];
         const goal = this.personalGoals[index];
 
         if (goal && goal.personalGoalId) {
+          // Call API to update backend
           axios.patch('/personal-goal', null, {
             params: {
               personalGoalId: goal.personalGoalId,
@@ -927,32 +929,26 @@ export default {
           })
               .then(response => {
                 console.log("Goal completion status updated in backend:", response.data);
-                this.saveGoalCompletionStatus(); // Update localStorage on backend success
+                // Save the updated status to localStorage
+                this.saveGoalCompletionStatus();
               })
               .catch(error => {
                 console.error("Error updating goal completion status in backend:", error);
-                // Revert the UI change
+                // Revert the UI change on error
                 this.goalCompletionStatus[index] = !this.goalCompletionStatus[index];
-                this.saveGoalCompletionStatus(); // Revert localStorage on backend failure
+                this.saveGoalCompletionStatus();
                 // Optionally notify the user
                 alert("Failed to update goal status. Please try again.");
               });
         } else {
           console.error("Goal or personalGoalId is missing.");
-          // Revert the UI change
-          this.goalCompletionStatus[index] = !this.goalCompletionStatus[index];
+          // Still save to localStorage even if backend update fails
           this.saveGoalCompletionStatus();
         }
       } else {
         console.error("Invalid goal index:", index);
       }
     },
-
-
-
-
-
-
 // Load saved completion status from localStorage
     loadCompletionStatus() {
       try {
@@ -976,9 +972,9 @@ export default {
             // If it's an object with IDs as keys (old format), convert to array
             if (typeof completionStatus === 'object' && !Array.isArray(completionStatus)) {
               this.personalGoals.forEach((goal, index) => {
-                if (goal.personalGoalTemplateId &&
-                    completionStatus[goal.personalGoalTemplateId] !== undefined) {
-                  this.goalCompletionStatus[index] = completionStatus[goal.personalGoalTemplateId];
+                if (goal.personalGoalId &&
+                    completionStatus[goal.personalGoalId] !== undefined) {
+                  this.goalCompletionStatus[index] = completionStatus[goal.personalGoalId];
                 }
               });
             }
