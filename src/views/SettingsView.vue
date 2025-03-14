@@ -226,6 +226,21 @@ export default {
         return; // Stop execution - don't submit to API
       }
 
+      // Validate email format (check for @ symbol)
+      if (!this.userProfile.email.includes('@')) {
+        this.profileErrorMessage = "ERROR: Please enter a valid email address with @ symbol.";
+        this.showProfileErrorAlert = true;
+
+        // Restore original email value
+        this.userProfile.email = this.originalUserProfile.email;
+
+        // Hide error after 5 seconds
+        setTimeout(() => {
+          this.dismissProfileErrorAlert();
+        }, 5000);
+        return; // Stop execution - don't submit to API
+      }
+
       // If validation passes, proceed with the update
       axios.patch('/settings-user', this.userProfile, {
         params: {
@@ -247,8 +262,42 @@ export default {
             console.error("Profile update failed:", error);
             // Restore original values on API error too
             this.userProfile = JSON.parse(JSON.stringify(this.originalUserProfile));
-            // Show error message
-            this.profileErrorMessage = "ERROR: Failed to update profile. Please try again later.";
+
+            // Check for email conflict in different ways
+            let isEmailError = false;
+
+            if (error.response) {
+              // Check error status code (409 typically means conflict/duplicate)
+              if (error.response.status === 409) {
+                isEmailError = true;
+              }
+
+              // Check error data if it's a string
+              if (typeof error.response.data === 'string' &&
+                  error.response.data.toLowerCase().includes('email')) {
+                isEmailError = true;
+              }
+
+              // Check if error data is an object with message field
+              if (error.response.data && error.response.data.message &&
+                  typeof error.response.data.message === 'string' &&
+                  error.response.data.message.toLowerCase().includes('email')) {
+                isEmailError = true;
+              }
+
+              // Check if there's an email field in the error object
+              if (error.response.data && error.response.data.errors &&
+                  error.response.data.errors.email) {
+                isEmailError = true;
+              }
+            }
+
+            if (isEmailError) {
+              this.profileErrorMessage = "ERROR: Failed to update profile. email address already in use";
+            } else {
+              this.profileErrorMessage = "ERROR: Failed to update profile. Please try again later.";
+            }
+
             this.showProfileErrorAlert = true;
             // Hide after 5 seconds
             setTimeout(() => {
