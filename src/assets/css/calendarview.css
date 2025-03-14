@@ -247,3 +247,38 @@
     background-color: rgba(255, 255, 255, 0.3);
     border-top: 1px solid rgba(0, 0, 0, 0.1);
 }
+.day-indicators {
+    display: flex;
+    justify-content: center;
+    flex-wrap: nowrap; /* Changed from wrap to nowrap */
+    gap: 3px;
+    margin-top: 4px;
+    max-width: 60px; /* Increased from 30px to fit all indicators in one row */
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.indicator {
+    width: 10px;        /* Significantly larger - was 4px */
+    height: 10px;       /* Significantly larger - was 4px */
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.7); /* Add white border for emphasis */
+    box-shadow: 0 0 2px rgba(0, 0, 0, 0.3);    /* Add shadow for emphasis */
+}
+
+/* More vivid colors with higher contrast */
+.personal-activity-indicator {
+    background-color: #d500f9; /* Bright vivid purple */
+}
+
+.personal-meeting-indicator {
+    background-color: #f50057; /* Bright pink */
+}
+
+.work-activity-indicator {
+    background-color: #2979ff; /* Bright blue */
+}
+
+.work-meeting-indicator {
+    background-color: #00e676; /* Bright green */
+}

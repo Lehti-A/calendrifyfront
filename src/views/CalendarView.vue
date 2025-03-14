@@ -129,6 +129,22 @@
                    :class="{'other-month': !day.isCurrentMonth, 'current-day': day.isToday}"
                    @click="handleDayClick(day)">
                 <div class="day-number">{{ day.dayNumber }}</div>
+
+                <!-- Only show indicators for current month days -->
+                <div v-if="day.isCurrentMonth" class="day-indicators">
+                  <div v-if="hasPersonalActivities(day)"
+                       class="indicator personal-activity-indicator"
+                       title="Personal Activities"></div>
+                  <div v-if="hasPersonalMeetings(day)"
+                       class="indicator personal-meeting-indicator"
+                       title="Personal Meetings"></div>
+                  <div v-if="hasWorkActivities(day)"
+                       class="indicator work-activity-indicator"
+                       title="Work Activities"></div>
+                  <div v-if="hasWorkMeetings(day)"
+                       class="indicator work-meeting-indicator"
+                       title="Work Meetings"></div>
+                </div>
               </div>
             </div>
           </div>
@@ -143,12 +159,14 @@ import axios from 'axios';
 import CalendarNavigationModal from "@/components/modal/CalendarNavigationModal.vue";
 import navigationServices from "@/services/NavigationServices";
 import SharedDateService from '@/services/SharedDateService';
+import MeetingService from "@/services/MeetingService";
+import ActivityService from "@/services/ActivityService";
+import DayService from '@/services/DayService';
 
 export default {
   name: "CalendarView",
 
   components: {CalendarNavigationModal},
-
 
   created() {
     this.selectedDate = new Date();
@@ -156,6 +174,7 @@ export default {
     this.fetchQuote();
     this.userId = Number(sessionStorage.getItem('userId'));
     this.loadMonthFocuses(this.currentMonth + 1, this.currentYear);
+    this.loadCalendarData();
   },
 
   data() {
@@ -173,7 +192,12 @@ export default {
       personalFocuses: [],
       workFocuses: [],
       daysOfWeek: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
-      isLoading: false
+      isLoading: false,
+      daysWithPersonalActivities: {},
+      daysWithPersonalMeetings: {},
+      daysWithWorkActivities: {},
+      daysWithWorkMeetings: {},
+      isLoadingCalendarData: false,
     };
   },
 
@@ -239,6 +263,57 @@ export default {
   },
 
   methods: {
+
+    previousMonth() {
+      if (this.currentMonth === 0) {
+        this.currentMonth = 11;
+        this.currentYear--;
+      } else {
+        this.currentMonth--;
+      }
+      this.loadMonthFocuses(this.currentMonth + 1, this.currentYear);
+      this.loadCalendarData(); // Add this line
+    },
+
+    nextMonth() {
+      if (this.currentMonth === 11) {
+        this.currentMonth = 0;
+        this.currentYear++;
+      } else {
+        this.currentMonth++;
+      }
+      this.loadMonthFocuses(this.currentMonth + 1, this.currentYear);
+      this.loadCalendarData(); // Add this line
+    },
+
+    formatDateKey(date) {
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    },
+
+    hasPersonalActivities(day) {
+      if (!day.isCurrentMonth) return false;
+      const dateStr = this.formatDateKey(new Date(this.currentYear, this.currentMonth, day.dayNumber));
+      return this.daysWithPersonalActivities[dateStr] === true;
+    },
+
+    hasPersonalMeetings(day) {
+      if (!day.isCurrentMonth) return false;
+      const dateStr = this.formatDateKey(new Date(this.currentYear, this.currentMonth, day.dayNumber));
+      return this.daysWithPersonalMeetings[dateStr] === true;
+    },
+
+    hasWorkActivities(day) {
+      if (!day.isCurrentMonth) return false;
+      const dateStr = this.formatDateKey(new Date(this.currentYear, this.currentMonth, day.dayNumber));
+      return this.daysWithWorkActivities[dateStr] === true;
+    },
+
+    hasWorkMeetings(day) {
+      if (!day.isCurrentMonth) return false;
+      const dateStr = this.formatDateKey(new Date(this.currentYear, this.currentMonth, day.dayNumber));
+      return this.daysWithWorkMeetings[dateStr] === true;
+    },
+
     getMonthName(monthIndex) {
       return ['January', 'February', 'March', 'April', 'May', 'June',
         'July', 'August', 'September', 'October', 'November', 'December'][monthIndex];
@@ -386,24 +461,89 @@ export default {
       }
     },
 
-    previousMonth() {
-      if (this.currentMonth === 0) {
-        this.currentMonth = 11;
-        this.currentYear--;
-      } else {
-        this.currentMonth--;
-      }
-      this.loadMonthFocuses(this.currentMonth + 1, this.currentYear);
-    },
+    async loadCalendarData() {
+      this.isLoadingCalendarData = true;
 
-    nextMonth() {
-      if (this.currentMonth === 11) {
-        this.currentMonth = 0;
-        this.currentYear++;
-      } else {
-        this.currentMonth++;
+      // Reset data
+      this.daysWithPersonalActivities = {};
+      this.daysWithPersonalMeetings = {};
+      this.daysWithWorkActivities = {};
+      this.daysWithWorkMeetings = {};
+
+      try {
+        // Get first and last day of the month
+        const firstDay = new Date(this.currentYear, this.currentMonth, 1);
+        const lastDay = new Date(this.currentYear, this.currentMonth + 1, 0);
+
+        // Create array of dates in the month
+        const dates = [];
+        for (let d = new Date(firstDay); d <= lastDay; d.setDate(d.getDate() + 1)) {
+          dates.push(new Date(d));
+        }
+
+        // Process all dates in parallel
+        const datePromises = dates.map(async (date) => {
+          const dateStr = this.formatDateKey(date);
+
+          try {
+            // Try to get personal day
+            const personalResponse = await DayService.addNewDay({
+              userId: this.userId,
+              date: dateStr,
+              type: "P"
+            });
+
+            if (personalResponse.data && personalResponse.data.dayId) {
+              const personalDayId = personalResponse.data.dayId;
+
+              // Check for personal activities
+              const personalActivitiesResponse = await ActivityService.getActivities(personalDayId);
+              if (personalActivitiesResponse.data && personalActivitiesResponse.data.length > 0) {
+                this.daysWithPersonalActivities[dateStr] = true;
+              }
+
+              // Check for personal meetings
+              const personalMeetingsResponse = await MeetingService.getMeetings(personalDayId);
+              if (personalMeetingsResponse.data && personalMeetingsResponse.data.length > 0) {
+                this.daysWithPersonalMeetings[dateStr] = true;
+              }
+            }
+
+            // Try to get work day
+            const workResponse = await DayService.addNewDay({
+              userId: this.userId,
+              date: dateStr,
+              type: "W"
+            });
+
+            if (workResponse.data && workResponse.data.dayId) {
+              const workDayId = workResponse.data.dayId;
+
+              // Check for work activities
+              const workActivitiesResponse = await ActivityService.getActivities(workDayId);
+              if (workActivitiesResponse.data && workActivitiesResponse.data.length > 0) {
+                this.daysWithWorkActivities[dateStr] = true;
+              }
+
+              // Check for work meetings
+              const workMeetingsResponse = await MeetingService.getMeetings(workDayId);
+              if (workMeetingsResponse.data && workMeetingsResponse.data.length > 0) {
+                this.daysWithWorkMeetings[dateStr] = true;
+              }
+            }
+          } catch (error) {
+            console.error(`Error processing date ${dateStr}:`, error);
+          }
+        });
+
+        // Wait for all date processing to complete
+        await Promise.all(datePromises);
+
+      } catch (error) {
+        console.error("Error loading calendar data:", error);
+      } finally {
+        this.isLoadingCalendarData = false;
       }
-      this.loadMonthFocuses(this.currentMonth + 1, this.currentYear);
     },
 
     selectDate(day) {
