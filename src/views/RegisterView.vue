@@ -75,7 +75,7 @@
           </div>
           <div class="d-flex justify-content-between">
             <button type="button" class="btn btn-secondary flex-grow-1 me-2" @click="navigateBack">Back</button>
-            <button type="submit" class="btn btn-primary flex-grow-1" @click="addNewUser">Register</button>
+            <button type="submit" class="btn btn-primary flex-grow-1">Register</button>
           </div>
         </form>
       </div>
@@ -94,6 +94,7 @@ export default {
       backgroundImage: require('@/assets/images/calendrifynew.gif'),
       passwordRetype: '',
       errorMessage: '',
+      errorTimeout: null,
       newUser: {
         email: '',
         password: '',
@@ -104,15 +105,28 @@ export default {
     };
   },
   methods: {
+    showErrorWithTimeout(message, timeout = 5000) {
+      this.errorMessage = message;
+
+      // Clear any existing timeout
+      if (this.errorTimeout) {
+        clearTimeout(this.errorTimeout);
+      }
+
+      // Set new timeout to clear the error message
+      this.errorTimeout = setTimeout(() => {
+        this.errorMessage = '';
+      }, timeout);
+    },
     addNewUser() {
       // Check if passwords match
       if (this.newUser.password !== this.passwordRetype) {
-        this.errorMessage = "Paroolid ei kattu";
+        this.showErrorWithTimeout("Passwords do not match");
         return;
       }
       // Check if terms are agreed
       if (!this.newUser.termsAgreed) {
-        this.errorMessage = "You must agree to the Terms and Conditions";
+        this.showErrorWithTimeout("You must agree to the Terms and Conditions");
         return;
       }
       // Disable the submit button to prevent multiple submissions
@@ -139,6 +153,7 @@ export default {
           })
           .catch((error) => {
             console.error("Registration error:", error);
+            this.showErrorWithTimeout("This email is already in use. Please select a different email.");
             NavigationServices.navigateToErrorView();
 
             // Re-enable the submit button if there's an error
@@ -151,12 +166,14 @@ export default {
     navigateBack() {
       this.$router.go(-1);
     }
+  },
+  beforeDestroy() {
+    // Clear any existing timeout when component is destroyed
+    if (this.errorTimeout) {
+      clearTimeout(this.errorTimeout);
+    }
   }
 };
 </script>
 
 <style src="@/assets/css/register.css"></style>
-
-
-
-
