@@ -293,9 +293,9 @@ export default {
             }
 
             if (isEmailError) {
-              this.profileErrorMessage = "ERROR: Failed to update profile. email address already in use";
+              this.profileErrorMessage = "ERROR: Failed to update profile. Email address already in use.";
             } else {
-              this.profileErrorMessage = "ERROR: Failed to update profile. Please try again later.";
+              this.profileErrorMessage = "ERROR: Failed to update profile. Email address already in use.";
             }
 
             this.showProfileErrorAlert = true;
