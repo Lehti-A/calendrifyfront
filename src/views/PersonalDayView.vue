@@ -1063,4 +1063,4 @@ export default {
 };
 </script>
 
-<style src="@/assets/css/personaldayview.css" scoped></style>
+<style src="@/assets/css/personal-day-view.css" scoped></style>

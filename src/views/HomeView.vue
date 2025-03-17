@@ -134,4 +134,4 @@ export default {
 }
 </script>
 
-<style src="@/assets/css/homeview.css" scoped></style>
+<style src="@/assets/css/home-view.css" scoped></style>

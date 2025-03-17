@@ -585,4 +585,4 @@ export default {
 };
 </script>
 
-<style src="@/assets/css/calendarview.css" scoped></style>
+<style src="@/assets/css/calendar-view.css" scoped></style>

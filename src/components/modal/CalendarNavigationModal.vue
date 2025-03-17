@@ -91,4 +91,4 @@ export default {
 };
 </script>
 
-<style src="@/assets/css/calendarnavigationmodal.css" scoped></style>
+<style src="@/assets/css/calendar-navigation-modal.css" scoped></style>

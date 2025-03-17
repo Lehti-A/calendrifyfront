@@ -373,4 +373,4 @@ export default {
 }
 </script>
 
-<style src="@/assets/css/settingsview.css" scoped></style>
+<style src="@/assets/css/settings-view.css" scoped></style>

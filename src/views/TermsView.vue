@@ -97,4 +97,4 @@ export default {
 }
 </script>
 
-<style src="@/assets/css/termsview.css" scoped></style>
+<style src="@/assets/css/terms-view.css" scoped></style>

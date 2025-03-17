@@ -135,4 +135,4 @@ export default {
 
 </script>
 
-<style src="@/assets/css/appvue.css"></style>
+<style src="@/assets/css/app-vue.css"></style>

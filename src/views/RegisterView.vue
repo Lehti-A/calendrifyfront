@@ -183,4 +183,4 @@ export default {
 };
 </script>
 
-<style src="@/assets/css/registerview.css"></style>
+<style src="@/assets/css/register-view.css"></style>

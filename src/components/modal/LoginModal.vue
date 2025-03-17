@@ -155,4 +155,4 @@ export default {
 }
 </script>
 
-<style src="@/assets/css/loginmodal.css" scoped></style>
+<style src="@/assets/css/login-modal.css" scoped></style>

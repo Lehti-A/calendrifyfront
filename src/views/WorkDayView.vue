@@ -867,4 +867,4 @@ export default {
 };
 </script>
 
-<style src="@/assets/css/workdayview.css" scoped></style>
+<style src="@/assets/css/work-day-view.css" scoped></style>
