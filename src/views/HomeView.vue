@@ -5,17 +5,16 @@
                 @event-update-nav-menu="$emit('event-update-nav-menu')"
     />
 
-    <!-- Success Alert for Account Deletion -->
-    <div v-if="showAccountDeletedAlert" class="account-deleted-alert">
-      <div class="alert alert-success alert-dismissible fade show" role="alert">
-        Your account has been successfully deleted.
-        <button type="button" class="btn-close" @click="dismissAccountDeletedAlert" aria-label="Close"></button>
-      </div>
-    </div>
-
     <div class="content">
       <div v-if="!isLoggedIn">
-        <!-- Registration Alert moved here - above the login button -->
+        <!-- Alerts moved together above login button -->
+        <div v-if="showAccountDeletedAlert" class="account-deleted-alert">
+          <div class="alert alert-success alert-dismissible fade show" role="alert">
+            Your account has been successfully deleted.
+            <button type="button" class="btn-close" @click="dismissAccountDeletedAlert" aria-label="Close"></button>
+          </div>
+        </div>
+
         <div v-if="showRegistrationAlert" class="registration-alert">
           <div class="alert alert-success alert-dismissible fade show" role="alert">
             Your account has been successfully registered. You can now log in.
