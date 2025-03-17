@@ -13,16 +13,16 @@
       </div>
     </div>
 
-    <div v-if="showRegistrationAlert" class="account-deleted-alert">
-      <div class="alert alert-success alert-dismissible fade show" role="alert">
-        Your account has been successfully registered. You can now log in.
-        <button type="button" class="btn-close" @click="dismissRegistrationAlert" aria-label="Close"></button>
-      </div>
-    </div>
-
-
     <div class="content">
       <div v-if="!isLoggedIn">
+        <!-- Registration Alert moved here - above the login button -->
+        <div v-if="showRegistrationAlert" class="registration-alert">
+          <div class="alert alert-success alert-dismissible fade show" role="alert">
+            Your account has been successfully registered. You can now log in.
+            <button type="button" class="btn-close" @click="dismissRegistrationAlert" aria-label="Close"></button>
+          </div>
+        </div>
+
         <div class="row justify-content-center">
           <div class="col-auto">
             <button @click="openLoginModal" type="button" class="btn btn-light">Login</button>

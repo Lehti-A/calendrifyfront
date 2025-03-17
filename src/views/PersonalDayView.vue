@@ -351,7 +351,6 @@ export default {
       return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     }
   },
-
   created() {
     // First check if we came from calendar with a specific date
     const selectedCalendarDate = sessionStorage.getItem('selectedCalendarDate');
